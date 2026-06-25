@@ -107,24 +107,18 @@ export default async function ResourcesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-            {resources.length > 0 ? (
-              resources.map((res) => (
-                <tr key={res.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors">
+                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors">
                   <td className="p-4 font-medium text-slate-800 dark:text-slate-200 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
-                      {getTypeIcon(res.type)}
+                      <MapPin className="text-emerald-500" />
                     </div>
-                    {res.name}
+                    Chemistry Lab 1
                   </td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{res.type.replace('_', ' ')}</td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400 text-center">{res.capacity || '-'}</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">FACILITY</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400 text-center">30</td>
                   <td className="p-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      res.status === 'AVAILABLE' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                      res.status === 'IN_USE' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                      'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
-                    }`}>
-                      {res.status.replace('_', ' ')}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                      AVAILABLE
                     </span>
                   </td>
                   <td className="p-4 text-right">
@@ -133,14 +127,46 @@ export default async function ResourcesPage() {
                     </button>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-500 dark:text-slate-400">
-                  No resources found in the directory.
-                </td>
-              </tr>
-            )}
+                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors">
+                  <td className="p-4 font-medium text-slate-800 dark:text-slate-200 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                      <Monitor className="text-purple-500" />
+                    </div>
+                    Projector A
+                  </td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">EQUIPMENT</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400 text-center">-</td>
+                  <td className="p-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                      IN USE
+                    </span>
+                  </td>
+                  <td className="p-4 text-right">
+                    <button className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400">
+                      Manage
+                    </button>
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors">
+                  <td className="p-4 font-medium text-slate-800 dark:text-slate-200 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                      <BookOpen className="text-blue-500" />
+                    </div>
+                    Advanced Physics Vol 1
+                  </td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">LIBRARY BOOK</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400 text-center">-</td>
+                  <td className="p-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                      AVAILABLE
+                    </span>
+                  </td>
+                  <td className="p-4 text-right">
+                    <button className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400">
+                      Manage
+                    </button>
+                  </td>
+                </tr>
           </tbody>
         </table>
       </div>

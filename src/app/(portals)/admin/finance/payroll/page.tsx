@@ -37,8 +37,8 @@ export default function AutomatedPayroll() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payroll Cycle</label>
                 <select className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-700 dark:text-slate-300 font-medium">
-                  <option>November 2026</option>
-                  <option>October 2026</option>
+                  <option>June 2026</option>
+                  <option>May 2026</option>
                 </select>
               </div>
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl flex gap-3">
@@ -76,7 +76,7 @@ export default function AutomatedPayroll() {
           <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex justify-between items-center">
             <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <DollarSign size={18} className="text-slate-500" />
-              Salary Ledger (Nov 2026)
+              Salary Ledger (Jun 2026)
             </h3>
             {complete && (
               <button className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">

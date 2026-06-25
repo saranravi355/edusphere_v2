@@ -90,7 +90,7 @@ export default function TimetableManager({
         
         <div className="relative z-10 flex flex-col md:flex-row gap-8 justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight mb-2">Algorithmic Scheduling</h2>
+            <h2 className="text-2xl font-bold tracking-tight mb-2">Timetable</h2>
             <p className="text-indigo-200 text-sm mb-6 max-w-md leading-relaxed">
               Our AI evaluates permutations to map Teachers, Subjects, and Rooms without overlapping.
             </p>

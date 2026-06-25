@@ -109,6 +109,30 @@ export default async function HostelPage() {
                 </td>
                 <td className="p-4 text-blue-600 dark:text-blue-400 font-medium cursor-pointer">View Occupants</td>
               </tr>
+              <tr className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                <td className="p-4 font-bold text-slate-800 dark:text-slate-200">N-103</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">North Block</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">AC</td>
+                <td className="p-4">
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-1">
+                    <div className="bg-yellow-500 h-2 rounded-full" style={{ width: "25%" }}></div>
+                  </div>
+                  <span className="text-xs text-slate-500 mt-1">1 / 4</span>
+                </td>
+                <td className="p-4 text-blue-600 dark:text-blue-400 font-medium cursor-pointer">View Occupants</td>
+              </tr>
+              <tr className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                <td className="p-4 font-bold text-slate-800 dark:text-slate-200">S-201</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">South Block</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">Non-AC</td>
+                <td className="p-4">
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-1">
+                    <div className="bg-slate-400 h-2 rounded-full" style={{ width: "0%" }}></div>
+                  </div>
+                  <span className="text-xs text-slate-500 mt-1">0 / 4</span>
+                </td>
+                <td className="p-4 text-blue-600 dark:text-blue-400 font-medium cursor-pointer">View Occupants</td>
+              </tr>
             </tbody>
           </table>
         </div>

@@ -44,8 +44,15 @@ export default async function TeacherAttendancePage() {
     );
   }
 
-  const activeClass = teacher.classes[0];
-  const students = activeClass.students;
+  const activeClass = teacher.classes[0] || { name: "10A Science" };
+  const dbStudents = teacher.classes[0]?.students || [];
+  
+  // Demo fallback
+  const students = dbStudents.length > 0 ? dbStudents : [
+    { id: "1", name: "Aarav Patel", registrationNo: "ST-2026-001", attendances: [] },
+    { id: "2", name: "Priya Sharma", registrationNo: "ST-2026-002", attendances: [{ status: "PRESENT" }] },
+    { id: "3", name: "Rohan Kumar", registrationNo: "ST-2026-003", attendances: [] },
+  ];
 
   return (
     <div className="space-y-6 pb-12 max-w-5xl">

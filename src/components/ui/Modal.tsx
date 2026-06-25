@@ -17,7 +17,7 @@ export default function Modal({ buttonText, buttonIcon, title, children }: Modal
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors flex items-center gap-2 shadow-sm"
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
       >
         {buttonIcon}
         {buttonText}
@@ -50,7 +50,7 @@ export default function Modal({ buttonText, buttonIcon, title, children }: Modal
                   alert("Data successfully submitted!");
                   setIsOpen(false);
                 }}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors shadow-sm"
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
               >
                 Save
               </button>
