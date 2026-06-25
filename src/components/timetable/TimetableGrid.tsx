@@ -32,11 +32,13 @@ const days = [
 export default function TimetableGrid({ 
   entries, 
   isEditable = false,
-  onAllocate 
+  onAllocate,
+  onEdit
 }: { 
   entries: TimetableEntryProps[], 
   isEditable?: boolean,
-  onAllocate?: (day: number, period: number) => void 
+  onAllocate?: (day: number, period: number) => void,
+  onEdit?: (day: number, period: number) => void
 }) {
 
   const getEntry = (day: number, period: number) => {
@@ -84,7 +86,10 @@ export default function TimetableGrid({
               return (
                 <div key={`${day.id}-${period.id}`} className="p-2 border-r border-slate-100 dark:border-zinc-800/50 last:border-0 h-28 flex">
                   {entry ? (
-                    <div className={`w-full h-full rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-colors cursor-pointer hover:shadow-sm ${getColors(entry.subject)}`}>
+                    <div 
+                      onClick={() => onEdit?.(day.id, period.id)}
+                      className={`w-full h-full rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-colors cursor-pointer hover:shadow-sm ${getColors(entry.subject)}`}
+                    >
                       <span className="font-bold text-sm leading-tight mb-1">{entry.subject}</span>
                       <span className="text-xs font-medium opacity-80">{entry.teacher}</span>
                       <span className="text-[10px] opacity-70">{entry.room}</span>
