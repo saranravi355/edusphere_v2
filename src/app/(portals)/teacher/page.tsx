@@ -106,7 +106,9 @@ export default async function TeacherDashboard({ searchParams }: { searchParams:
             <FileText className="w-4 h-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">0</div>
+            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              {await prisma.homeworkSubmission.count({ where: { grade: null, homework: { teacherId: teacher?.id } } })}
+            </div>
             <p className="text-xs text-orange-500 mt-1">Assignments need review</p>
           </CardContent>
         </Card>

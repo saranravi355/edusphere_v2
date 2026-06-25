@@ -64,7 +64,9 @@ export default async function AdminDashboard() {
             <AlertTriangle className="w-4 h-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">0</div>
+            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              {await prisma.behaviorIncident.count({ where: { type: 'DEMERIT' } })}
+            </div>
             <p className="text-xs text-orange-500 mt-1">Requires intervention</p>
           </CardContent>
         </Card>
