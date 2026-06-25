@@ -1,0 +1,14 @@
+{
+  "nav": {
+    "search_placeholder": "खोजें...",
+    "search_shortcut": "Ctrl+K",
+    "notifications": "सूचनाएं",
+    "mark_all_read": "सभी को पढ़ा हुआ मानें",
+    "view_all": "सभी देखें",
+    "english": "अंग्रेज़ी",
+    "hindi": "हिंदी",
+    "tamil": "तमिल",
+    "language_label": "A/अ",
+    "language_code": "HI"
+  }
+}

@@ -72,7 +72,7 @@ export default async function ParentMeetingsPage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Select Teacher</label>
                   <select className="w-full p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     <option>Mr. Davis (Mathematics)</option>
-                    <option>Ms. Sarah (Physics)</option>
+                    <option>Ms. Sindhu (Physics)</option>
                     <option>Mrs. Smith (English)</option>
                   </select>
                 </div>

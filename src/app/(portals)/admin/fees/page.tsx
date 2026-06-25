@@ -37,8 +37,8 @@ export default async function FeesPage() {
         action={
           <Modal
             title="Create Fee Structure"
-            triggerText="New Fee Plan"
-            triggerIcon={<Plus size={16} />}
+            buttonText="New Fee Plan"
+            buttonIcon={<Plus size={16} />}
           >
             <form action={createFeeStructure} className="space-y-4 mt-4">
               <div>

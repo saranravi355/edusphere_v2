@@ -5,7 +5,7 @@ import { ShieldAlert, ThumbsUp, ThumbsDown, Search, Send, AlertTriangle } from "
 import { useState } from "react";
 
 export default function TeacherDisciplineEngine() {
-  const [selectedStudent, setSelectedStudent] = useState<string>("Jane Smith");
+  const [selectedStudent, setSelectedStudent] = useState<string>("Ananya Iyer");
   const [incidentType, setIncidentType] = useState<"positive" | "negative">("negative");
 
   return (
@@ -87,7 +87,7 @@ export default function TeacherDisciplineEngine() {
             <div className="mt-1"><AlertTriangle className="text-red-500" size={24}/></div>
             <div>
               <h3 className="font-bold text-red-800 dark:text-red-400">Critical Action Required</h3>
-              <p className="text-red-600 dark:text-red-300 text-sm mt-1 mb-3">John Doe has fallen below the -20 behavior point threshold. The system has automatically placed them on a 1-week suspension warning.</p>
+              <p className="text-red-600 dark:text-red-300 text-sm mt-1 mb-3">Aarav Patel has fallen below the -20 behavior point threshold. The system has automatically placed them on a 1-week suspension warning.</p>
               <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold shadow-md transition-colors">
                 View Escalation Protocol
               </button>
@@ -113,7 +113,7 @@ export default function TeacherDisciplineEngine() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                   <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                    <td className="p-4 text-sm font-medium text-slate-800 dark:text-slate-100">Jane Smith</td>
+                    <td className="p-4 text-sm font-medium text-slate-800 dark:text-slate-100">Ananya Iyer</td>
                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Outstanding Leadership</td>
                     <td className="p-4">
                       <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-bold">
@@ -123,7 +123,7 @@ export default function TeacherDisciplineEngine() {
                     <td className="p-4 text-sm text-slate-500">Today, 10:45 AM</td>
                   </tr>
                   <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                    <td className="p-4 text-sm font-medium text-slate-800 dark:text-slate-100">John Doe</td>
+                    <td className="p-4 text-sm font-medium text-slate-800 dark:text-slate-100">Aarav Patel</td>
                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Disrupting Class</td>
                     <td className="p-4">
                       <span className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md text-xs font-bold">

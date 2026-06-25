@@ -4,6 +4,9 @@ import PageHeader from "@/components/ui/PageHeader";
 import { CalendarDays, BrainCircuit, Wand2, CheckCircle2, AlertTriangle, Users, Building } from "lucide-react";
 import { useState } from "react";
 
+import TimetableGrid from "@/components/timetable/TimetableGrid";
+import { mockEntries } from "@/lib/mockTimetable";
+
 export default function AITimetableOptimizer() {
   const [generating, setGenerating] = useState(false);
   const [complete, setComplete] = useState(false);
@@ -17,14 +20,25 @@ export default function AITimetableOptimizer() {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
-      <PageHeader 
-        title="AI Timetable Optimizer" 
-        description="Automatically generate conflict-free schedules using constraint satisfaction algorithms."
-      />
+    <div className="space-y-6 pb-12 max-w-[1200px] mx-auto">
+      <div className="flex justify-between items-start">
+        <PageHeader 
+          title="Timetable" 
+          description="Click slots to allocate room resources and instructors"
+        />
+        
+        <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 shadow-sm mt-4">
+          <span className="text-sm font-medium text-slate-500">Section:</span>
+          <select className="bg-transparent border-none outline-none text-sm font-bold text-slate-800 dark:text-slate-100 min-w-[150px]">
+            <option>Grade 10 - Section A</option>
+            <option>Grade 10 - Section B</option>
+            <option>Grade 9 - Section A</option>
+          </select>
+        </div>
+      </div>
 
       {/* Hero Control Panel */}
-      <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
+      <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30 mb-8">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <BrainCircuit size={150} />
         </div>
@@ -60,7 +74,7 @@ export default function AITimetableOptimizer() {
                 {generating ? (
                   <><Wand2 size={18} className="animate-spin"/> Calculating Permutations...</>
                 ) : (
-                  <><BrainCircuit size={18} /> Generate Master Schedule</>
+                  <><BrainCircuit size={18} /> Auto-Generate Schedule</>
                 )}
               </button>
             ) : (
@@ -98,41 +112,15 @@ export default function AITimetableOptimizer() {
         </div>
       </div>
 
-      {complete && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-4">
-              <Users size={18} className="text-blue-500"/> Teacher Workload Distribution
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1"><span className="text-slate-600 dark:text-slate-400">Dr. Sarah Jenkins</span><span className="font-medium">18 hrs/wk</span></div>
-                <div className="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-2"><div className="bg-blue-500 h-2 rounded-full w-[60%]"></div></div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1"><span className="text-slate-600 dark:text-slate-400">Emily Clark</span><span className="font-medium">22 hrs/wk</span></div>
-                <div className="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-2"><div className="bg-blue-500 h-2 rounded-full w-[80%]"></div></div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-4">
-              <Building size={18} className="text-purple-500"/> Room Utilization
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1"><span className="text-slate-600 dark:text-slate-400">Physics Lab</span><span className="font-medium">95%</span></div>
-                <div className="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-2"><div className="bg-purple-500 h-2 rounded-full w-[95%]"></div></div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1"><span className="text-slate-600 dark:text-slate-400">Room 101</span><span className="font-medium">75%</span></div>
-                <div className="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-2"><div className="bg-purple-500 h-2 rounded-full w-[75%]"></div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className={generating ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity duration-500"}>
+        <TimetableGrid 
+          entries={complete ? mockEntries : []} 
+          isEditable={true} 
+          onAllocate={(day, period) => {
+            alert(`Allocate for Day ${day}, Period ${period}`);
+          }}
+        />
+      </div>
     </div>
   );
 }

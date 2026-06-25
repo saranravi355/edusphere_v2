@@ -15,8 +15,8 @@ export default async function FeeInvoicesPage() {
 
   const recentInvoices = await prisma.feeInvoice.findMany({
     take: 10,
-    orderBy: { issueDate: 'desc' },
-    include: { student: true, feeStructure: true }
+    orderBy: { createdAt: 'desc' },
+    include: { student: true }
   });
 
   async function generateInvoices(formData: FormData) {
@@ -33,7 +33,7 @@ export default async function FeeInvoicesPage() {
       await prisma.feeInvoice.create({
         data: {
           studentId: dummyStudent.id,
-          feeStructureId,
+          title: "Semester Fee Invoice",
           amount: 5000, // Normally fetched from feeStructure
           status: "PENDING",
           dueDate: new Date(dueDate),
@@ -91,10 +91,10 @@ export default async function FeeInvoicesPage() {
           
           <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-sm">
             <h3 className="font-medium text-green-100 mb-1">Revenue Collected (MTD)</h3>
-            <p className="text-4xl font-extrabold">$142,500</p>
+            <p className="text-4xl font-extrabold">₹1,42,500</p>
             <div className="mt-4 pt-4 border-t border-white/20 flex justify-between text-sm">
-              <span>Pending: $45,000</span>
-              <span className="text-red-200">Overdue: $8,200</span>
+              <span>Pending: ₹45,000</span>
+              <span className="text-red-200">Overdue: ₹8,200</span>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default async function FeeInvoicesPage() {
                       {inv.student.name}
                     </td>
                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
-                      {inv.feeStructure?.name || "Standard Fee"}
+                      {inv.title || "Standard Fee"}
                     </td>
                     <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-200">
                       ${inv.amount.toLocaleString()}

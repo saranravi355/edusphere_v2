@@ -20,6 +20,19 @@ export default async function StudentRegistrationPage() {
     const address = formData.get("address") as string;
     
     const curriculum = formData.get("curriculum") as string;
+    const medium = formData.get("medium") as string;
+    const groupCode = formData.get("groupCode") as string;
+    
+    // Demographics
+    const nationality = formData.get("nationality") as string;
+    const religion = formData.get("religion") as string;
+    const community = formData.get("community") as string;
+    const subCaste = formData.get("subCaste") as string;
+    const motherTongue = formData.get("motherTongue") as string;
+    const motherName = formData.get("motherName") as string;
+    const motherOccupation = formData.get("motherOccupation") as string;
+    const motherMonthlyIncome = formData.get("motherMonthlyIncome") as string;
+    const fatherName = formData.get("fatherName") as string;
     
     const medicalNotes = formData.get("medicalNotes") as string;
     const bloodGroup = formData.get("bloodGroup") as string;
@@ -39,6 +52,17 @@ export default async function StudentRegistrationPage() {
           gender,
           address,
           curriculum,
+          medium,
+          groupCode,
+          nationality,
+          religion,
+          community,
+          subCaste,
+          motherTongue,
+          motherName,
+          motherOccupation,
+          motherMonthlyIncome,
+          fatherName,
           medicalNotes,
           bloodGroup,
           learningNeeds,
@@ -104,13 +128,103 @@ export default async function StudentRegistrationPage() {
               <input required type="text" name="registrationNo" placeholder="e.g. STU-2026-001" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Curriculum</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Curriculum / Board</label>
               <select required name="curriculum" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white">
                 <option value="CBSE">CBSE</option>
                 <option value="ICSE">ICSE</option>
+                <option value="State Board">State Board</option>
                 <option value="IB">International Baccalaureate (IB)</option>
                 <option value="IGCSE">Cambridge IGCSE</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Medium of Instruction</label>
+              <input type="text" name="medium" placeholder="e.g. English" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Group Code (For HSC Only)</label>
+              <input type="text" name="groupCode" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white" />
+            </div>
+          </div>
+        </div>
+
+        {/* Demographics & Family */}
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex items-center gap-3">
+            <User className="text-orange-600 dark:text-orange-400" size={20} />
+            <h2 className="font-bold text-slate-800 dark:text-slate-100">Demographics & Family</h2>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nationality</label>
+              <select name="nationality" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white">
+                <option value="INDIAN">INDIAN</option>
+                <option value="OTHERS">OTHERS</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Religion</label>
+              <select name="religion" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white">
+                <option value="">Select...</option>
+                <option value="HINDU">HINDU</option>
+                <option value="MUSLIM">MUSLIM</option>
+                <option value="CHRISTIAN">CHRISTIAN</option>
+                <option value="OTHERS">OTHERS</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Community</label>
+              <select name="community" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white">
+                <option value="">Select...</option>
+                <option value="SC - Arunthathiyar">SC - Arunthathiyar</option>
+                <option value="SC - Others">SC - Others</option>
+                <option value="ST">ST</option>
+                <option value="MBC">MBC</option>
+                <option value="BC - Muslim">BC - Muslim</option>
+                <option value="BC - Others">BC - Others</option>
+                <option value="OC - Other Communities">OC - Other Communities</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Sub Caste</label>
+              <input type="text" name="subCaste" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mother Tongue</label>
+              <select name="motherTongue" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white">
+                <option value="">Select...</option>
+                <option value="TAMIL">TAMIL</option>
+                <option value="TELUGU">TELUGU</option>
+                <option value="MALAYALAM">MALAYALAM</option>
+                <option value="KANNADAM">KANNADAM</option>
+                <option value="OTHERS">OTHERS</option>
+              </select>
+            </div>
+            <div className="col-span-full border-t border-slate-100 dark:border-zinc-800 pt-4 mt-2">
+              <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-4">Parents Details</h3>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Father's Name</label>
+              <input type="text" name="fatherName" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mother's Name</label>
+              <input type="text" name="motherName" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mother's Occupation</label>
+              <select name="motherOccupation" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white">
+                <option value="">Select...</option>
+                <option value="Govt.">Govt.</option>
+                <option value="Private">Private</option>
+                <option value="Agriculture">Agriculture</option>
+                <option value="Self-Employed">Self-Employed</option>
+                <option value="Daily wages">Daily wages</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mother's Monthly Income (Rs.)</label>
+              <input type="number" name="motherMonthlyIncome" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-white" />
             </div>
           </div>
         </div>

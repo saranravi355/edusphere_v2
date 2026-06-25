@@ -83,7 +83,7 @@ export default function SmartSentimentAnalysis() {
                 <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h4 className="font-bold text-lg text-slate-800 dark:text-slate-100">Lucas Taylor</h4>
+                    <h4 className="font-bold text-lg text-slate-800 dark:text-slate-100">Kabir Verma</h4>
                     <p className="text-sm text-slate-500">Grade 8 • <span className="text-red-500 font-medium">High Risk (Isolation/Bullying)</span></p>
                   </div>
                   <span className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-bold font-mono">
@@ -95,7 +95,7 @@ export default function SmartSentimentAnalysis() {
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Correlated Teacher Notes</p>
                   <div className="flex gap-3 text-sm text-slate-700 dark:text-slate-300">
                     <MessageSquare size={16} className="text-slate-400 shrink-0 mt-0.5" />
-                    <p>"Lucas has been sitting alone during lunch for the past week. Seems unusually quiet in group discussions." <span className="text-xs text-slate-400 block mt-1">- Mr. Smith (2 days ago)</span></p>
+                    <p>"Kabir has been sitting alone during lunch for the past week. Seems unusually quiet in group discussions." <span className="text-xs text-slate-400 block mt-1">- Mr. Kumar (2 days ago)</span></p>
                   </div>
                   <div className="flex gap-3 text-sm text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-zinc-700/50 pt-3">
                     <TrendingDown size={16} className="text-slate-400 shrink-0 mt-0.5" />

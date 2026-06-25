@@ -33,7 +33,7 @@ export default function LandingPage() {
         className="text-center mb-12 z-10 w-full"
       >
         <h1 className="text-5xl md:text-6xl font-heading font-extrabold text-blue-700 dark:text-blue-500 tracking-tight">
-          EduSphere
+          EduSphere <span className="text-2xl text-blue-500 font-bold align-top">AlphaV1</span>
         </h1>
       </motion.div>
 
@@ -45,7 +45,7 @@ export default function LandingPage() {
       >
         {/* Student Card */}
         <Link href="/login?role=student">
-          <motion.div variants={itemVariants} className="group relative">
+          <motion.div variants={itemVariants as any} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-blue-500 rounded-b-lg">
               <GraduationCap size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -60,7 +60,7 @@ export default function LandingPage() {
 
         {/* Teacher Card */}
         <Link href="/login?role=teacher">
-          <motion.div variants={itemVariants} className="group relative">
+          <motion.div variants={itemVariants as any} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-yellow-500 rounded-b-lg">
               <Users size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -75,7 +75,7 @@ export default function LandingPage() {
 
         {/* Parent Card */}
         <Link href="/login?role=parent">
-          <motion.div variants={itemVariants} className="group relative">
+          <motion.div variants={itemVariants as any} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-green-500 rounded-b-lg">
               <UserCircle size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -90,7 +90,7 @@ export default function LandingPage() {
 
         {/* Management Card */}
         <Link href="/login?role=admin">
-          <motion.div variants={itemVariants} className="group relative">
+          <motion.div variants={itemVariants as any} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-purple-500 rounded-b-lg">
               <Building size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -105,7 +105,7 @@ export default function LandingPage() {
 
         {/* Principal Card */}
         <Link href="/login?role=principal">
-          <motion.div variants={itemVariants} className="group relative">
+          <motion.div variants={itemVariants as any} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-pink-500 rounded-b-lg">
               <Briefcase size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">

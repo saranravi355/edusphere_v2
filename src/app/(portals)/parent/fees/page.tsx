@@ -1,11 +1,11 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, FileText, CheckCircle2, Clock } from "lucide-react";
 
-const prisma = new PrismaClient();
+
 
 export default async function ParentFeesPage() {
   const session = await getSession();
@@ -127,12 +127,10 @@ export default async function ParentFeesPage() {
                       {invoice.status !== 'PAID' ? (
                         <form action={async () => {
                           "use server";
-                          const prismaDb = new PrismaClient();
-                          await prismaDb.feeInvoice.update({
+                          await prisma.feeInvoice.update({
                             where: { id: invoice.id },
                             data: { status: 'PAID', paidAt: new Date() }
                           });
-                          await prismaDb.$disconnect();
                           // Simulating redirect or refresh here usually done via revalidatePath
                           const { revalidatePath } = require("next/cache");
                           revalidatePath("/parent/fees");

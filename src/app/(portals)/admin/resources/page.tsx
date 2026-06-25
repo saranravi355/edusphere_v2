@@ -44,9 +44,9 @@ export default async function ResourcesPage() {
         description="Manage facilities, library books, and equipment availability."
         action={
           <Modal
-            title="Add Resource"
-            triggerText="New Resource"
-            triggerIcon={<Plus size={16} />}
+            title="Add New Resource"
+            buttonText="New Resource"
+            buttonIcon={<Plus size={16} />}
           >
             <form action={createResource} className="space-y-4 mt-4">
               <div>

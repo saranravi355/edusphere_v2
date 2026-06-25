@@ -4,33 +4,41 @@ import { Search, GraduationCap, BrainCircuit, ExternalLink, Activity } from "luc
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import ClassSwitcher from "@/components/teacher/ClassSwitcher";
 
 export default async function TeacherStudentsDirectory({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string; classId?: string }>;
 }) {
   const session = await getSession();
   if (!session || !['CLASS_TEACHER', 'SUBJECT_TEACHER', 'PRINCIPAL'].includes(session.user.role)) redirect('/');
 
-  const query = searchParams.q || "";
+  const resolvedParams = await searchParams;
+  const query = resolvedParams.q || "";
+  const currentClassId = resolvedParams.classId || "8A";
+  const isClassTeacher = currentClassId === "8A";
 
-  // Fetch students, filtering by query if provided
-  const students = await prisma.student.findMany({
+  const displayStudents = await prisma.student.findMany({
     where: {
-      OR: [
+      classroom: {
+        name: currentClassId
+      },
+      OR: query ? [
         { name: { contains: query } },
         { registrationNo: { contains: query } }
-      ]
+      ] : undefined
     },
     orderBy: { name: 'asc' },
-    take: 20
+    take: 50
   });
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
+      <ClassSwitcher isClassTeacher={isClassTeacher} />
+      
       <PageHeader 
-        title="Student Directory" 
+        title={`Student Directory - Class ${currentClassId}`} 
         description="Search your students to view profiles, grades, and AI insights."
       />
 
@@ -52,9 +60,9 @@ export default async function TeacherStudentsDirectory({
       </div>
 
       {/* Student List Grid */}
-      {students.length > 0 ? (
+      {displayStudents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {students.map((student) => (
+          {displayStudents.map((student) => (
             <div key={student.id} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow group flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">

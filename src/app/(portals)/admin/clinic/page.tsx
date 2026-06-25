@@ -14,7 +14,7 @@ export default async function ClinicPage() {
     <div className="flex flex-col gap-6">
       <PageHeader 
         title="Health & Clinic" 
-        subtitle="School nurse digital logbook and medical records."
+        description="School nurse digital logbook and medical records."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

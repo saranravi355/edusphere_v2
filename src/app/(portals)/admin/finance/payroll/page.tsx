@@ -65,7 +65,7 @@ export default function AutomatedPayroll() {
           {complete && (
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-sm flex flex-col justify-center animate-in fade-in slide-in-from-bottom-4">
               <p className="text-emerald-100 font-medium text-sm">Total Disbursable</p>
-              <h3 className="text-4xl font-bold mt-1">$245,600</h3>
+              <h3 className="text-4xl font-bold mt-1">₹2,45,600</h3>
               <p className="text-xs text-emerald-200 mt-2">Across 85 Staff Members</p>
             </div>
           )}
@@ -100,32 +100,32 @@ export default function AutomatedPayroll() {
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                   <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
                     <td className="p-4">
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Sarah Jenkins</p>
+                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Meena Krishnan</p>
                       <p className="text-xs text-slate-500">Principal</p>
                     </td>
-                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">$8,500.00</td>
-                    <td className="p-4 text-sm text-slate-500">$0.00 <span className="text-xs ml-1">(0 Unpaid Days)</span></td>
-                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">$8,500.00</td>
+                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">₹8,500.00</td>
+                    <td className="p-4 text-sm text-slate-500">₹0.00 <span className="text-xs ml-1">(0 Unpaid Days)</span></td>
+                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">₹8,500.00</td>
                     <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-bold w-max inline-block">Drafted</span></td>
                   </tr>
                   <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 bg-red-50/50 dark:bg-red-900/10">
                     <td className="p-4">
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">David Smith</p>
+                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Rajesh Kumar</p>
                       <p className="text-xs text-slate-500">Teacher</p>
                     </td>
-                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">$4,200.00</td>
-                    <td className="p-4 text-sm font-bold text-red-600 dark:text-red-500">-$280.00 <span className="text-xs font-normal text-slate-500 ml-1">(2 Unpaid Days)</span></td>
-                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">$3,920.00</td>
+                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">₹4,200.00</td>
+                    <td className="p-4 text-sm font-bold text-red-600 dark:text-red-500">-₹280.00 <span className="text-xs font-normal text-slate-500 ml-1">(2 Unpaid Days)</span></td>
+                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">₹3,920.00</td>
                     <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-bold w-max inline-block">Drafted</span></td>
                   </tr>
                   <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
                     <td className="p-4">
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Emily Clark</p>
+                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Sindhu Sharma</p>
                       <p className="text-xs text-slate-500">Teacher</p>
                     </td>
-                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">$4,500.00</td>
-                    <td className="p-4 text-sm text-slate-500">$0.00 <span className="text-xs ml-1">(Earned Leave Used)</span></td>
-                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">$4,500.00</td>
+                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">₹4,500.00</td>
+                    <td className="p-4 text-sm text-slate-500">₹0.00 <span className="text-xs ml-1">(Earned Leave Used)</span></td>
+                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">₹4,500.00</td>
                     <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-bold w-max inline-block">Drafted</span></td>
                   </tr>
                 </tbody>

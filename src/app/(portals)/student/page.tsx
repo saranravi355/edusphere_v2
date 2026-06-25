@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Sparkles, Target, Trophy } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 
-const prisma = new PrismaClient();
+
 
 export default async function StudentDashboard() {
   const session = await getSession();
@@ -16,6 +17,7 @@ export default async function StudentDashboard() {
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl">
+      <SchoolSnapshot role={session?.user.role || 'STUDENT'} />
       <PageHeader 
         title={`Welcome back, ${session?.user.name.split(' ')[0]}!`}
         description="Here is your academic progress and daily tasks."

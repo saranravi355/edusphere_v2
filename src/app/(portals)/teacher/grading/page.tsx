@@ -70,7 +70,7 @@ export default function TeacherGradingEngine() {
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                 <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors">
                   <td className="p-4">
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Jane Smith</p>
+                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Ananya Iyer</p>
                     <p className="text-xs text-slate-500">STU-102</p>
                   </td>
                   <td className="p-4"><input type="number" defaultValue="38" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
@@ -81,7 +81,7 @@ export default function TeacherGradingEngine() {
                 </tr>
                 <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors">
                   <td className="p-4">
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">John Doe</p>
+                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Aarav Patel</p>
                     <p className="text-xs text-slate-500">STU-101</p>
                   </td>
                   <td className="p-4"><input type="number" defaultValue="25" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
@@ -121,7 +121,7 @@ export default function TeacherGradingEngine() {
               </div>
               <div className="flex justify-between items-center border-b border-slate-100 dark:border-zinc-800 pb-2">
                 <span className="text-sm text-slate-500">Highest Score</span>
-                <span className="font-bold text-green-600 dark:text-green-500">98% (Sarah K.)</span>
+                <span className="font-bold text-green-600 dark:text-green-500">98% (Sindhu S.)</span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-100 dark:border-zinc-800 pb-2">
                 <span className="text-sm text-slate-500">Lowest Score</span>

@@ -81,11 +81,11 @@ export default function AIGrader() {
             {analyzing ? (
               <>
                 <p className="animate-pulse">Loading OCR Module v4.2...</p>
-                <p className="delay-100 opacity-0 animate-[fade-in_0s_0.5s_forwards]">Ingesting page 1: Jane Smith (STU-102)...</p>
+                <p className="delay-100 opacity-0 animate-[fade-in_0s_0.5s_forwards]">Ingesting page 1: Ananya Iyer (STU-102)...</p>
                 <p className="delay-200 opacity-0 animate-[fade-in_0s_1s_forwards] text-white">Extracting handwritten text: "Newton's second law states that F=ma..."</p>
                 <p className="delay-300 opacity-0 animate-[fade-in_0s_1.5s_forwards] text-yellow-400">Evaluating against Rubric ID: 8942...</p>
                 <p className="delay-400 opacity-0 animate-[fade-in_0s_2s_forwards] text-blue-400">Match found. Semantic similarity: 98%. Awarding 5/5 points.</p>
-                <p className="delay-500 opacity-0 animate-[fade-in_0s_2.5s_forwards]">Ingesting page 2: John Doe (STU-101)...</p>
+                <p className="delay-500 opacity-0 animate-[fade-in_0s_2.5s_forwards]">Ingesting page 2: Aarav Patel (STU-101)...</p>
                 <p className="delay-700 opacity-0 animate-[fade-in_0s_3s_forwards] text-white">Extracting handwritten text: "Force is energy..."</p>
                 <p className="delay-1000 opacity-0 animate-[fade-in_0s_3.5s_forwards] text-red-400">Incorrect definition detected. Awarding 1/5 points.</p>
               </>

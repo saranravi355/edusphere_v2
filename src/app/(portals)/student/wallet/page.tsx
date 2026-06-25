@@ -23,8 +23,8 @@ export default async function WalletPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="My Wallet" 
-        subtitle="Manage your cafeteria funds and digital payments."
+        title="Digital Wallet" 
+        description="Manage your cafeteria funds and digital payments."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -64,7 +64,7 @@ export default async function WalletPage() {
             <CreditCard size={32} />
           </div>
           <h3 className="font-bold text-navy-900 dark:text-white">Auto-Reload</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 mb-4">Your account will top-up when balance falls below $20.00</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 mb-4">Your account will top-up when balance falls below ₹20.00</p>
           <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded-full">
             Active
           </span>

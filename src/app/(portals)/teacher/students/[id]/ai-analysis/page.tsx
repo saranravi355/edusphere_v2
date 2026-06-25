@@ -1,28 +1,61 @@
 "use client";
 
 import PageHeader from "@/components/ui/PageHeader";
-import { BrainCircuit, LineChart as LineChartIcon, Target, AlertTriangle, BookOpen, AlertCircle, TrendingDown } from "lucide-react";
+import { BrainCircuit, LineChart as LineChartIcon, Target, AlertTriangle, BookOpen, AlertCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
-import { useState } from "react";
+import { useState, useMemo, use } from "react";
+import { useRouter } from "next/navigation";
 
-const performanceData = [
-  { month: "Jan", "Expected Trajectory": 85, "Actual Performance": 82 },
-  { month: "Feb", "Expected Trajectory": 86, "Actual Performance": 85 },
-  { month: "Mar", "Expected Trajectory": 87, "Actual Performance": 80 },
-  { month: "Apr", "Expected Trajectory": 88, "Actual Performance": 72 },
-  { month: "May", "Expected Trajectory": 89, "Actual Performance": 65 },
+const studentsList = [
+  { id: "demo", name: "Aarav Patel" },
+  { id: "stu_1", name: "Priya Sharma" },
+  { id: "stu_2", name: "Rohan Desai" },
+  { id: "stu_3", name: "Ananya Iyer" },
+  { id: "stu_4", name: "Kabir Singh" }
 ];
 
-const topicData = [
-  { topic: "Arithmetic", score: 92 },
-  { topic: "Geometry", score: 88 },
-  { topic: "Probability", score: 75 },
-  { topic: "Algebraic Functions", score: 45 },
-];
+const generateData = (studentId: string, subject: string) => {
+  const hash = studentId.charCodeAt(studentId.length - 1) + subject.charCodeAt(0);
+  const base = 60 + (hash % 30); // Base score between 60-90
+  
+  const perf = [];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May"];
+  for (let i = 0; i < 5; i++) {
+    perf.push({
+      month: months[i],
+      "Expected Trajectory": base + (i * 2),
+      "Actual Performance": base + (i * 2) - (hash % 10) + (i % 2 === 0 ? 5 : -2)
+    });
+  }
 
-export default function StudentAIAnalysisPage({ params }: { params: { id: string } }) {
+  const topicsMap: Record<string, string[]> = {
+    Mathematics: ["Arithmetic", "Geometry", "Probability", "Algebraic Functions"],
+    Physics: ["Kinematics", "Dynamics", "Thermodynamics", "Electromagnetism"],
+    English: ["Grammar", "Literature", "Comprehension", "Creative Writing"]
+  };
+  const topics = topicsMap[subject] || topicsMap.Mathematics;
+  
+  const topData = topics.map((t, i) => ({
+    topic: t,
+    score: Math.max(30, Math.min(100, base + (i * 5) - (hash % 15)))
+  }));
+
+  const gapTopic = topData.reduce((prev, current) => (prev.score < current.score) ? prev : current).topic;
+  const isDeclining = perf[4]["Actual Performance"] < perf[3]["Actual Performance"];
+  
+  return { perf, topData, gapTopic, isDeclining };
+};
+
+export default function StudentAIAnalysisPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const [generating, setGenerating] = useState(false);
-  const studentName = "Alex Carter";
+  const [subject, setSubject] = useState("Mathematics");
+  const router = useRouter();
+  
+  const currentStudent = studentsList.find(s => s.id === resolvedParams.id) || studentsList[0];
+  const studentName = currentStudent.name;
+
+  const { perf, topData, gapTopic, isDeclining } = useMemo(() => generateData(resolvedParams.id, subject), [resolvedParams.id, subject]);
 
   const generatePlan = () => {
     setGenerating(true);
@@ -35,10 +68,21 @@ export default function StudentAIAnalysisPage({ params }: { params: { id: string
         title={`AI Performance Analysis: ${studentName}`} 
         description="Machine Learning insights based on historical grades, attendance, and behavioral data."
         action={
-          <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition-colors">
-            <BrainCircuit size={18} />
-            <span className="font-medium">Regenerate Analysis</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <select 
+              className="px-4 py-2 border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-800 dark:text-slate-200 rounded-lg shadow-sm font-medium"
+              value={resolvedParams.id}
+              onChange={(e) => router.push(`/teacher/students/${e.target.value}/ai-analysis`)}
+            >
+              {studentsList.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <button onClick={generatePlan} className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm">
+              <BrainCircuit size={18} />
+              <span className="font-medium">Regenerate</span>
+            </button>
+          </div>
         }
       />
 
@@ -54,19 +98,23 @@ export default function StudentAIAnalysisPage({ params }: { params: { id: string
             </div>
             <div>
               <h2 className="text-2xl font-bold tracking-tight">AI Diagnostic Report</h2>
-              <p className="text-purple-300 text-sm font-medium">Confidence Interval: 94.2%</p>
+              <p className="text-purple-300 text-sm font-medium">Confidence Interval: {(90 + Math.random() * 8).toFixed(1)}%</p>
             </div>
           </div>
           
           <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6 backdrop-blur-sm">
-            <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-red-400">
-              <TrendingDown size={20} />
-              Critical Learning Gap Detected
+            <h3 className={`text-xl font-bold mb-3 flex items-center gap-2 ${isDeclining ? 'text-red-400' : 'text-green-400'}`}>
+              {isDeclining ? <TrendingDown size={20} /> : <TrendingUp size={20} />}
+              {isDeclining ? "Critical Learning Gap Detected" : "Positive Growth Trend"}
             </h3>
             <p className="text-slate-300 text-lg leading-relaxed">
-              Our ML model has detected a <strong className="text-white bg-red-500/20 px-1 rounded">20% drop</strong> in {studentName}'s recent Mathematics scores. 
-              Based on historical pattern analysis of past learnings, this correlates heavily with their prolonged 2-week absence during the introductory fractions module in Grade 8. 
-              The student is now struggling specifically with <strong className="text-white border-b border-purple-400">Algebraic Functions</strong> because they lack the foundational fraction manipulation skills required.
+              {isDeclining ? (
+                <>Our ML model has detected a <strong className="text-white bg-red-500/20 px-1 rounded">dip</strong> in {studentName}'s recent {subject} scores. 
+                Based on historical pattern analysis, they are struggling specifically with <strong className="text-white border-b border-purple-400">{gapTopic}</strong>. Immediate remediation is advised.</>
+              ) : (
+                <>Our ML model has detected a <strong className="text-white bg-green-500/20 px-1 rounded">steady improvement</strong> in {studentName}'s recent {subject} scores. 
+                They show exceptional mastery over <strong className="text-white border-b border-purple-400">{gapTopic}</strong>. Consider assigning advanced modules to maintain engagement.</>
+              )}
             </p>
           </div>
 
@@ -94,7 +142,11 @@ export default function StudentAIAnalysisPage({ params }: { params: { id: string
               <LineChartIcon className="text-blue-500" size={20} />
               Learning Trajectory Prediction
             </h3>
-            <select className="text-sm p-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-slate-50 dark:bg-zinc-900/50">
+            <select 
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="text-sm p-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-slate-50 dark:bg-zinc-900/50"
+            >
               <option>Mathematics</option>
               <option>Physics</option>
               <option>English</option>
@@ -103,7 +155,7 @@ export default function StudentAIAnalysisPage({ params }: { params: { id: string
           
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={performanceData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <AreaChart data={perf} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorExpected" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -133,11 +185,11 @@ export default function StudentAIAnalysisPage({ params }: { params: { id: string
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col">
           <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
             <Target className="text-orange-500" size={20} />
-            Topic Breakdown (Math)
+            Topic Breakdown ({subject})
           </h3>
           
           <div className="flex-1 space-y-5">
-            {topicData.map((topic, index) => (
+            {topData.map((topic, index) => (
               <div key={index}>
                 <div className="flex justify-between items-center mb-1.5">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{topic.topic}</span>
@@ -158,7 +210,11 @@ export default function StudentAIAnalysisPage({ params }: { params: { id: string
           <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-900/50 flex gap-3">
             <AlertCircle className="text-orange-600 dark:text-orange-500 shrink-0 mt-0.5" size={18} />
             <p className="text-sm text-orange-800 dark:text-orange-300 leading-relaxed">
-              Immediate intervention recommended for <strong>Algebraic Functions</strong>. Proceeding to Calculus without remediation will result in a projected 45% failure risk.
+              {isDeclining ? (
+                <>Immediate intervention recommended for <strong>{gapTopic}</strong>. Proceeding to advanced modules without remediation will result in projected failure risks.</>
+              ) : (
+                <>Student is performing well. Provide advanced exercises on <strong>{gapTopic}</strong> to maintain their positive trajectory.</>
+              )}
             </p>
           </div>
         </div>

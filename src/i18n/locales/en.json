@@ -1,0 +1,14 @@
+{
+  "nav": {
+    "search_placeholder": "Search...",
+    "search_shortcut": "Ctrl+K",
+    "notifications": "Notifications",
+    "mark_all_read": "Mark all read",
+    "view_all": "View all",
+    "english": "English",
+    "hindi": "Hindi",
+    "tamil": "Tamil",
+    "language_label": "A/अ",
+    "language_code": "EN"
+  }
+}

@@ -50,7 +50,7 @@ export default async function AdminLeaveManagement() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">DS</div>
                 <div>
-                  <h4 className="font-bold text-slate-800 dark:text-slate-100">David Smith</h4>
+                  <h4 className="font-bold text-slate-800 dark:text-slate-100">Rajesh Kumar</h4>
                   <p className="text-xs text-slate-500">Class Teacher (Grade 10)</p>
                 </div>
               </div>
@@ -76,7 +76,7 @@ export default async function AdminLeaveManagement() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">EC</div>
                 <div>
-                  <h4 className="font-bold text-slate-800 dark:text-slate-100">Emily Clark</h4>
+                  <h4 className="font-bold text-slate-800 dark:text-slate-100">Sindhu Sharma</h4>
                   <p className="text-xs text-slate-500">Subject Teacher (Physics)</p>
                 </div>
               </div>
@@ -111,11 +111,11 @@ export default async function AdminLeaveManagement() {
           <div className="p-4 space-y-4">
             <div className="p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl">
               <h4 className="font-bold text-sm text-red-800 dark:text-red-400">Math 101 - Tomorrow</h4>
-              <p className="text-xs text-red-600 dark:text-red-500 mb-2">Original Teacher: Sarah Jenkins (Sick Leave)</p>
+              <p className="text-xs text-red-600 dark:text-red-500 mb-2">Original Teacher: Meena Krishnan (Sick Leave)</p>
               <select className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-sm text-slate-700 dark:text-slate-300 mb-2">
                 <option>Assign Substitute...</option>
-                <option>David Smith (Free P1)</option>
-                <option>Emily Clark (Free P1)</option>
+                <option>Rajesh Kumar (Free P1)</option>
+                <option>Sindhu Sharma (Free P1)</option>
               </select>
               <button className="w-full py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors">Confirm Assignment</button>
             </div>
@@ -125,7 +125,7 @@ export default async function AdminLeaveManagement() {
               <p className="text-xs text-green-600 dark:text-green-500 mb-2">Original Teacher: Mark Admin (Casual Leave)</p>
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-green-200 dark:bg-green-800 flex items-center justify-center text-xs font-bold text-green-800 dark:text-green-200">EC</div>
-                <span className="text-sm font-medium text-green-700 dark:text-green-400">Assigned: Emily Clark</span>
+                <span className="text-sm font-medium text-green-700 dark:text-green-400">Assigned: Sindhu Sharma</span>
               </div>
             </div>
           </div>

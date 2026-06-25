@@ -10,6 +10,7 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
+  password  String   @default("password123")
   name      String
   role      String   @default("PARENT")
   createdAt DateTime @default(now())
@@ -40,6 +41,7 @@ model Teacher {
   clubs            Club[]
   leaveRequests    LeaveRequest[]
   quizzes          Quiz[]
+  timetable        TimetableEntry[]
 }
 
 model Parent {
@@ -73,6 +75,18 @@ model Student {
   isActive         Boolean      @default(true)
   userId           String?      @unique
   user             User?        @relation("StudentUser", fields: [userId], references: [id])
+  // New Demographic & Family Fields
+  medium           String?
+  groupCode        String?
+  nationality      String?
+  religion         String?
+  community        String?
+  subCaste         String?
+  motherTongue     String?
+  motherName       String?
+  motherOccupation String?
+  motherMonthlyIncome String?
+  fatherName       String?
   
   attendances      Attendance[]
   grades           Grade[]
@@ -243,10 +257,13 @@ model TimetableEntry {
   classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
   subjectId   String
   subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId   String?
+  teacher     Teacher?  @relation(fields: [teacherId], references: [id])
   dayOfWeek   Int       // 1 = Monday, 5 = Friday
   period      Int
   startTime   String    // "08:00"
   endTime     String    // "08:45"
+  room        String?
 }
 
 model FeeInvoice {

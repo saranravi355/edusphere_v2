@@ -1,51 +1,92 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, CheckCircle2 } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import TeacherAssignmentModal from "@/components/ui/TeacherAssignmentModal";
 import { markAttendance, assignGrade, bulkMarkPresent } from "./actions";
 
-const prisma = new PrismaClient();
 
-export default async function TeacherDashboard() {
+
+import ClassSwitcher from "@/components/teacher/ClassSwitcher";
+import StudentsRequiringSupport from "@/components/teacher/StudentsRequiringSupport";
+import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
+
+export default async function TeacherDashboard({ searchParams }: { searchParams: Promise<{ classId?: string }> }) {
   const session = await getSession();
   if (!session || (session.user.role !== 'CLASS_TEACHER' && session.user.role !== 'SUBJECT_TEACHER')) {
     redirect('/');
   }
+  
+  const resolvedParams = await searchParams;
+  const currentClassId = resolvedParams.classId || "8A";
+  const isClassTeacher = currentClassId === "8A";
 
   // Get Teacher profile
   const teacher = await prisma.teacher.findUnique({
     where: { userId: session.user.id },
-    include: {
-      classes: {
-        include: {
-          students: {
-            include: {
-              attendances: { where: { date: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } },
-              grades: true,
-            }
-          }
-        }
-      }
-    }
   });
 
-  if (!teacher || teacher.classes.length === 0) {
-    return <div>No classes assigned.</div>;
-  }
-
-  const activeClass = teacher.classes[0];
-  const students = activeClass.students;
+  // Fetch students for the currently selected class
+  const students = await prisma.student.findMany({
+    where: {
+      classroom: {
+        name: currentClassId
+      }
+    },
+    include: {
+      attendances: { where: { date: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } },
+      grades: true,
+    }
+  });
 
   const totalStudents = students.length;
   const presentCount = students.filter(s => s.attendances.some(a => a.status === 'PRESENT')).length;
   
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold font-heading">Class {activeClass.name} - {teacher.subjects}</h1>
-        <p className="text-slate-500">Period 1 (08:00 AM - 08:45 AM)</p>
+      <SchoolSnapshot role={session.user.role} />
+      
+      <ClassSwitcher isClassTeacher={isClassTeacher} />
+      
+      <div className="flex justify-between items-end">
+        <div>
+          <h1 className="text-3xl font-bold font-heading">Class {currentClassId} Overview</h1>
+          <p className="text-slate-500">Period 1 (08:00 AM - 08:45 AM) • {teacher?.subjects}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="glass-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <button className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-zinc-800 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors border border-slate-200 dark:border-zinc-700">
+                  <span className="text-2xl mb-2">📝</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Take Attendance</span>
+                </button>
+                <button className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-zinc-800 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors border border-slate-200 dark:border-zinc-700">
+                  <span className="text-2xl mb-2">📊</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Enter Grades</span>
+                </button>
+                <TeacherAssignmentModal />
+                <button className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-zinc-800 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors border border-slate-200 dark:border-zinc-700">
+                  <span className="text-2xl mb-2">🛡️</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Log Incident</span>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div>
+          <StudentsRequiringSupport />
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-6">
@@ -88,7 +129,7 @@ export default async function TeacherDashboard() {
             <CardTitle>Class Roster</CardTitle>
             <form action={async () => {
               "use server";
-              await bulkMarkPresent(activeClass.id);
+              await bulkMarkPresent(currentClassId);
             }}>
               <button type="submit" className="text-sm bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 rounded-lg font-medium transition-colors border border-teal-200 shadow-sm active:scale-95">
                 Mark All Present

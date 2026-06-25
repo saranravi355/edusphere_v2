@@ -89,8 +89,8 @@ export default function TeacherLeaveManagement() {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Substitute Teacher (Optional)</label>
                 <select className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black">
                   <option>Auto-assign</option>
-                  <option>Mr. David Smith</option>
-                  <option>Mrs. Emily Clark</option>
+                  <option>Mr. Rajesh Kumar</option>
+                  <option>Mrs. Sindhu Sharma</option>
                 </select>
               </div>
               <button type="submit" className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">
@@ -132,7 +132,7 @@ export default function TeacherLeaveManagement() {
                   <td className="p-4 text-sm font-medium">Casual Leave</td>
                   <td className="p-4 text-sm text-slate-500">Nov 5 - Nov 5</td>
                   <td className="p-4 text-sm">1 Day</td>
-                  <td className="p-4 text-sm text-slate-500">Mr. David Smith</td>
+                  <td className="p-4 text-sm text-slate-500">Mr. Rajesh Kumar</td>
                   <td className="p-4">
                     <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-medium flex items-center gap-1 w-max">
                       <Clock size={12}/> Pending

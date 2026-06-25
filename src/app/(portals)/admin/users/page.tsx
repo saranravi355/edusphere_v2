@@ -1,9 +1,9 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { Search, Filter, MoreVertical, Plus } from "lucide-react";
 import Link from "next/link";
 
-const prisma = new PrismaClient();
+
 
 export default async function UsersPage() {
   const students = await prisma.student.findMany({

@@ -1,11 +1,11 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ChevronLeft, User, Heart, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const prisma = new PrismaClient();
+
 
 export default async function StudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -102,6 +102,46 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
               ) : (
                 <p className="text-sm text-slate-500">No guardian linked.</p>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <User size={16} className="text-slate-400" /> Demographics & Background
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-slate-500 block mb-1">Nationality</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{student.nationality || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Religion</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{student.religion || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Community</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{student.community || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Mother Tongue</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{student.motherTongue || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Father's Name</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{student.fatherName || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Mother's Name</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{student.motherName || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Mother's Occupation</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{student.motherOccupation || "-"}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

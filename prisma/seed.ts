@@ -7,21 +7,22 @@ async function main() {
 
   // Create Staff (1 Principal, 2 Super Admins, 2 Teachers)
   const staffs = [
-    { email: 'principal@edusphere.com', name: 'Dr. Sarah Jenkins', role: 'PRINCIPAL' },
-    { email: 'admin1@edusphere.com', name: 'Mark Admin', role: 'SUPER_ADMIN' },
-    { email: 'admin2@edusphere.com', name: 'Lisa Admin', role: 'SUPER_ADMIN' },
-    { email: 'teacher1@edusphere.com', name: 'David Smith', role: 'CLASS_TEACHER' },
-    { email: 'teacher2@edusphere.com', name: 'Emily Clark', role: 'SUBJECT_TEACHER' }
+    { email: 'principal@edusphere.com', name: 'Dr. Meena Krishnan', role: 'PRINCIPAL' },
+    { email: 'admin1@edusphere.com', name: 'Amit Patel', role: 'SUPER_ADMIN' },
+    { email: 'admin2@edusphere.com', name: 'Priya Sharma', role: 'SUPER_ADMIN' },
+    { email: 'teacher1@edusphere.com', name: 'Rajesh Kumar', role: 'CLASS_TEACHER' },
+    { email: 'teacher2@edusphere.com', name: 'Sindhu Sharma', role: 'SUBJECT_TEACHER' }
   ];
 
   for (const staff of staffs) {
     const user = await prisma.user.upsert({
       where: { email: staff.email },
-      update: {},
+      update: { name: staff.name },
       create: {
         email: staff.email,
         name: staff.name,
-        role: staff.role
+        role: staff.role,
+        password: 'password123'
       }
     });
 
@@ -39,30 +40,69 @@ async function main() {
     }
   }
 
-  // Create 5 Students
-  const students = [
-    { name: 'John Doe', reg: 'STU-26-101', cur: 'CBSE', gender: 'Male', dob: '2010-05-15', bg: 'O+' },
-    { name: 'Jane Smith', reg: 'STU-26-102', cur: 'IGCSE', gender: 'Female', dob: '2011-02-20', bg: 'A+' },
-    { name: 'Michael Brown', reg: 'STU-26-103', cur: 'IB', gender: 'Male', dob: '2009-11-10', bg: 'B+' },
-    { name: 'Emma Wilson', reg: 'STU-26-104', cur: 'CBSE', gender: 'Female', dob: '2010-08-05', bg: 'O-' },
-    { name: 'Lucas Taylor', reg: 'STU-26-105', cur: 'ICSE', gender: 'Male', dob: '2011-12-01', bg: 'AB+' }
-  ];
+  const firstNames = ['Aarav', 'Ananya', 'Rohan', 'Kavya', 'Kabir', 'Aditi', 'Vivaan', 'Diya', 'Arjun', 'Sanya', 'Sai', 'Mira', 'Krishna', 'Isha', 'Reyansh', 'Neha', 'Aryan', 'Priya', 'Shaurya', 'Riya', 'Dhruv', 'Sneha', 'Ayaan', 'Tanya', 'Ishaan'];
+  const lastNames = ['Patel', 'Iyer', 'Desai', 'Singh', 'Verma', 'Sharma', 'Reddy', 'Rao', 'Das', 'Nair', 'Mehta', 'Bose', 'Gupta', 'Chopra', 'Joshi'];
+  const curriculums = ['CBSE', 'ICSE', 'IB', 'IGCSE'];
+  const genders = ['Male', 'Female'];
+  const bgs = ['O+', 'A+', 'B+', 'O-', 'AB+'];
+  const communities = ['OC - Other Communities', 'MBC', 'BC - Others', 'ST', 'SC - Others'];
+  const tongues = ['HINDI', 'TAMIL', 'GUJARATI', 'PUNJABI', 'TELUGU', 'MARATHI'];
+
+  const students = [];
+  for (let i = 1; i <= 30; i++) {
+    const fn = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const ln = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const gender = fn.endsWith('a') || fn.endsWith('i') ? 'Female' : 'Male'; // simple heuristic
+    students.push({
+      name: `${fn} ${ln}`,
+      reg: `STU-26-10${i.toString().padStart(2, '0')}`,
+      cur: curriculums[Math.floor(Math.random() * curriculums.length)],
+      gender: gender,
+      dob: `201${Math.floor(Math.random() * 3)}-${Math.floor(Math.random() * 11) + 1}-15`,
+      bg: bgs[Math.floor(Math.random() * bgs.length)],
+      nationality: 'INDIAN',
+      religion: 'HINDU',
+      community: communities[Math.floor(Math.random() * communities.length)],
+      motherTongue: tongues[Math.floor(Math.random() * tongues.length)],
+      fatherName: `Mr. ${ln}`,
+      motherName: `Mrs. ${ln}`,
+      motherOccupation: 'Private',
+      motherMonthlyIncome: '50000',
+      medium: 'English'
+    });
+  }
 
   for (const stu of students) {
     // Optionally create User for student
     const sUser = await prisma.user.upsert({
       where: { email: `${stu.reg.toLowerCase()}@student.edusphere.com` },
-      update: {},
+      update: { name: stu.name },
       create: {
         email: `${stu.reg.toLowerCase()}@student.edusphere.com`,
         name: stu.name,
-        role: 'STUDENT'
+        role: 'STUDENT',
+        password: 'password123'
       }
     });
 
     await prisma.student.upsert({
       where: { registrationNo: stu.reg },
-      update: {},
+      update: {
+        name: stu.name,
+        dateOfBirth: new Date(stu.dob),
+        gender: stu.gender,
+        bloodGroup: stu.bg,
+        curriculum: stu.cur,
+        nationality: stu.nationality,
+        religion: stu.religion,
+        community: stu.community,
+        motherTongue: stu.motherTongue,
+        fatherName: stu.fatherName,
+        motherName: stu.motherName,
+        motherOccupation: stu.motherOccupation,
+        motherMonthlyIncome: stu.motherMonthlyIncome,
+        medium: stu.medium
+      },
       create: {
         registrationNo: stu.reg,
         name: stu.name,
@@ -70,6 +110,16 @@ async function main() {
         gender: stu.gender,
         bloodGroup: stu.bg,
         curriculum: stu.cur,
+        nationality: stu.nationality,
+        religion: stu.religion,
+        community: stu.community,
+        motherTongue: stu.motherTongue,
+        fatherName: stu.fatherName,
+        motherName: stu.motherName,
+        motherOccupation: stu.motherOccupation,
+        motherMonthlyIncome: stu.motherMonthlyIncome,
+        medium: stu.medium,
+        isActive: true,
         userId: sUser.id,
         address: '123 School Lane, City',
         emergencyContactName: 'Parent of ' + stu.name,

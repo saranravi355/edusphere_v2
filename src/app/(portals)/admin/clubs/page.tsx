@@ -11,8 +11,8 @@ export default async function ClubsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Extracurriculars & Clubs" 
-        subtitle="Manage after-school programs, teams, and activities."
+        title="Clubs & Extracurriculars" 
+        description="Manage after-school programs, teams, and activities."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

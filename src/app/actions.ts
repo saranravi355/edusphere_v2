@@ -3,15 +3,14 @@
 import { cookies } from "next/headers";
 import { encrypt } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
   
-  if (!email) {
-    return { error: "Email is required" };
+  if (!email || !password) {
+    return { error: "Email and password are required" };
   }
 
   const user = await prisma.user.findUnique({
@@ -22,8 +21,8 @@ export async function login(formData: FormData) {
     }
   });
 
-  if (!user) {
-    return { error: "User not found" };
+  if (!user || user.password !== password) {
+    return { error: "Invalid email or password" };
   }
 
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);

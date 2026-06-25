@@ -66,7 +66,7 @@ export default function LibraryManagement() {
             </div>
             <div>
               <p className="text-orange-100 font-medium text-sm">Active Late Fees</p>
-              <h3 className="text-3xl font-bold">$125.00</h3>
+              <h3 className="text-3xl font-bold">₹125.00</h3>
               <p className="text-xs text-orange-200 mt-1">Across 8 students. Auto-added to invoices.</p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function LibraryManagement() {
                     <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Harry Potter (Vol 1)</p>
                     <p className="text-xs text-slate-500">LIB-8021</p>
                   </td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">John Doe (STU-26-101)</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Aarav Patel (STU-26-101)</td>
                   <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Nov 12, 2026</td>
                   <td className="p-4">
                     <span className="px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-medium">
@@ -117,11 +117,11 @@ export default function LibraryManagement() {
                     <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Advanced Calculus</p>
                     <p className="text-xs text-slate-500">LIB-3055</p>
                   </td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Jane Smith (STU-26-102)</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Ananya Iyer (STU-26-102)</td>
                   <td className="p-4 text-sm font-bold text-red-600 dark:text-red-400">Oct 28, 2026</td>
                   <td className="p-4">
                     <span className="px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md text-xs font-medium flex items-center gap-1 w-max">
-                      <AlertCircle size={12}/> Overdue ($15)
+                      <AlertCircle size={12}/> Overdue (₹15)
                     </span>
                   </td>
                   <td className="p-4">

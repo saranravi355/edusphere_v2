@@ -1,10 +1,10 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Clock, Calendar as CalendarIcon, CheckCircle2, XCircle } from "lucide-react";
 
-const prisma = new PrismaClient();
+
 
 export default async function ParentAttendancePage() {
   const session = await getSession();

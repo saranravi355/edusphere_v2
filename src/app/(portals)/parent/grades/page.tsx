@@ -1,11 +1,11 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, TrendingUp, Award, Download } from "lucide-react";
 
-const prisma = new PrismaClient();
+
 
 export default async function ParentGradesPage() {
   const session = await getSession();
@@ -84,8 +84,8 @@ export default async function ParentGradesPage() {
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
               {grades.map(grade => (
                 <tr key={grade.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">{grade.assessment}</td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{grade.subject.name}</td>
+                  <td className="p-4 font-medium text-slate-800 dark:text-slate-200">{grade.examName}</td>
+                  <td className="p-4 text-slate-600 dark:text-slate-400">{grade.subject.name}</td>
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{new Date(grade.date).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
                     <span className="px-2 py-1 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 rounded text-xs font-medium uppercase tracking-wider">

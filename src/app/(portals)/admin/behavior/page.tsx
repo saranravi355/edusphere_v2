@@ -15,7 +15,7 @@ export default async function BehaviorPage() {
     <div className="flex flex-col gap-6">
       <PageHeader 
         title="Behavior & Disciplinary" 
-        subtitle="Manage merits, demerits, and student conduct."
+        description="Manage merits, demerits, and student conduct."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -60,7 +60,7 @@ export default async function BehaviorPage() {
                 <select className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-500">
                   <option>Select a student...</option>
                   <option>Rahul Patel (Grade 10)</option>
-                  <option>Emma Thompson (Grade 11)</option>
+                  <option>Kavya Singh (Grade 11)</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">

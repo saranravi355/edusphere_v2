@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, BookOpen, AlertCircle } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { payFee, sendMessage } from "./actions";
+import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 
-const prisma = new PrismaClient();
+
 
 export default async function ParentDashboard() {
   const session = await getSession();
@@ -41,8 +42,10 @@ export default async function ParentDashboard() {
   const recentGrades = child.grades;
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto pb-20">
-      <div className="text-center md:text-left">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <SchoolSnapshot role={session.user.role} />
+      
+      <div>
         <h1 className="text-3xl font-bold font-heading text-slate-800 dark:text-slate-100">{child.name}'s Timeline</h1>
         <p className="text-slate-500 mt-1">Today, {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
       </div>
@@ -60,7 +63,7 @@ export default async function ParentDashboard() {
                 <p className="text-xs text-slate-500 mt-1">Due by: Oct 15, 2026</p>
               </div>
               <div className="text-right flex flex-col items-end">
-                <p className="text-xl font-bold text-slate-800 dark:text-slate-100">$1,250</p>
+                <p className="text-xl font-bold text-slate-800 dark:text-slate-100">₹1,250</p>
                 <form action={payFee}>
                   <button type="submit" className="text-xs font-semibold bg-orange-600 text-white px-4 py-1.5 rounded-lg mt-1 hover:bg-orange-700 transition-colors shadow-sm active:scale-95">
                     Pay Now

@@ -11,9 +11,9 @@ export default async function AdminTransportPage() {
   }
 
   const routes = [
-    { id: "R01", driver: "John Smith", vehicle: "Bus 12 (Yellow)", status: "On Route", students: 42, delays: "None" },
-    { id: "R02", driver: "Sarah Connor", vehicle: "Bus 04 (Blue)", status: "Delayed", students: 38, delays: "15 mins (Traffic)" },
-    { id: "R03", driver: "Michael Chang", vehicle: "Van 02 (White)", status: "Completed", students: 12, delays: "None" }
+    { id: "R01", driver: "Rajesh Kumar", vehicle: "Bus 12 (Yellow)", status: "On Route", students: 42, delays: "None" },
+    { id: "R02", driver: "Priya Sharma", vehicle: "Bus 04 (Blue)", status: "Delayed", students: 38, delays: "15 mins (Traffic)" },
+    { id: "R03", driver: "Rohan Desai", vehicle: "Van 02 (White)", status: "Completed", students: 12, delays: "None" }
   ];
 
   return (

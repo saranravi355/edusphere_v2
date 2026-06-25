@@ -1,11 +1,11 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Send, Search } from "lucide-react";
 
-const prisma = new PrismaClient();
+
 
 export default async function ParentMessagesPage() {
   const session = await getSession();
@@ -24,7 +24,7 @@ export default async function ParentMessagesPage() {
       sender: true,
       receiver: true
     },
-    orderBy: { sentAt: 'desc' }
+    orderBy: { createdAt: 'desc' }
   });
 
   return (
@@ -57,7 +57,7 @@ export default async function ParentMessagesPage() {
                     <div key={msg.id} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
                       <div className="flex justify-between items-start mb-1">
                         <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">{otherUser.name}</span>
-                        <span className="text-xs text-slate-400">{new Date(msg.sentAt).toLocaleDateString()}</span>
+                        <span className="text-xs text-slate-400">{new Date(msg.createdAt).toLocaleDateString()}</span>
                       </div>
                       <p className="text-xs text-slate-500 line-clamp-1">{msg.content}</p>
                     </div>
@@ -93,7 +93,7 @@ export default async function ParentMessagesPage() {
                 <div className={`self-start max-w-[80%] p-3 rounded-2xl rounded-tl-sm ${messages[0].senderId === session.user.id ? 'bg-blue-600 text-white self-end rounded-tl-2xl rounded-tr-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'}`}>
                   <p className="text-sm">{messages[0].content}</p>
                   <span className="text-[10px] opacity-70 mt-1 block">
-                    {new Date(messages[0].sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(messages[0].createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>

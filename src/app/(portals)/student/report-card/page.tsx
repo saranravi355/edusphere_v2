@@ -23,7 +23,7 @@ export default function StudentReportCard() {
             <p className="text-slate-500 font-medium">Official Academic Transcript</p>
           </div>
           <div className="mt-6 md:mt-0 text-left md:text-right">
-            <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">Jane Smith</h3>
+            <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">Ananya Iyer</h3>
             <p className="text-slate-500">Student ID: STU-26-102</p>
             <p className="text-slate-500">Grade 10 • Section A</p>
           </div>
@@ -74,7 +74,7 @@ export default function StudentReportCard() {
               <Sparkles size={18} className="text-purple-500" /> AI Performance Summary
             </h4>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Jane has shown exceptional aptitude in STEM subjects, specifically Mathematics, ranking in the top 2% of her cohort. Literature requires minor attention, particularly in essay structuring. Overall trajectory is highly positive.
+              Ananya has shown exceptional aptitude in STEM subjects, specifically Mathematics, ranking in the top 2% of her cohort. Literature requires minor attention, particularly in essay structuring. Overall trajectory is highly positive.
             </p>
           </div>
           

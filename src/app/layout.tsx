@@ -11,7 +11,7 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduSphere 360",
+  title: "EduSphere 360 AlphaV1",
   description: "AI-Powered International School Management Platform",
 };
 
@@ -24,10 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${outfit.variable} ${ibmMono.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950`}>
+      <body suppressHydrationWarning className={`${inter.variable} ${outfit.variable} ${ibmMono.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

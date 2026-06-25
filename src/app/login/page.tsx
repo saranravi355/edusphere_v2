@@ -4,112 +4,106 @@ import { useSearchParams } from "next/navigation";
 import { login } from "../actions";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Building, GraduationCap, Users, KeyRound, Briefcase } from "lucide-react";
+import { ArrowLeft, BookOpen } from "lucide-react";
 import { Suspense } from "react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "parent";
+  const role = searchParams.get("role") || "student";
 
-  let defaultEmail = "rahul.p@edusphere.com";
-  let RoleIcon = Users;
-  let roleTitle = "Parent / Student";
-  let themeStyles = {
-    blur: "bg-orange-500/20",
-    iconBg: "bg-orange-100 dark:bg-orange-900/30",
-    iconText: "text-orange-600 dark:text-orange-400",
-    button: "bg-orange-600 hover:bg-orange-700 shadow-orange-500/30"
-  };
+  let defaultEmail = "aarav.p@edusphere.com";
+  let roleTitle = "Student";
 
   if (role === "admin") {
     defaultEmail = "admin@edusphere.com";
-    RoleIcon = Building;
     roleTitle = "Administrator";
-    themeStyles = {
-      blur: "bg-purple-500/20",
-      iconBg: "bg-purple-100 dark:bg-purple-900/30",
-      iconText: "text-purple-600 dark:text-purple-400",
-      button: "bg-purple-600 hover:bg-purple-700 shadow-purple-500/30"
-    };
   } else if (role === "teacher") {
     defaultEmail = "meena.k@edusphere.com";
-    RoleIcon = GraduationCap;
     roleTitle = "Teacher";
-    themeStyles = {
-      blur: "bg-blue-500/20",
-      iconBg: "bg-blue-100 dark:bg-blue-900/30",
-      iconText: "text-blue-600 dark:text-blue-400",
-      button: "bg-blue-600 hover:bg-blue-700 shadow-blue-500/30"
-    };
-  } else if (role === "student") {
-    defaultEmail = "aarav.p@edusphere.com";
-    RoleIcon = GraduationCap;
-    roleTitle = "Student";
-    themeStyles = {
-      blur: "bg-indigo-500/20",
-      iconBg: "bg-indigo-100 dark:bg-indigo-900/30",
-      iconText: "text-indigo-600 dark:text-indigo-400",
-      button: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30"
-    };
+  } else if (role === "parent") {
+    defaultEmail = "rahul.p@edusphere.com";
+    roleTitle = "Parent";
   } else if (role === "principal") {
     defaultEmail = "principal@edusphere.com";
-    RoleIcon = Briefcase;
-    roleTitle = "Principal / Co-ordinator";
-    themeStyles = {
-      blur: "bg-pink-500/20",
-      iconBg: "bg-pink-100 dark:bg-pink-900/30",
-      iconText: "text-pink-600 dark:text-pink-400",
-      button: "bg-pink-600 hover:bg-pink-700 shadow-pink-500/30"
-    };
+    roleTitle = "Principal";
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 relative">
-      <Link href="/" className="absolute top-8 left-8 flex items-center text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-200 dark:bg-slate-950 p-4 sm:p-8">
+      <Link href="/" className="absolute top-8 left-8 flex items-center text-slate-600 hover:text-black dark:text-slate-400 dark:hover:text-white transition-colors font-medium">
         <ArrowLeft className="w-4 h-4 mr-2" /> Back to Roles
       </Link>
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[480px]"
       >
-        <div className={`absolute inset-0 ${themeStyles.blur} blur-3xl rounded-[3rem] -z-10`} />
-        
-        <div className="glass-card p-10 rounded-3xl shadow-2xl border border-white/20 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
-          <div className="flex flex-col items-center text-center mb-8">
-            <div className={`w-16 h-16 ${themeStyles.iconBg} ${themeStyles.iconText} rounded-2xl flex items-center justify-center mb-4`}>
-              <RoleIcon size={32} />
+        {/* Left Side - Branding & Quote */}
+        <div className="w-full md:w-1/2 p-10 md:p-14 flex flex-col items-center justify-center text-center relative bg-slate-50 dark:bg-slate-900/50">
+          
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <div className="text-slate-800 dark:text-slate-200 flex items-center justify-center">
+              <BookOpen size={56} strokeWidth={2} />
             </div>
-            <h1 className="text-3xl font-heading font-bold text-slate-800 dark:text-slate-100">Welcome Back</h1>
-            <p className="text-slate-500 mt-2">Sign in to your {roleTitle} account</p>
+            <div className="flex flex-col text-left">
+              <span className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none tracking-wide">EDU</span>
+              <span className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none tracking-wide">SPHERE<sup className="text-sm font-bold ml-1 text-blue-500">AlphaV1</sup></span>
+            </div>
           </div>
 
-          <form action={login} className="flex flex-col gap-5 text-left">
-            <div>
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Email Address</label>
-              <div className="relative mt-2">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <KeyRound className="w-5 h-5 text-slate-400" />
-                </div>
+          <h2 className="text-2xl md:text-[1.65rem] font-bold text-slate-800 dark:text-white mb-5 leading-tight max-w-[90%]">
+            Empowering the next generation of leaders and thinkers
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
+            — fostering excellence and building a brighter future, together.
+          </p>
+        </div>
+
+        {/* Right Side - Login Form */}
+        <div className="w-full md:w-1/2 p-10 md:p-16 flex flex-col justify-center bg-white dark:bg-slate-900">
+          <div className="w-full max-w-[340px] mx-auto">
+            <h3 className="text-[1.35rem] font-bold text-slate-800 dark:text-white mb-8 text-center">
+              Login to {roleTitle} Portal
+            </h3>
+
+            <form action={login as any} className="flex flex-col gap-5">
+              <div>
                 <input 
                   type="email" 
                   name="email" 
                   defaultValue={defaultEmail}
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm" 
+                  placeholder="Email Address"
+                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm" 
                   required 
                 />
               </div>
-              <p className="text-xs text-slate-400 mt-2 ml-1">For this demo, the email is pre-filled.</p>
-            </div>
-            
-            <button 
-              type="submit" 
-              className={`w-full py-3 mt-4 text-white rounded-xl shadow-lg transition-all font-semibold active:scale-[0.98] ${themeStyles.button}`}
-            >
-              Secure Login
-            </button>
-          </form>
+              
+              <div>
+                <input 
+                  type="password" 
+                  name="password" 
+                  defaultValue="password123"
+                  placeholder="Password"
+                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm" 
+                  required 
+                />
+              </div>
+              
+              <button 
+                type="submit" 
+                className="w-full py-2.5 mt-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-md transition-colors text-sm shadow-sm tracking-wide"
+              >
+                Login
+              </button>
+
+              <div className="flex justify-start mt-1">
+                <a href="#" className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline font-medium">
+                  Forgot Password?
+                </a>
+              </div>
+            </form>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -118,7 +112,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-200 dark:bg-slate-950 flex items-center justify-center text-slate-800 font-medium">Loading...</div>}>
       <LoginForm />
     </Suspense>
   );

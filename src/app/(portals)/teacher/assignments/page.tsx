@@ -1,13 +1,13 @@
 import PageHeader from "@/components/ui/PageHeader";
 import Modal from "@/components/ui/Modal";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Users, CheckCircle2, Clock, BookOpen } from "lucide-react";
 import Link from "next/link";
 
-const prisma = new PrismaClient();
+
 
 export default async function TeacherAssignmentsPage() {
   const session = await getSession();

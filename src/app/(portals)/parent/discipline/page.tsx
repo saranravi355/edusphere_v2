@@ -28,7 +28,7 @@ export default function ParentDisciplineView() {
             <TrendingUp className="text-green-600 mt-1" size={20} />
             <div>
               <h4 className="font-bold text-green-800 dark:text-green-400">Positive Incident Logged</h4>
-              <p className="text-sm text-green-700 dark:text-green-300 mt-1">"Jane showed outstanding leadership during the group science project today."</p>
+              <p className="text-sm text-green-700 dark:text-green-300 mt-1">"Ananya showed outstanding leadership during the group science project today."</p>
               <div className="flex gap-4 mt-2 text-xs font-medium text-green-600 dark:text-green-500">
                 <span>+5 Points</span>
                 <span>Mrs. Clark</span>
@@ -44,7 +44,7 @@ export default function ParentDisciplineView() {
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">"Talking out of turn during silent reading time."</p>
               <div className="flex gap-4 mt-2 text-xs font-medium text-slate-500">
                 <span className="text-red-500">-1 Point</span>
-                <span>Mr. Smith</span>
+                <span>Mr. Kumar</span>
                 <span>Oct 12</span>
               </div>
             </div>

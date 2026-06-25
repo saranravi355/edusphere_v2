@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, AlertTriangle, TrendingUp } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import AdminActionModals from "@/components/ui/AdminActionModals";
+import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 
-const prisma = new PrismaClient();
+
 
 export default async function AdminDashboard() {
   const session = await getSession();
@@ -29,6 +30,8 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      <SchoolSnapshot role={session.user.role} />
+      
       <div>
         <h1 className="text-3xl font-bold font-heading">School Health Score</h1>
         <p className="text-slate-500">Overview of {studentCount} students and {teacherCount} staff members.</p>

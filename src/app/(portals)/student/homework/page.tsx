@@ -1,11 +1,11 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, UploadCloud, Clock, CheckCircle2, FileText } from "lucide-react";
 
-const prisma = new PrismaClient();
+
 
 export default async function StudentHomeworkPage() {
   const session = await getSession();
@@ -25,7 +25,7 @@ export default async function StudentHomeworkPage() {
 
   const pendingHomeworks = await prisma.homework.findMany({
     where: {
-      classroomId: student.classroomId,
+      classroomId: student.classroomId || undefined,
       submissions: {
         none: { studentId: student.id }
       }
@@ -85,8 +85,7 @@ export default async function StudentHomeworkPage() {
                       const hasFile = formData.get("file") as File;
                       const fakeUrl = hasFile && hasFile.size > 0 ? `/uploads/students/${student.id}/${hasFile.name}` : null;
                       
-                      const db = new PrismaClient();
-                      await db.homeworkSubmission.create({
+                      await prisma.homeworkSubmission.create({
                         data: {
                           homeworkId: hw.id,
                           studentId: student.id,
