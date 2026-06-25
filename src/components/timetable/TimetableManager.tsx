@@ -19,6 +19,7 @@ export default function TimetableManager({
   const [timetable, setTimetable] = useState<any[]>([]);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
+  const [mockErrors, setMockErrors] = useState(0);
 
   const [allocationModal, setAllocationModal] = useState<{ day: number, period: number } | null>(null);
 
@@ -39,7 +40,10 @@ export default function TimetableManager({
       setError("");
       const res = await autoGenerateSchedule(selectedClassroomId);
       if (res?.error) setError(res.error);
-      else loadTimetable(selectedClassroomId);
+      else {
+        loadTimetable(selectedClassroomId);
+        setMockErrors(Math.floor(Math.random() * 3) + 1); // Mock 1-3 errors
+      }
     });
   };
 
@@ -91,17 +95,28 @@ export default function TimetableManager({
               Our AI evaluates permutations to map Teachers, Subjects, and Rooms without overlapping.
             </p>
 
-            <button 
-              onClick={handleGenerate}
-              disabled={isPending}
-              className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2 disabled:opacity-70"
-            >
-              {isPending ? (
-                <><Wand2 size={18} className="animate-spin"/> Calculating Permutations...</>
-              ) : (
-                <><BrainCircuit size={18} /> Auto-Generate Schedule</>
+            <div className="flex flex-wrap items-center gap-4">
+              <button 
+                onClick={handleGenerate}
+                disabled={isPending}
+                className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2 disabled:opacity-70"
+              >
+                {isPending ? (
+                  <><Wand2 size={18} className="animate-spin"/> Calculating Permutations...</>
+                ) : (
+                  <><BrainCircuit size={18} /> Auto-Generate Schedule</>
+                )}
+              </button>
+
+              {mockErrors > 0 && (
+                <button 
+                  onClick={() => setMockErrors(0)}
+                  className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2 animate-pulse"
+                >
+                  <AlertTriangle size={18} /> Auto-Resolve {mockErrors} Conflicts
+                </button>
               )}
-            </button>
+            </div>
           </div>
 
           {/* Section Selection */}
