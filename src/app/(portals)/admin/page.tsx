@@ -30,7 +30,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <SchoolSnapshot role={session.user.role} />
+      <SchoolSnapshot />
       
       <div>
         <h1 className="text-3xl font-bold font-heading">School Health Score</h1>

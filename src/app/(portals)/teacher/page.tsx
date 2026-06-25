@@ -45,7 +45,7 @@ export default async function TeacherDashboard({ searchParams }: { searchParams:
   
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <SchoolSnapshot role={session.user.role} />
+      <SchoolSnapshot />
       
       <ClassSwitcher isClassTeacher={isClassTeacher} />
       

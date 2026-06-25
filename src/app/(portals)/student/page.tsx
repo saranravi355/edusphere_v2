@@ -17,7 +17,7 @@ export default async function StudentDashboard() {
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl">
-      <SchoolSnapshot role={session?.user.role || 'STUDENT'} />
+      <SchoolSnapshot />
       <PageHeader 
         title={`Welcome back, ${session?.user.name.split(' ')[0]}!`}
         description="Here is your academic progress and daily tasks."

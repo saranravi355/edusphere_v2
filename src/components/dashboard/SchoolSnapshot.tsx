@@ -1,43 +1,135 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Info, Users, Clock, ShieldAlert, GraduationCap, DollarSign } from "lucide-react";
+import { Info, Users, Clock, ShieldAlert, GraduationCap, DollarSign, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { getSession } from "@/lib/session";
+import prisma from "@/lib/prisma";
 
-export default function SchoolSnapshot({ role }: { role: string }) {
-  // Mock data based on role scoping
-  const data = {
-    ADMIN: {
-      metrics: [
-        { label: "Total Students", value: "1,245", icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/users" },
-        { label: "Daily Attendance", value: "96.4%", icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
-        { label: "Active Incidents", value: "3", icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
-        { label: "Revenue MTD", value: "₹24.5L", icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-900/30", href: "/admin/analytics" },
-      ]
-    },
-    CLASS_TEACHER: {
-      metrics: [
-        { label: "Class Attendance", value: "92%", icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/teacher/attendance" },
-        { label: "Pending Grading", value: "14", icon: GraduationCap, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/teacher/grading" },
-        { label: "Support Required", value: "2", icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/teacher/students" },
-      ]
-    },
-    PARENT: {
-      metrics: [
-        { label: "Children Attending", value: "2/2", icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/parent/attendance" },
-        { label: "Upcoming Fees", value: "₹15,000", icon: DollarSign, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/parent/fees" },
-        { label: "New Messages", value: "1", icon: Info, color: "text-indigo-500", bg: "bg-indigo-100 dark:bg-indigo-900/30", href: "/parent/messages" },
-      ]
-    },
-    STUDENT: {
-      metrics: [
-        { label: "Today's Classes", value: "6", icon: Clock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/student/timetable" },
-        { label: "Homework Due", value: "2", icon: GraduationCap, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/student/homework" },
-        { label: "Wallet Balance", value: "₹450", icon: DollarSign, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/student/wallet" },
-      ]
+export default async function SchoolSnapshot() {
+  const session = await getSession();
+  if (!session) return null;
+
+  const role = session.user.role;
+  const userId = session.user.id;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  let metrics: any[] = [];
+
+  if (role === 'SUPER_ADMIN' || role === 'PRINCIPAL') {
+    const totalStudents = await prisma.student.count();
+    
+    const todayAttendances = await prisma.attendance.findMany({
+      where: { date: { gte: today } }
+    });
+    const presentCount = todayAttendances.filter(a => a.status === 'PRESENT').length;
+    const totalMarked = todayAttendances.length;
+    const attendanceRate = totalMarked > 0 ? ((presentCount / totalMarked) * 100).toFixed(1) + '%' : "0.0%";
+
+    const activeIncidents = await prisma.behaviorIncident.count({
+      where: { type: 'DEMERIT', date: { gte: startOfMonth } }
+    });
+
+    const revenueResult = await prisma.feeInvoice.aggregate({
+      where: { status: 'PAID', paidAt: { gte: startOfMonth } },
+      _sum: { amount: true }
+    });
+    const revenue = revenueResult._sum.amount || 0;
+    const formattedRevenue = revenue >= 100000 ? `₹${(revenue/100000).toFixed(1)}L` : `₹${revenue.toLocaleString()}`;
+
+    metrics = [
+      { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/users" },
+      { label: "Daily Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
+      { label: "Active Incidents", value: activeIncidents.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
+      { label: "Revenue MTD", value: formattedRevenue, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-900/30", href: "/admin/analytics" },
+    ];
+  } 
+  else if (role === 'CLASS_TEACHER' || role === 'SUBJECT_TEACHER') {
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId },
+      include: { classes: true }
+    });
+    
+    let attendanceRate = "0%";
+    if (teacher && teacher.classes.length > 0) {
+      const classId = teacher.classes[0].id;
+      const classStudents = await prisma.student.findMany({
+        where: { classroomId: classId },
+        include: { attendances: { where: { date: { gte: today } } } }
+      });
+      const total = classStudents.length;
+      const present = classStudents.filter(s => s.attendances.some(a => a.status === 'PRESENT')).length;
+      attendanceRate = total > 0 ? Math.round((present / total) * 100) + '%' : "0%";
     }
-  };
 
-  const roleKey = role === 'SUBJECT_TEACHER' ? 'CLASS_TEACHER' : role;
-  const metrics = data[roleKey as keyof typeof data]?.metrics || data.ADMIN.metrics;
+    const pendingGrading = await prisma.homeworkSubmission.count({
+      where: { grade: null, homework: { teacherId: teacher?.id } }
+    });
+
+    const supportRequired = await prisma.behaviorIncident.count({
+      where: { teacherId: teacher?.id, type: 'DEMERIT', date: { gte: startOfMonth } }
+    });
+
+    metrics = [
+      { label: "Class Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/teacher/attendance" },
+      { label: "Pending Grading", value: pendingGrading.toString(), icon: GraduationCap, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/teacher/grading" },
+      { label: "Support Required", value: supportRequired.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/teacher/students" },
+    ];
+  }
+  else if (role === 'PARENT') {
+    const parent = await prisma.parent.findUnique({
+      where: { userId },
+      include: { 
+        students: { 
+          include: { attendances: { where: { date: { gte: today } } } }
+        } 
+      }
+    });
+
+    const children = parent?.students || [];
+    const presentCount = children.filter(s => s.attendances.some(a => a.status === 'PRESENT')).length;
+    
+    const upcomingFeesResult = await prisma.feeInvoice.aggregate({
+      where: { studentId: { in: children.map(c => c.id) }, status: 'PENDING' },
+      _sum: { amount: true }
+    });
+    const upcomingFees = upcomingFeesResult._sum.amount || 0;
+
+    const unreadMessages = await prisma.message.count({
+      where: { receiverId: userId, isRead: false }
+    });
+
+    metrics = [
+      { label: "Children Attending", value: `${presentCount}/${children.length}`, icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/parent/attendance" },
+      { label: "Upcoming Fees", value: `₹${upcomingFees.toLocaleString()}`, icon: DollarSign, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/parent/fees" },
+      { label: "New Messages", value: unreadMessages.toString(), icon: MessageSquare, color: "text-indigo-500", bg: "bg-indigo-100 dark:bg-indigo-900/30", href: "/parent/messages" },
+    ];
+  }
+  else if (role === 'STUDENT') {
+    const student = await prisma.student.findUnique({
+      where: { userId },
+      include: { classroom: true }
+    });
+
+    const dayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday...
+    const todaysClasses = student?.classroomId ? await prisma.timetableEntry.count({
+      where: { classroomId: student.classroomId, dayOfWeek }
+    }) : 0;
+
+    const homeworkDue = student?.classroomId ? await prisma.homework.count({
+      where: { classroomId: student.classroomId, dueDate: { gte: today } }
+    }) : 0;
+    
+    const walletTransactions = student?.id ? await prisma.walletTransaction.findMany({ where: { studentId: student.id }}) : [];
+    const balance = walletTransactions.reduce((acc, t) => t.type === 'TOP_UP' ? acc + t.amount : acc - t.amount, 0);
+
+    metrics = [
+      { label: "Today's Classes", value: todaysClasses.toString(), icon: Clock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/student/timetable" },
+      { label: "Homework Due", value: homeworkDue.toString(), icon: GraduationCap, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/student/homework" },
+      { label: "Wallet Balance", value: `₹${balance}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/student/wallet" },
+    ];
+  }
 
   return (
     <Card className="bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-md border-none overflow-hidden mb-6">

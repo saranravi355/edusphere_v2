@@ -43,8 +43,7 @@ export default async function ParentDashboard() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <SchoolSnapshot role={session.user.role} />
-      
+      <SchoolSnapshot />
       <div>
         <h1 className="text-3xl font-bold font-heading text-slate-800 dark:text-slate-100">{child.name}'s Timeline</h1>
         <p className="text-slate-500 mt-1">Today, {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
