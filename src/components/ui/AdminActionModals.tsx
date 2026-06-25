@@ -12,14 +12,14 @@ export default function AdminActionModals() {
 
   return (
     <>
-      <div className="space-y-3">
-        <button onClick={() => setActiveModal("teacher")} className="w-full flex items-center justify-between p-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 dark:text-purple-300 transition-colors">
-          <span className="font-medium text-sm">Onboard New Teacher</span>
-          <Users className="w-4 h-4" />
+      <div className="space-y-4 mt-2">
+        <button onClick={() => setActiveModal("teacher")} className="w-full flex items-center justify-between p-4 rounded-xl bg-purple-50 border border-purple-100 hover:bg-purple-100 hover:border-purple-200 text-purple-700 dark:bg-purple-900/20 dark:border-purple-900/30 dark:hover:bg-purple-900/40 dark:text-purple-300 transition-all cursor-pointer shadow-sm hover:shadow group">
+          <span className="font-medium">Onboard New Teacher</span>
+          <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
         </button>
-        <button onClick={() => setActiveModal("announcement")} className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-300 transition-colors">
-          <span className="font-medium text-sm">School-Wide Announcement</span>
-          <AlertTriangle className="w-4 h-4" />
+        <button onClick={() => setActiveModal("announcement")} className="w-full flex items-center justify-between p-4 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-900/30 dark:hover:bg-blue-900/40 dark:text-blue-300 transition-all cursor-pointer shadow-sm hover:shadow group">
+          <span className="font-medium">School-Wide Announcement</span>
+          <AlertTriangle className="w-5 h-5 group-hover:scale-110 transition-transform" />
         </button>
       </div>
 
