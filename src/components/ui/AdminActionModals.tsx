@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Users, AlertTriangle, X } from "lucide-react";
 import { onboardTeacher, createAnnouncement } from "@/app/(portals)/admin/actions";
 
 export default function AdminActionModals() {
   const [activeModal, setActiveModal] = useState<"none" | "teacher" | "announcement">("none");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const close = () => setActiveModal("none");
 
@@ -23,8 +29,8 @@ export default function AdminActionModals() {
         </button>
       </div>
 
-      {activeModal !== "none" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      {mounted && activeModal !== "none" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <button onClick={close} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
               <X size={20} />
@@ -82,7 +88,8 @@ export default function AdminActionModals() {
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
