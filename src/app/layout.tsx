@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Outfit, IBM_Plex_Mono } from "next/font/google";
+import { Poppins, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-heading" });
+const poppins = Poppins({ 
+  weight: ['400', '500', '600', '700', '800'],
+  subsets: ["latin"], 
+  variable: "--font-sans" 
+});
+const poppinsHeading = Poppins({ 
+  weight: ['400', '500', '600', '700', '800'],
+  subsets: ["latin"], 
+  variable: "--font-heading" 
+});
 const ibmMono = IBM_Plex_Mono({
   weight: ['400', '500', '600', '700'],
   variable: "--font-mono",
@@ -24,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${inter.variable} ${outfit.variable} ${ibmMono.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950`}>
+      <body suppressHydrationWarning className={`${poppins.variable} ${poppinsHeading.variable} ${ibmMono.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

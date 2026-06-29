@@ -23,12 +23,12 @@ export default function TeacherGradingEngine() {
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
         <div className="flex gap-4 items-center w-full md:w-auto">
           <select className="p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black font-medium text-slate-700 dark:text-slate-300">
-            <option>Class 10-A (Science)</option>
-            <option>Class 10-B (Science)</option>
+            <option>Class 11 DP (Mathematics HL)</option>
+            <option>Class 11 DP (Physics HL)</option>
           </select>
           <select className="p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black font-medium text-slate-700 dark:text-slate-300">
-            <option>Midterm Exam</option>
-            <option>Final Exam</option>
+            <option>Semester 1 Mock Exams</option>
+            <option>Final Predicted Grades</option>
           </select>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
@@ -60,11 +60,12 @@ export default function TeacherGradingEngine() {
               <thead>
                 <tr className="border-b border-slate-200 dark:border-zinc-800 text-xs uppercase text-slate-500 bg-slate-50 dark:bg-zinc-900/30">
                   <th className="p-4 font-medium min-w-[200px]">Student Name</th>
-                  <th className="p-4 font-medium">MCQ (40)</th>
-                  <th className="p-4 font-medium">Theory (60)</th>
-                  <th className="p-4 font-medium">Total (100)</th>
-                  <th className="p-4 font-medium">Percentile</th>
-                  <th className="p-4 font-medium">Final Grade</th>
+                  <th className="p-4 font-medium">IA Raw (20)</th>
+                  <th className="p-4 font-medium">EA Mock (80)</th>
+                  <th className="p-4 font-medium">Total %</th>
+                  <th className="p-4 font-medium">Band Projection</th>
+                  <th className="p-4 font-medium">IB Grade (1-7)</th>
+                  <th className="p-4 font-medium min-w-[250px]">Teacher Comments</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -73,33 +74,36 @@ export default function TeacherGradingEngine() {
                     <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Ananya Iyer</p>
                     <p className="text-xs text-slate-500">STU-102</p>
                   </td>
-                  <td className="p-4"><input type="number" defaultValue="38" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
-                  <td className="p-4"><input type="number" defaultValue="55" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
-                  <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">93</td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">98th</td>
-                  <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-bold w-10 text-center inline-block">A+</span></td>
+                  <td className="p-4"><input type="number" defaultValue="18" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
+                  <td className="p-4"><input type="number" defaultValue="72" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
+                  <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">90%</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">High 7</td>
+                  <td className="p-4"><span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-sm font-bold w-10 text-center inline-block">7</span></td>
+                  <td className="p-4"><input type="text" defaultValue="Excellent grasp of mathematical concepts. Consistently high performance in calculus." className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black text-slate-700 dark:text-slate-300 placeholder:text-slate-400" placeholder="Enter feedback..." /></td>
                 </tr>
                 <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors">
                   <td className="p-4">
                     <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Aarav Patel</p>
                     <p className="text-xs text-slate-500">STU-101</p>
                   </td>
-                  <td className="p-4"><input type="number" defaultValue="25" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
-                  <td className="p-4"><input type="number" defaultValue="42" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
-                  <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">67</td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">45th</td>
-                  <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-bold w-10 text-center inline-block">B</span></td>
+                  <td className="p-4"><input type="number" defaultValue="12" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
+                  <td className="p-4"><input type="number" defaultValue="55" className="w-16 p-1.5 border border-slate-300 dark:border-zinc-700 rounded text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black" /></td>
+                  <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">67%</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Mid 5</td>
+                  <td className="p-4"><span className="px-3 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-sm font-bold w-10 text-center inline-block">5</span></td>
+                  <td className="p-4"><input type="text" defaultValue="Needs to focus more on structuring IA proofs. Good effort overall." className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-black text-slate-700 dark:text-slate-300 placeholder:text-slate-400" placeholder="Enter feedback..." /></td>
                 </tr>
                 <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors bg-red-50/50 dark:bg-red-900/10">
                   <td className="p-4">
                     <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Alex Carter</p>
                     <p className="text-xs text-slate-500 flex items-center gap-1 text-red-500"><AlertCircle size={12}/> Needs Review</p>
                   </td>
-                  <td className="p-4"><input type="number" defaultValue="12" className="w-16 p-1.5 border border-red-300 dark:border-red-900/50 rounded text-center text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none bg-white dark:bg-black text-red-600" /></td>
-                  <td className="p-4"><input type="number" defaultValue="20" className="w-16 p-1.5 border border-red-300 dark:border-red-900/50 rounded text-center text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none bg-white dark:bg-black text-red-600" /></td>
-                  <td className="p-4 text-sm font-bold text-red-600 dark:text-red-500">32</td>
-                  <td className="p-4 text-sm text-red-600 dark:text-red-500">5th</td>
-                  <td className="p-4"><span className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md text-xs font-bold w-10 text-center inline-block">F</span></td>
+                  <td className="p-4"><input type="number" defaultValue="6" className="w-16 p-1.5 border border-red-300 dark:border-red-900/50 rounded text-center text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none bg-white dark:bg-black text-red-600" /></td>
+                  <td className="p-4"><input type="number" defaultValue="30" className="w-16 p-1.5 border border-red-300 dark:border-red-900/50 rounded text-center text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none bg-white dark:bg-black text-red-600" /></td>
+                  <td className="p-4 text-sm font-bold text-red-600 dark:text-red-500">36%</td>
+                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Low 3</td>
+                  <td className="p-4"><span className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md text-sm font-bold w-10 text-center inline-block">3</span></td>
+                  <td className="p-4"><input type="text" defaultValue="Struggling with core concepts. Extra tutoring sessions recommended before finals." className="w-full p-2 border border-red-300 dark:border-red-900/50 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none bg-white dark:bg-black text-slate-700 dark:text-slate-300 placeholder:text-slate-400" placeholder="Enter feedback..." /></td>
                 </tr>
               </tbody>
             </table>
