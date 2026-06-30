@@ -43,3 +43,7 @@ next-env.d.ts
 /src/generated/prisma
 
 .vercel
+
+# local-only backups and one-off dev utilities (not part of the app/build)
+prisma/dev_backup.db
+generate-pdf.js
