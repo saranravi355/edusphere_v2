@@ -1,0 +1,16 @@
+# Normalize all text files to LF in the repo; Git checks out using the
+# user's local core.autocrlf setting if they have one configured.
+* text=auto eol=lf
+
+# Explicit binary files - never touch line endings
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.db binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
