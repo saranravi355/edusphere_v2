@@ -114,4 +114,9 @@ export default async function RegisterStudentPage() {
         </div>
 
         <button type="submit" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm">
-          <UserPlus size={16} /> Re
+          <UserPlus size={16} /> Register Student
+        </button>
+      </form>
+    </div>
+  );
+}

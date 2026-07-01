@@ -109,4 +109,47 @@ export default async function AdminDashboard() {
               <div className="flex flex-col items-center text-center">
                 <Users className="w-6 h-6 text-blue-500 mb-1" />
                 <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalStudents}</p>
-             
+                <p className="text-xs text-slate-500">Students</p>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <GraduationCap className="w-6 h-6 text-purple-500 mb-1" />
+                <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalTeachers}</p>
+                <p className="text-xs text-slate-500">Teachers</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {isPrincipal && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Staff Leave Queue</CardTitle>
+                <Plane className="w-4 h-4 text-orange-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {pendingLeaveRequests.map((lr) => (
+                    <div key={lr.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                      <div>
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{lr.teacher.user.name}</p>
+                        <p className="text-xs text-slate-500">{new Date(lr.startDate).toLocaleDateString()} – {new Date(lr.endDate).toLocaleDateString()}</p>
+                      </div>
+                      <span className="text-xs font-semibold px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                        Pending
+                      </span>
+                    </div>
+                  ))}
+                  {pendingLeaveRequests.length === 0 && (
+                    <p className="text-sm text-slate-400 py-4 text-center">No pending leave requests.</p>
+                  )}
+                </div>
+                <Link href="/admin/staff/leave" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700">
+                  <BookOpen size={14} /> Review all
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

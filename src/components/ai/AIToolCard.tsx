@@ -23,4 +23,6 @@ export default function AIToolCard({
       <span className="mt-3 text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:gap-2 transition-all">
         Open <ArrowRight size={12} />
       </span>
-    </Link
+    </Link>
+  );
+}

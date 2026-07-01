@@ -162,4 +162,34 @@ export default async function SchoolSnapshot() {
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl font-bold font-heading mb-1">Today&apos;s Snapshot</h2>
-            <p className="text-slate-300 text-sm">Key metrics for {new Date().toLocaleDateString('en-IN', { weekday: 'l
+            <p className="text-slate-300 text-sm">Key metrics for {new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            {metrics.map((m, i) => {
+              const Icon = m.icon;
+              const content = (
+                <div className="flex items-center gap-3 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm px-4 py-3 rounded-xl border border-white/10 cursor-pointer h-full">
+                  <div className={`p-2 rounded-lg ${m.bg}`}>
+                    <Icon className={`w-5 h-5 ${m.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">{m.label}</p>
+                    <p className="text-xl font-bold">{m.value}</p>
+                  </div>
+                </div>
+              );
+
+              return m.href ? (
+                <Link key={i} href={m.href} className="block">
+                  {content}
+                </Link>
+              ) : (
+                <div key={i}>{content}</div>
+              );
+            })}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

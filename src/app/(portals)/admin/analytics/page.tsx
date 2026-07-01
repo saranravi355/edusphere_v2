@@ -95,4 +95,41 @@ export default async function AdminAnalyticsPage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                <GraduationCap
+                <GraduationCap className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{totalTeachers}</p>
+            <p className="text-sm text-slate-500">Teaching Staff</p>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{formatCurrency(totalRevenue)}</p>
+            <p className="text-sm text-slate-500">YTD Revenue</p>
+          </div>
+        )}
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{classrooms.length}</p>
+          <p className="text-sm text-slate-500">Active Classrooms</p>
+        </div>
+      </div>
+
+      <AnalyticsCharts
+        revenueData={revenueData}
+        demographicsData={demographicsData}
+        attendanceTrendData={attendanceTrendData}
+        showRevenue={!isPrincipal}
+      />
+    </div>
+  );
+}

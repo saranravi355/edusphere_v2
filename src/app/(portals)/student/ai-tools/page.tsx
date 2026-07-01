@@ -19,4 +19,9 @@ export default function StudentAIToolsHub() {
         title="AI Tools"
         description="Personalized AI tools to help you study, plan and grow — built around the IB Diploma and MYP."
       />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ga
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {tools.map((t, i) => <AIToolCard key={i} {...t} />)}
+      </div>
+    </div>
+  );
+}

@@ -87,3 +87,51 @@ export default function AnalyticsCharts({ revenueData, demographicsData, attenda
                   tick={{ fill: '#64748b', fontSize: 12 }}
                   tickFormatter={(value) => `${value}%`}
                   domain={[0, 100]}
+                />
+                <Tooltip
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  formatter={(value) => [`${value}%`, 'Attendance Rate']}
+                />
+                <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Demographics Pie Chart */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+        <h3 className="text-lg font-semibold mb-6 text-slate-800 dark:text-slate-100">Enrollment by Curriculum</h3>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={demographicsData}
+                cx="50%"
+                cy="50%"
+                innerRadius={70}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+                stroke="none"
+              >
+                {demographicsData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                iconType="circle"
+                wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -47,3 +47,16 @@ next-env.d.ts
 # local-only backups and one-off dev utilities (not part of the app/build)
 prisma/dev_backup.db
 generate-pdf.js
+
+# stray build-cache copies and editor backup files from local dev sessions
+.next_OLD*/
+*.stale_bak
+*.stale_bak2
+*.stale_bak3
+sync_test_marker.txt
+src/lib/session_test_fresh.ts
+
+# generated deliverable docs, not part of the app source
+edusphere360_changelog.pdf
+edusphere360_feature_overview.pdf
+edusphere360_feature_overview_v2.pdf

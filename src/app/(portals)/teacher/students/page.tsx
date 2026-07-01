@@ -117,4 +117,9 @@ export default async function TeacherStudentsDirectory({
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-12 text-center">
           <GraduationCap size={48} className="mx-auto text-slate-300 dark:text-slate-700 mb-4" />
           <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">No students found</h3>
-          <p className="t
+          <p className="text-slate-500 mt-2">Try adjusting your search query.</p>
+        </div>
+      )}
+    </div>
+  );
+}

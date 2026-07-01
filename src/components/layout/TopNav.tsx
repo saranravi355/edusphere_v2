@@ -236,4 +236,3 @@ export default function TopNav({ user }: { user: TopNavUser }) {
     </div>
   );
 }
-                            
