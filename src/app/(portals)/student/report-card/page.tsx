@@ -5,8 +5,8 @@ export default function StudentReportCard() {
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <PageHeader 
-          title="Academic Report Card" 
+        <PageHeader
+          title="Academic Report Card"
           description="Midterm Examination Results (Fall 2026)"
         />
         <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg mb-6">
@@ -15,7 +15,7 @@ export default function StudentReportCard() {
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
-        
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between border-b border-slate-200 dark:border-zinc-800 pb-8 mb-8">
           <div>
@@ -49,7 +49,7 @@ export default function StudentReportCard() {
                 <td className="py-4 text-center font-bold">18/20</td>
                 <td className="py-4 text-center text-slate-500 text-sm">76/80</td>
                 <td className="py-4 text-right"><span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md font-bold text-sm">7</span></td>
-                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">"Excellent grasp of mathematical concepts. Consistently high performance in calculus."</td>
+                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">&quot;Excellent grasp of mathematical concepts. Consistently high performance in calculus.&quot;</td>
               </tr>
               <tr>
                 <td className="py-4 font-bold text-slate-800 dark:text-slate-100">Physics (HL)</td>
@@ -57,7 +57,7 @@ export default function StudentReportCard() {
                 <td className="py-4 text-center font-bold">21/24</td>
                 <td className="py-4 text-center text-slate-500 text-sm">68/76</td>
                 <td className="py-4 text-right"><span className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md font-bold text-sm">6</span></td>
-                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">"Strong analytical skills. Needs to refine lab report conclusions."</td>
+                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">&quot;Strong analytical skills. Needs to refine lab report conclusions.&quot;</td>
               </tr>
               <tr>
                 <td className="py-4 font-bold text-slate-800 dark:text-slate-100">English A: Literature (SL)</td>
@@ -65,7 +65,7 @@ export default function StudentReportCard() {
                 <td className="py-4 text-center font-bold">16/20</td>
                 <td className="py-4 text-center text-slate-500 text-sm">55/80</td>
                 <td className="py-4 text-right"><span className="px-3 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md font-bold text-sm">5</span></td>
-                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">"Great participation, but focus more on essay structure for Paper 2."</td>
+                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">&quot;Great participation, but focus more on essay structure for Paper 2.&quot;</td>
               </tr>
               <tr>
                 <td className="py-4 font-bold text-slate-800 dark:text-slate-100">Economics (HL)</td>
@@ -73,7 +73,7 @@ export default function StudentReportCard() {
                 <td className="py-4 text-center font-bold">22/25</td>
                 <td className="py-4 text-center text-slate-500 text-sm">82/95</td>
                 <td className="py-4 text-right"><span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md font-bold text-sm">7</span></td>
-                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">"Outstanding macroeconomic analysis. Keep up the phenomenal work."</td>
+                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">&quot;Outstanding macroeconomic analysis. Keep up the phenomenal work.&quot;</td>
               </tr>
               <tr>
                 <td className="py-4 font-bold text-slate-800 dark:text-slate-100">Chemistry (SL)</td>
@@ -81,7 +81,7 @@ export default function StudentReportCard() {
                 <td className="py-4 text-center font-bold">19/24</td>
                 <td className="py-4 text-center text-slate-500 text-sm">60/76</td>
                 <td className="py-4 text-right"><span className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md font-bold text-sm">6</span></td>
-                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">"Solid foundational knowledge. Practicing past papers will push this to a 7."</td>
+                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">&quot;Solid foundational knowledge. Practicing past papers will push this to a 7.&quot;</td>
               </tr>
               <tr>
                 <td className="py-4 font-bold text-slate-800 dark:text-slate-100">Spanish B (SL)</td>
@@ -89,7 +89,7 @@ export default function StudentReportCard() {
                 <td className="py-4 text-center font-bold">20/25</td>
                 <td className="py-4 text-center text-slate-500 text-sm">65/75</td>
                 <td className="py-4 text-right"><span className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md font-bold text-sm">6</span></td>
-                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">"Excellent conversational skills. Vocabulary expansion is recommended."</td>
+                <td className="py-4 pl-6 text-sm text-slate-600 dark:text-slate-400 italic">&quot;Excellent conversational skills. Vocabulary expansion is recommended.&quot;</td>
               </tr>
             </tbody>
           </table>
@@ -132,7 +132,7 @@ export default function StudentReportCard() {
               Ananya is demonstrating an exceptional understanding of HL subjects, particularly Mathematics and Economics. To secure a 43+ overall, she should focus on elevating her English Literature SL score. Her TOK and EE combined will yield +3 bonus points.
             </p>
           </div>
-          
+
           <div className="flex flex-col justify-center items-center p-6 border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-2xl bg-white dark:bg-zinc-900">
             <p className="text-xs uppercase text-slate-400 font-bold tracking-widest mb-2">Total DP Points</p>
             <h2 className="text-5xl font-black text-slate-800 dark:text-slate-100 mb-2">40<span className="text-2xl text-slate-400 font-medium">/45</span></h2>

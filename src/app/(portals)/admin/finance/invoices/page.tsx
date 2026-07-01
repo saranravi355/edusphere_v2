@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 export default async function FeeInvoicesPage() {
   const session = await getSession();
-  if (!session || !['SUPER_ADMIN', 'PRINCIPAL'].includes(session.user.role)) redirect('/');
+  if (!session || session.user.role !== 'SUPER_ADMIN') redirect('/');
 
   const feeStructures = await prisma.feeStructure.findMany({
     orderBy: { createdAt: 'desc' }
@@ -165,3 +165,4 @@ export default async function FeeInvoicesPage() {
     </div>
   );
 }
+                      

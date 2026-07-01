@@ -1,130 +1,112 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BookOpen, AlertTriangle, TrendingUp } from "lucide-react";
-import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import AdminActionModals from "@/components/ui/AdminActionModals";
+import PageHeader from "@/components/ui/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
-
-
+import AdminActionModals from "@/components/ui/AdminActionModals";
+import prisma from "@/lib/prisma";
+import { Users, GraduationCap, AlertTriangle, Plane, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 export default async function AdminDashboard() {
   const session = await getSession();
   if (!session || (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'PRINCIPAL')) {
-    redirect('/');
+    redirect("/");
   }
+  const isPrincipal = session.user.role === 'PRINCIPAL';
 
-  const studentCount = await prisma.student.count();
-  const teacherCount = await prisma.teacher.count();
+  const totalStudents = await prisma.student.count();
+  const totalTeachers = await prisma.teacher.count();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const todayAttendances = await prisma.attendance.findMany({ where: { date: { gte: today } } });
+  const presentCount = todayAttendances.filter(a => a.status === 'PRESENT').length;
+  const attendanceRate = todayAttendances.length > 0 ? ((presentCount / todayAttendances.length) * 100).toFixed(1) : "0.0";
 
-  const todayAttendances = await prisma.attendance.findMany({
-    where: { date: { gte: today } }
+  const recentIncidents = await prisma.behaviorIncident.findMany({
+    where: { type: 'DEMERIT' },
+    orderBy: { date: 'desc' },
+    take: 5,
+    include: { student: true }
   });
 
-  const presentCount = Math.floor(studentCount * 0.982);
-  const totalMarked = studentCount;
-  const attendanceRate = "98.2";
+  // Principal-only: staff leave queue instead of financial quick-actions
+  const pendingLeaveRequests = isPrincipal ? await prisma.leaveRequest.findMany({
+    where: { status: 'PENDING' },
+    orderBy: { appliedAt: 'desc' },
+    take: 5,
+    include: { teacher: { include: { user: true } } }
+  }) : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
+      <PageHeader
+        title={`Welcome back, ${session.user.name?.split(' ')[0] || 'Admin'}`}
+        description={isPrincipal
+          ? "Here's the academic and pastoral picture across your school today."
+          : "Here's what's happening across your school today."}
+      />
+
       <SchoolSnapshot />
-      
-      <div>
-        <h1 className="text-3xl font-bold font-heading">School Health Score</h1>
-        <p className="text-slate-500">Overview of {studentCount} students and {teacherCount} staff members.</p>
-      </div>
 
-      <div className="grid grid-cols-4 gap-6">
-        <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Total Enrollment</CardTitle>
-            <Users className="w-4 h-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{studentCount}</div>
-            <p className="text-xs text-green-500 flex items-center mt-1"><TrendingUp className="w-3 h-3 mr-1" /> Active Students</p>
-          </CardContent>
-        </Card>
-        <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Today's Attendance</CardTitle>
-            <BookOpen className="w-4 h-4 text-teal-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{attendanceRate}%</div>
-            <p className="text-xs text-slate-500 mt-1">{presentCount} / {studentCount} present</p>
-          </CardContent>
-        </Card>
-        <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Students at Risk</CardTitle>
-            <AlertTriangle className="w-4 h-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-              {await prisma.behaviorIncident.count({ where: { type: 'DEMERIT' } })}
-            </div>
-            <p className="text-xs text-orange-500 mt-1">Requires intervention</p>
-          </CardContent>
-        </Card>
-        <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Active Teachers</CardTitle>
-            <Users className="w-4 h-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{teacherCount}</div>
-            <p className="text-xs text-slate-500 mt-1">Staff members</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-3 gap-6">
-        {/* Quick Actions Menu */}
-        <Card className="glass-card col-span-1">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AdminActionModals />
-          </CardContent>
-        </Card>
-
-        {/* Live System Logs */}
-        <Card className="glass-card col-span-2">
-          <CardHeader>
-            <CardTitle>Live System Logs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
-                <div className="w-2 h-2 rounded-full bg-green-500 mt-2" />
-                <div>
-                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Meena Krishnan marked attendance for Class 9A</p>
-                  <p className="text-xs text-slate-500 mt-0.5">2 minutes ago</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Today&apos;s Attendance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-6">
+                <div className="text-4xl font-black text-slate-800 dark:text-slate-100">{attendanceRate}%</div>
+                <div className="flex-1 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-500" style={{ width: `${attendanceRate}%` }} />
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
-                <div>
-                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Rahul Patel paid Term 1 tuition fees</p>
-                  <p className="text-xs text-slate-500 mt-0.5">15 minutes ago</p>
-                </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Behavior Incidents</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentIncidents.map((incident) => (
+                  <div key={incident.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+                        <AlertTriangle size={14} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{incident.student.name}</p>
+                        <p className="text-xs text-slate-500">{incident.description}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-slate-400">{new Date(incident.date).toLocaleDateString()}</span>
+                  </div>
+                ))}
+                {recentIncidents.length === 0 && (
+                  <p className="text-sm text-slate-400 py-4 text-center">No recent incidents.</p>
+                )}
               </div>
-              <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
-                <div className="w-2 h-2 rounded-full bg-purple-500 mt-2" />
-                <div>
-                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200">System database initialized and seeded</p>
-                  <p className="text-xs text-slate-500 mt-0.5">1 hour ago</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminActionModals />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 grid grid-cols-2 gap-4">
+              <div className="flex flex-col items-center text-center">
+                <Users className="w-6 h-6 text-blue-500 mb-1" />
+                <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalStudents}</p>
+             

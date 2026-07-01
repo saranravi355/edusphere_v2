@@ -64,7 +64,7 @@ model Student {
   enrollmentDate   DateTime     @default(now())
   emergencyContactName String?
   emergencyContactPhone String?
-  curriculum       String       // e.g., IGCSE, IB, CBSE
+  curriculum       String       // IB programme: PYP, MYP, or DP
   parentId         String?
   parent           Parent?      @relation(fields: [parentId], references: [id])
   classroomId      String?
@@ -406,5 +406,4 @@ model ResourceBooking {
   startTime   DateTime
   endTime     DateTime
   purpose     String
-  status      String   @default("APPROVED") // PENDING, APPROVED, CANCELLED
-}
+  status      String   @default("APPROVED") // PENDING, APPROVED, CANC

@@ -1,22 +1,14 @@
 import type { Metadata } from "next";
-import { Poppins, IBM_Plex_Mono } from "next/font/google";
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
+import "@fontsource/poppins/800.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
+import "@fontsource/ibm-plex-mono/700.css";
 import "./globals.css";
-
-const poppins = Poppins({ 
-  weight: ['400', '500', '600', '700', '800'],
-  subsets: ["latin"], 
-  variable: "--font-sans" 
-});
-const poppinsHeading = Poppins({ 
-  weight: ['400', '500', '600', '700', '800'],
-  subsets: ["latin"], 
-  variable: "--font-heading" 
-});
-const ibmMono = IBM_Plex_Mono({
-  weight: ['400', '500', '600', '700'],
-  variable: "--font-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "EduSphere 360 AlphaV1",
@@ -32,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${poppins.variable} ${poppinsHeading.variable} ${ibmMono.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950`}>
+      <body suppressHydrationWarning className="font-sans antialiased bg-slate-50 dark:bg-slate-950">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

@@ -8,15 +8,15 @@ import { getTimetable, autoGenerateSchedule, allocateSlot, removeSlot } from "@/
 
 type TeacherWithUser = Teacher & { user: User };
 
-export default function TimetableManager({ 
-  classrooms, subjects, teachers 
-}: { 
-  classrooms: Classroom[], 
-  subjects: Subject[], 
-  teachers: TeacherWithUser[] 
+export default function TimetableManager({
+  classrooms, subjects, teachers
+}: {
+  classrooms: Classroom[],
+  subjects: Subject[],
+  teachers: TeacherWithUser[]
 }) {
   const [selectedClassroomId, setSelectedClassroomId] = useState(classrooms[0]?.id || "");
-  const [timetable, setTimetable] = useState<any[]>([]);
+  const [timetable, setTimetable] = useState<Awaited<ReturnType<typeof getTimetable>>>([]);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const [mockErrors, setMockErrors] = useState(0);
@@ -53,7 +53,7 @@ export default function TimetableManager({
       fd.append("classroomId", selectedClassroomId);
       fd.append("dayOfWeek", allocationModal!.day.toString());
       fd.append("period", allocationModal!.period.toString());
-      
+
       const res = await allocateSlot(fd);
       if (res?.error) {
         setError(res.error);
@@ -87,7 +87,7 @@ export default function TimetableManager({
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <BrainCircuit size={150} />
         </div>
-        
+
         <div className="relative z-10 flex flex-col md:flex-row gap-8 justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold tracking-tight mb-2">Timetable</h2>
@@ -96,7 +96,7 @@ export default function TimetableManager({
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
-              <button 
+              <button
                 onClick={handleGenerate}
                 disabled={isPending}
                 className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2 disabled:opacity-70"
@@ -109,7 +109,7 @@ export default function TimetableManager({
               </button>
 
               {mockErrors > 0 && (
-                <button 
+                <button
                   onClick={() => setMockErrors(0)}
                   className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2 animate-pulse"
                 >
@@ -122,7 +122,7 @@ export default function TimetableManager({
           {/* Section Selection */}
           <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/20 min-w-[300px]">
              <label className="text-xs text-indigo-300 font-bold uppercase tracking-wider mb-2 block">Target Section</label>
-             <select 
+             <select
                value={selectedClassroomId}
                onChange={(e) => setSelectedClassroomId(e.target.value)}
                className="w-full bg-indigo-950/50 border border-indigo-500/50 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-indigo-400"
@@ -136,9 +136,9 @@ export default function TimetableManager({
       </div>
 
       <div className={isPending ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity duration-500"}>
-        <TimetableGrid 
-          entries={gridEntries} 
-          isEditable={true} 
+        <TimetableGrid
+          entries={gridEntries}
+          isEditable={true}
           onAllocate={(day, period) => setAllocationModal({ day, period })}
           onEdit={(day, period) => setAllocationModal({ day, period })}
         />
@@ -152,7 +152,7 @@ export default function TimetableManager({
             </button>
             <h3 className="text-xl font-bold mb-4 dark:text-white">Allocate Slot</h3>
             <p className="text-sm text-slate-500 mb-6">Assign a subject, teacher, and room for Day {allocationModal.day}, Period {allocationModal.period}.</p>
-            
+
             <form action={handleAllocate} className="space-y-4">
               <div>
                 <label className="text-sm font-medium dark:text-slate-300 block mb-1">Subject</label>
@@ -172,7 +172,7 @@ export default function TimetableManager({
                 <label className="text-sm font-medium dark:text-slate-300 block mb-1">Room</label>
                 <input name="room" type="text" placeholder="e.g. Lab 4" required className="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2 dark:bg-slate-800 dark:text-white outline-none focus:border-indigo-500" />
               </div>
-              
+
               <button disabled={isPending} type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50">
                 {isPending ? "Saving..." : "Save Allocation"}
               </button>

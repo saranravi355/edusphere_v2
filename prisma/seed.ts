@@ -2,6 +2,17 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+function daysAgo(n: number) {
+  const d = new Date();
+  d.setHours(9, 0, 0, 0);
+  d.setDate(d.getDate() - n);
+  return d;
+}
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 async function main() {
   console.log('Seeding 5 Staff and 5 Students...')
 
@@ -13,6 +24,8 @@ async function main() {
     { email: 'teacher1@edusphere.com', name: 'Rajesh Kumar', role: 'CLASS_TEACHER' },
     { email: 'teacher2@edusphere.com', name: 'Sindhu Sharma', role: 'SUBJECT_TEACHER' }
   ];
+
+  const teacherRecords: { id: string; userId: string; name: string }[] = [];
 
   for (const staff of staffs) {
     const user = await prisma.user.upsert({
@@ -27,7 +40,7 @@ async function main() {
     });
 
     if (staff.role === 'CLASS_TEACHER' || staff.role === 'SUBJECT_TEACHER') {
-      await prisma.teacher.upsert({
+      const teacher = await prisma.teacher.upsert({
         where: { userId: user.id },
         update: {},
         create: {
@@ -37,12 +50,33 @@ async function main() {
           yearsExperience: 5
         }
       });
+      teacherRecords.push({ id: teacher.id, userId: user.id, name: staff.name });
     }
+  }
+
+  // Add a few more teachers so classrooms/subjects have realistic staffing
+  const extraTeachers = [
+    { email: 'teacher3@edusphere.com', name: 'Ananya Bose', subjects: 'English, Individuals & Societies' },
+    { email: 'teacher4@edusphere.com', name: 'Vikram Nair', subjects: 'Sciences, Mathematics' },
+    { email: 'teacher5@edusphere.com', name: 'Fatima Sheikh', subjects: 'Visual Arts, Spanish B' },
+  ];
+  for (const t of extraTeachers) {
+    const user = await prisma.user.upsert({
+      where: { email: t.email },
+      update: { name: t.name },
+      create: { email: t.email, name: t.name, role: 'SUBJECT_TEACHER', password: 'password123' }
+    });
+    const teacher = await prisma.teacher.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: { userId: user.id, subjects: t.subjects, qualifications: 'B.Ed, M.A', yearsExperience: 3 + Math.floor(Math.random() * 10) }
+    });
+    teacherRecords.push({ id: teacher.id, userId: user.id, name: t.name });
   }
 
   const firstNames = ['Aarav', 'Ananya', 'Rohan', 'Kavya', 'Kabir', 'Aditi', 'Vivaan', 'Diya', 'Arjun', 'Sanya', 'Sai', 'Mira', 'Krishna', 'Isha', 'Reyansh', 'Neha', 'Aryan', 'Priya', 'Shaurya', 'Riya', 'Dhruv', 'Sneha', 'Ayaan', 'Tanya', 'Ishaan'];
   const lastNames = ['Patel', 'Iyer', 'Desai', 'Singh', 'Verma', 'Sharma', 'Reddy', 'Rao', 'Das', 'Nair', 'Mehta', 'Bose', 'Gupta', 'Chopra', 'Joshi'];
-  const curriculums = ['CBSE', 'ICSE', 'IB', 'IGCSE'];
+  const curriculums = ['PYP', 'MYP', 'DP']; // IB programmes only
   const genders = ['Male', 'Female'];
   const bgs = ['O+', 'A+', 'B+', 'O-', 'AB+'];
   const communities = ['OC - Other Communities', 'MBC', 'BC - Others', 'ST', 'SC - Others'];
@@ -72,6 +106,8 @@ async function main() {
     });
   }
 
+  const studentRecords: { id: string; name: string; userId: string | null }[] = [];
+
   for (const stu of students) {
     // Optionally create User for student
     const sUser = await prisma.user.upsert({
@@ -85,57 +121,5 @@ async function main() {
       }
     });
 
-    await prisma.student.upsert({
-      where: { registrationNo: stu.reg },
-      update: {
-        name: stu.name,
-        dateOfBirth: new Date(stu.dob),
-        gender: stu.gender,
-        bloodGroup: stu.bg,
-        curriculum: stu.cur,
-        nationality: stu.nationality,
-        religion: stu.religion,
-        community: stu.community,
-        motherTongue: stu.motherTongue,
-        fatherName: stu.fatherName,
-        motherName: stu.motherName,
-        motherOccupation: stu.motherOccupation,
-        motherMonthlyIncome: stu.motherMonthlyIncome,
-        medium: stu.medium
-      },
-      create: {
-        registrationNo: stu.reg,
-        name: stu.name,
-        dateOfBirth: new Date(stu.dob),
-        gender: stu.gender,
-        bloodGroup: stu.bg,
-        curriculum: stu.cur,
-        nationality: stu.nationality,
-        religion: stu.religion,
-        community: stu.community,
-        motherTongue: stu.motherTongue,
-        fatherName: stu.fatherName,
-        motherName: stu.motherName,
-        motherOccupation: stu.motherOccupation,
-        motherMonthlyIncome: stu.motherMonthlyIncome,
-        medium: stu.medium,
-        isActive: true,
-        userId: sUser.id,
-        address: '123 School Lane, City',
-        emergencyContactName: 'Parent of ' + stu.name,
-        emergencyContactPhone: '+1234567890'
-      }
-    });
-  }
-
-  console.log('Seeding completed successfully!')
-}
-
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+    const student = await prisma.student.upsert({
+      wher

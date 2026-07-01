@@ -1,150 +1,98 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { BarChart3, TrendingUp, Users, DollarSign } from "lucide-react";
 import prisma from "@/lib/prisma";
 import AnalyticsCharts from "@/components/admin/AnalyticsCharts";
+import { Users, DollarSign, Clock, TrendingUp, GraduationCap } from "lucide-react";
+
+function formatCurrency(amount: number) {
+  return amount >= 100000 ? `₹${(amount / 100000).toFixed(1)}L` : `₹${amount.toLocaleString()}`;
+}
 
 export default async function AdminAnalyticsPage() {
   const session = await getSession();
-  if (!session || !['SUPER_ADMIN', 'PRINCIPAL'].includes(session.user.role)) {
+  if (!session || (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'PRINCIPAL')) {
     redirect("/");
   }
+  const isPrincipal = session.user.role === 'PRINCIPAL';
 
-  // 1. Fetch live metrics from Prisma
   const totalStudents = await prisma.student.count();
-  const activeTeachers = await prisma.teacher.count();
-  
-  // Calculate Revenue from PAID invoices
-  const revenueData = await prisma.feeInvoice.aggregate({
-    _sum: { amount: true },
-    where: { status: 'PAID' }
+  const totalTeachers = await prisma.teacher.count();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayAttendances = await prisma.attendance.findMany({ where: { date: { gte: today } } });
+  const presentCount = todayAttendances.filter(a => a.status === 'PRESENT').length;
+  const attendanceRate = todayAttendances.length > 0 ? ((presentCount / todayAttendances.length) * 100).toFixed(1) : "0.0";
+
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const paidInvoices = await prisma.feeInvoice.findMany({
+    where: { status: 'PAID', paidAt: { gte: startOfYear } }
   });
-  
-  const totalRevenue = revenueData._sum.amount || 0;
-  
-  // Calculate Attendance Rate for today
-  const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-  const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
-  
-  const totalAttendanceRecords = await prisma.attendance.count({
-    where: { date: { gte: todayStart, lt: todayEnd } }
-  });
-  
-  const presentRecords = await prisma.attendance.count({
-    where: { 
-      date: { gte: todayStart, lt: todayEnd },
-      status: 'PRESENT'
+  const revenueByMonth: Record<string, number> = {};
+  paidInvoices.forEach(inv => {
+    if (inv.paidAt) {
+      const month = monthNames[inv.paidAt.getMonth()];
+      revenueByMonth[month] = (revenueByMonth[month] || 0) + inv.amount;
     }
   });
+  const revenueData = monthNames.slice(0, today.getMonth() + 1).map(month => ({
+    month,
+    amount: revenueByMonth[month] || 0
+  }));
+  const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
-  const attendanceRate = totalAttendanceRecords > 0 
-    ? Math.round((presentRecords / totalAttendanceRecords) * 100) 
-    : 0;
-
-  // Format revenue helper
-  const formatCurrency = (val: number) => {
-    if (val >= 1000000) return `₹${(val / 1000000).toFixed(1)}M`;
-    if (val >= 1000) return `₹${(val / 1000).toFixed(1)}k`;
-    return `₹${val}`;
-  };
-
-  // 2. Fetch data for Pie Chart (Demographics by Curriculum)
-  const demographicsRaw = await prisma.student.groupBy({
-    by: ['curriculum'],
-    _count: { id: true }
+  // Attendance trend (used instead of revenue for the Principal view)
+  const yearAttendances = await prisma.attendance.findMany({ where: { date: { gte: startOfYear } } });
+  const attendanceByMonth: Record<string, { present: number; total: number }> = {};
+  yearAttendances.forEach(a => {
+    const month = monthNames[a.date.getMonth()];
+    if (!attendanceByMonth[month]) attendanceByMonth[month] = { present: 0, total: 0 };
+    attendanceByMonth[month].total += 1;
+    if (a.status === 'PRESENT') attendanceByMonth[month].present += 1;
+  });
+  const attendanceTrendData = monthNames.slice(0, today.getMonth() + 1).map(month => {
+    const bucket = attendanceByMonth[month];
+    return { month, rate: bucket && bucket.total > 0 ? Math.round((bucket.present / bucket.total) * 100) : 0 };
   });
 
-  const demographicsChartData = demographicsRaw.map(d => ({
-    name: d.curriculum || 'Unspecified',
-    value: d._count.id
-  }));
-
-  // Mock historical revenue data since we don't have historical months seeded 
-  // (In a real app, you would group invoices by month)
-  const revenueChartData = [
-    { month: 'Jan', amount: 45000 },
-    { month: 'Feb', amount: 52000 },
-    { month: 'Mar', amount: 48000 },
-    { month: 'Apr', amount: 61000 },
-    { month: 'May', amount: 59000 },
-    { month: 'Jun', amount: totalRevenue > 0 ? totalRevenue : 65000 },
-  ];
+  const classrooms = await prisma.classroom.findMany({ include: { _count: { select: { students: true } } } });
+  const demographicsData = classrooms.map(c => ({ name: `Grade ${c.gradeLevel}`, value: c._count.students })).filter(d => d.value > 0);
 
   return (
-    <div className="space-y-6 pb-12 max-w-6xl">
-      <PageHeader 
-        title="System Analytics" 
-        description="High-level overview of school performance and metrics."
+    <div className="space-y-6 pb-12">
+      <PageHeader
+        title="School Analytics"
+        description={isPrincipal
+          ? "Academic performance, attendance, and enrollment insights."
+          : "Comprehensive insights into enrollment, attendance, and revenue."}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="glass-card">
-          <CardContent className="p-6 flex flex-col gap-2">
-            <div className="flex justify-between items-start">
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Total Students</span>
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                <Users size={16} />
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{totalStudents}</h3>
-            <span className="text-sm font-medium text-green-500 flex items-center gap-1">
-              <TrendingUp size={14} /> +4.2% this month
-            </span>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{totalStudents}</p>
+          <p className="text-sm text-slate-500">Total Students</p>
+        </div>
 
-        <Card className="glass-card">
-          <CardContent className="p-6 flex flex-col gap-2">
-            <div className="flex justify-between items-start">
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Active Teachers</span>
-              <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
-                <Users size={16} />
-              </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+              <Clock className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{activeTeachers}</h3>
-            <span className="text-sm font-medium text-green-500 flex items-center gap-1">
-              <TrendingUp size={14} /> +2 new this term
-            </span>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{attendanceRate}%</p>
+          <p className="text-sm text-slate-500">Today&apos;s Attendance</p>
+        </div>
 
-        <Card className="glass-card">
-          <CardContent className="p-6 flex flex-col gap-2">
-            <div className="flex justify-between items-start">
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Total Revenue</span>
-              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
-                <DollarSign size={16} />
-              </div>
-            </div>
-            <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{formatCurrency(totalRevenue)}</h3>
-            <span className="text-sm font-medium text-green-500 flex items-center gap-1">
-              <TrendingUp size={14} /> +12.5% this term
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card">
-          <CardContent className="p-6 flex flex-col gap-2">
-            <div className="flex justify-between items-start">
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Today's Attendance</span>
-              <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                <BarChart3 size={16} />
-              </div>
-            </div>
-            <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{attendanceRate}%</h3>
-            <span className="text-sm font-medium text-slate-500 flex items-center gap-1">
-              {presentRecords} / {totalAttendanceRecords} present
-            </span>
-          </CardContent>
-        </Card>
-      </div>
-
-      <AnalyticsCharts 
-        revenueData={revenueChartData} 
-        demographicsData={demographicsChartData.length > 0 ? demographicsChartData : [{ name: 'No Data', value: 1 }]} 
-      />
-    </div>
-  );
-}
+        {isPrincipal ? (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                <GraduationCap

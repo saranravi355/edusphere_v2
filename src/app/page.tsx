@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { GraduationCap, Users, UserCircle, School, Bell, ChevronRight, Building, Briefcase } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -14,7 +14,7 @@ export default function LandingPage() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
@@ -26,7 +26,7 @@ export default function LandingPage() {
         <ThemeToggle />
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -37,7 +37,7 @@ export default function LandingPage() {
         </h1>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -45,7 +45,7 @@ export default function LandingPage() {
       >
         {/* Management Card */}
         <Link href="/login?role=admin">
-          <motion.div variants={itemVariants as any} className="group relative">
+          <motion.div variants={itemVariants} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-purple-500 rounded-b-lg">
               <Building size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -60,7 +60,7 @@ export default function LandingPage() {
 
         {/* Principal Card */}
         <Link href="/login?role=principal">
-          <motion.div variants={itemVariants as any} className="group relative">
+          <motion.div variants={itemVariants} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-pink-500 rounded-b-lg">
               <Briefcase size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -75,7 +75,7 @@ export default function LandingPage() {
 
         {/* Teacher Card */}
         <Link href="/login?role=teacher">
-          <motion.div variants={itemVariants as any} className="group relative">
+          <motion.div variants={itemVariants} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-yellow-500 rounded-b-lg">
               <Users size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -90,7 +90,7 @@ export default function LandingPage() {
 
         {/* Student Card */}
         <Link href="/login?role=student">
-          <motion.div variants={itemVariants as any} className="group relative">
+          <motion.div variants={itemVariants} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-blue-500 rounded-b-lg">
               <GraduationCap size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -105,7 +105,7 @@ export default function LandingPage() {
 
         {/* Parent Card */}
         <Link href="/login?role=parent">
-          <motion.div variants={itemVariants as any} className="group relative">
+          <motion.div variants={itemVariants} className="group relative">
             <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-green-500 rounded-b-lg">
               <UserCircle size={48} className="text-slate-700 dark:text-slate-300" />
               <div className="flex items-center gap-4 mt-2">
@@ -120,7 +120,7 @@ export default function LandingPage() {
       </motion.div>
 
       {/* General Notification / Circular Board */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
@@ -143,7 +143,7 @@ export default function LandingPage() {
                 <ChevronRight size={16} className="text-slate-300 group-hover:text-blue-500" />
               </div>
             </div>
-            
+
             <div className="p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/30 transition-colors flex items-center justify-between cursor-pointer group">
               <div>
                 <p className="font-medium text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Guidelines for Final Semester Project Submissions</p>

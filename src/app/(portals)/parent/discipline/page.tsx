@@ -1,56 +1,53 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { ShieldAlert, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+import { ShieldAlert, ShieldCheck } from "lucide-react";
 
-export default function ParentDisciplineView() {
-  const currentPoints = 85;
+export default async function ParentDisciplinePage() {
+  const session = await getSession();
+  if (!session || session.user.role !== 'PARENT') {
+    redirect("/");
+  }
+
+  const parent = await prisma.parent.findUnique({
+    where: { userId: session.user.id },
+    include: { students: true }
+  });
+
+  const studentIds = parent?.students.map(s => s.id) || [];
+
+  const incidents = await prisma.behaviorIncident.findMany({
+    where: { studentId: { in: studentIds } },
+    include: { student: true },
+    orderBy: { date: 'desc' }
+  });
 
   return (
-    <div className="space-y-6 pb-12 max-w-4xl mx-auto">
-      <PageHeader 
-        title="Behavior & Conduct" 
-        description="Monitor your child's behavior points and teacher logs."
+    <div className="max-w-3xl mx-auto space-y-6 pb-12">
+      <PageHeader
+        title="Behavior & Discipline"
+        description="Track your children's behavior records and incidents."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Point Score */}
-        <div className="md:col-span-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
-          <div className="w-24 h-24 rounded-full border-8 border-green-500 flex items-center justify-center mb-4">
-            <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{currentPoints}</span>
-          </div>
-          <h3 className="font-bold text-slate-800 dark:text-slate-100">Behavior Score</h3>
-          <p className="text-sm text-slate-500 mt-1">Excellent Standing</p>
-        </div>
-
-        {/* Recent Alerts */}
-        <div className="md:col-span-2 space-y-4">
-          <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/50 rounded-xl flex gap-4 items-start">
-            <TrendingUp className="text-green-600 mt-1" size={20} />
-            <div>
-              <h4 className="font-bold text-green-800 dark:text-green-400">Positive Incident Logged</h4>
-              <p className="text-sm text-green-700 dark:text-green-300 mt-1">"Ananya showed outstanding leadership during the group science project today."</p>
-              <div className="flex gap-4 mt-2 text-xs font-medium text-green-600 dark:text-green-500">
-                <span>+5 Points</span>
-                <span>Mrs. Clark</span>
-                <span>Today</span>
+      <div className="space-y-3">
+        {incidents.map((incident) => (
+          <div key={incident.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex items-start gap-4">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${incident.type === 'DEMERIT' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'}`}>
+              {incident.type === 'DEMERIT' ? <ShieldAlert size={18} /> : <ShieldCheck size={18} />}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <p className="font-semibold text-slate-800 dark:text-slate-200">{incident.student.name}</p>
+                <span className="text-xs text-slate-400">{new Date(incident.date).toLocaleDateString()}</span>
               </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400 italic">&quot;{incident.description}&quot;</p>
             </div>
           </div>
-          
-          <div className="p-4 bg-slate-50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-800 rounded-xl flex gap-4 items-start">
-            <TrendingDown className="text-slate-400 mt-1" size={20} />
-            <div>
-              <h4 className="font-bold text-slate-700 dark:text-slate-300">Minor Incident Logged</h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">"Talking out of turn during silent reading time."</p>
-              <div className="flex gap-4 mt-2 text-xs font-medium text-slate-500">
-                <span className="text-red-500">-1 Point</span>
-                <span>Mr. Kumar</span>
-                <span>Oct 12</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        ))}
+        {incidents.length === 0 && (
+          <p className="text-sm text-slate-400 py-12 text-center">No behavior incidents recorded.</p>
+        )}
       </div>
     </div>
   );

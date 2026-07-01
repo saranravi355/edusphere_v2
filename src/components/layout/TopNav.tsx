@@ -1,53 +1,58 @@
 "use client";
 
-import { Bell, Search, LogOut, Building, GraduationCap, Users, LayoutDashboard, Settings, UserPlus, BookOpen, Clock, FileText, MessageSquare, DollarSign, Activity, CheckCircle2, Calendar, Bus, ShieldAlert, Wallet, Tent, Pill, Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book, ShieldAlert as ShieldIcon, Navigation, Target } from "lucide-react";
+import { Bell, Search, LogOut, Building, GraduationCap, Users, LayoutDashboard, Settings, UserPlus, BookOpen, Clock, FileText, MessageSquare, DollarSign, Activity, CheckCircle2, Calendar, Bus, ShieldAlert, Wallet, Tent, Pill, Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book, ShieldAlert as ShieldIcon, Navigation, Target, UtensilsCrossed as UtensilsIcon, Package as PackageIcon } from "lucide-react";
 import { logout } from "@/app/actions";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
-export default function TopNav({ user }: { user: any }) {
+interface TopNavUser {
+  role: string;
+  name?: string | null;
+}
+
+export default function TopNav({ user }: { user: TopNavUser }) {
   const pathname = usePathname();
   const { t, i18n } = useTranslation();
   const role = user.role;
 
   const roleLinks = {
+    // Full operational + financial + academic access
     SUPER_ADMIN: [
       { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
       { name: "Analytics", href: "/admin/analytics", icon: Activity },
-      { name: "Timetable", href: "/admin/academic-setup/timetable", icon: BrainCircuit },
-      { name: "Sentiment AI", href: "/admin/students/sentiment-ai", icon: BrainCircuit },
-      { name: "Resource AI", href: "/admin/resources/predictive-ai", icon: BrainCircuit },
-      { name: "Payroll", href: "/admin/finance/payroll", icon: DollarSign },
-      { name: "Library", href: "/admin/library", icon: Book },
-      { name: "Staff Leave", href: "/admin/staff/leave", icon: Plane },
-      { name: "Register Student", href: "/admin/students/register", icon: UserPlus },
       { name: "Academic Setup", href: "/admin/academic-setup", icon: BookOpen },
-      { name: "Fee Plans", href: "/admin/fees", icon: DollarSign },
-      { name: "Invoicing", href: "/admin/finance/invoices", icon: Receipt },
-      { name: "Resources", href: "/admin/resources", icon: Monitor },
-      { name: "Users", href: "/admin/users", icon: Users },
+      { name: "Timetable", href: "/admin/academic-setup/timetable", icon: Calendar },
+      { name: "AI Insights", href: "/admin/ai-insights", icon: BrainCircuit },
+      { name: "Staff", href: "/admin/staff", icon: Users },
+      { name: "Students", href: "/admin/students", icon: GraduationCap },
+      { name: "Behavior", href: "/admin/behavior", icon: ShieldIcon },
+      { name: "Clubs", href: "/admin/clubs", icon: Tent },
+      { name: "Library", href: "/admin/library", icon: Book },
+      { name: "Finance", href: "/admin/finance", icon: DollarSign },
+      { name: "Fee Plans", href: "/admin/fees", icon: Receipt },
+      { name: "Canteen", href: "/admin/canteen", icon: UtensilsIcon },
       { name: "Transport", href: "/admin/transport", icon: Bus },
       { name: "Hostel", href: "/admin/hostel", icon: Bed },
+      { name: "Resources", href: "/admin/resources", icon: Monitor },
+      { name: "Assets", href: "/admin/assets", icon: PackageIcon },
+      { name: "Users", href: "/admin/users", icon: Users },
+      { name: "Schools", href: "/admin/schools", icon: Building },
+      { name: "Settings", href: "/admin/settings", icon: Settings },
     ],
+    // Academic + pastoral leadership only — no finance, ops, or system admin
     PRINCIPAL: [
       { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
       { name: "Analytics", href: "/admin/analytics", icon: Activity },
-      { name: "Timetable", href: "/admin/academic-setup/timetable", icon: BrainCircuit },
-      { name: "Sentiment AI", href: "/admin/students/sentiment-ai", icon: BrainCircuit },
-      { name: "Resource AI", href: "/admin/resources/predictive-ai", icon: BrainCircuit },
-      { name: "Payroll", href: "/admin/finance/payroll", icon: DollarSign },
-      { name: "Library", href: "/admin/library", icon: Book },
-      { name: "Staff Leave", href: "/admin/staff/leave", icon: Plane },
-      { name: "Register Student", href: "/admin/students/register", icon: UserPlus },
       { name: "Academic Setup", href: "/admin/academic-setup", icon: BookOpen },
-      { name: "Fee Plans", href: "/admin/fees", icon: DollarSign },
-      { name: "Invoicing", href: "/admin/finance/invoices", icon: Receipt },
-      { name: "Resources", href: "/admin/resources", icon: Monitor },
-      { name: "Users", href: "/admin/users", icon: Users },
-      { name: "Transport", href: "/admin/transport", icon: Bus },
-      { name: "Hostel", href: "/admin/hostel", icon: Bed },
+      { name: "Timetable", href: "/admin/academic-setup/timetable", icon: Calendar },
+      { name: "AI Insights", href: "/admin/ai-insights", icon: BrainCircuit },
+      { name: "Staff", href: "/admin/staff", icon: Users },
+      { name: "Students", href: "/admin/students", icon: GraduationCap },
+      { name: "Behavior", href: "/admin/behavior", icon: ShieldIcon },
+      { name: "Clubs", href: "/admin/clubs", icon: Tent },
+      { name: "Library", href: "/admin/library", icon: Book },
     ],
     CLASS_TEACHER: [
       { name: "Dashboard", href: "/teacher", icon: LayoutDashboard },
@@ -55,7 +60,7 @@ export default function TopNav({ user }: { user: any }) {
       { name: "Grading", href: "/teacher/grading", icon: BookOpen },
       { name: "Planner", href: "/teacher/planner", icon: Calendar },
       { name: "My Classes", href: "/teacher/classes", icon: Users },
-      { name: "AI Insights", href: "/teacher/students/demo/ai-analysis", icon: BrainCircuit },
+      { name: "AI Tools", href: "/teacher/ai-tools", icon: BrainCircuit },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldIcon },
       { name: "Attendance", href: "/teacher/attendance", icon: CheckCircle2 },
       { name: "Assignments", href: "/teacher/assignments", icon: FileText },
@@ -68,7 +73,7 @@ export default function TopNav({ user }: { user: any }) {
       { name: "Grading", href: "/teacher/grading", icon: BookOpen },
       { name: "Planner", href: "/teacher/planner", icon: Calendar },
       { name: "My Classes", href: "/teacher/classes", icon: Users },
-      { name: "AI Insights", href: "/teacher/students/demo/ai-analysis", icon: BrainCircuit },
+      { name: "AI Tools", href: "/teacher/ai-tools", icon: BrainCircuit },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldIcon },
       { name: "Attendance", href: "/teacher/attendance", icon: CheckCircle2 },
       { name: "Assignments", href: "/teacher/assignments", icon: FileText },
@@ -87,7 +92,7 @@ export default function TopNav({ user }: { user: any }) {
     ],
     STUDENT: [
       { name: "Dashboard", href: "/student", icon: LayoutDashboard },
-      { name: "Career AI", href: "/student/career-ai", icon: Target },
+      { name: "AI Tools", href: "/student/ai-tools", icon: Target },
       { name: "Report Card", href: "/student/report-card", icon: FileText },
       { name: "My Grades", href: "/student/grades", icon: BookOpen },
       { name: "Schedule", href: "/student/timetable", icon: Clock },
@@ -111,7 +116,7 @@ export default function TopNav({ user }: { user: any }) {
               EduSphere <span className="text-sm font-bold text-blue-500 align-top ml-1">AlphaV1</span>
             </span>
           </div>
-          
+
           <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 rounded-xl text-sm font-medium text-slate-500 transition-colors cursor-pointer">
             <Search size={16} />
             <span className="w-32 text-left" suppressHydrationWarning>{t('nav.search_placeholder', 'Search...')}</span>
@@ -129,19 +134,19 @@ export default function TopNav({ user }: { user: any }) {
             <div className="absolute right-0 top-full pt-2 hidden group-hover:block z-50 w-40">
               <div className="bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 shadow-lg rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-1">
-                  <button 
+                  <button
                     onClick={() => i18n.changeLanguage('en')}
                     className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === 'en' ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
                     <div className="flex items-center gap-2"><span className="text-lg">🇺🇸</span> <span suppressHydrationWarning>{t('nav.english', 'English')}</span></div>
                     {i18n.language === 'en' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
                   </button>
-                  <button 
+                  <button
                     onClick={() => i18n.changeLanguage('hi')}
                     className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === 'hi' ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
                     <div className="flex items-center gap-2"><span className="text-lg">🇮🇳</span> <span suppressHydrationWarning>{t('nav.hindi', 'Hindi')}</span></div>
                     {i18n.language === 'hi' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
                   </button>
-                  <button 
+                  <button
                     onClick={() => i18n.changeLanguage('ta')}
                     className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === 'ta' ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
                     <div className="flex items-center gap-2"><span className="text-lg">🇮🇳</span> <span suppressHydrationWarning>{t('nav.tamil', 'Tamil')}</span></div>
@@ -153,7 +158,7 @@ export default function TopNav({ user }: { user: any }) {
           </div>
 
           <ThemeToggle />
-          
+
           {/* Notifications */}
           <div className="relative group">
             <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors dark:text-slate-400 dark:hover:bg-zinc-800 relative">
@@ -184,7 +189,7 @@ export default function TopNav({ user }: { user: any }) {
             </div>
             </div>
           </div>
-          
+
           <div className="h-6 w-px bg-slate-200 dark:bg-zinc-800 hidden sm:block" />
 
           {/* User Profile */}
@@ -196,7 +201,7 @@ export default function TopNav({ user }: { user: any }) {
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
               {(user.name || "U")[0]}
             </div>
-            
+
             <form action={logout}>
               <button type="submit" className="ml-1 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                 <LogOut size={18} />
@@ -211,14 +216,14 @@ export default function TopNav({ user }: { user: any }) {
         {links.map((link) => {
           const isActive = pathname === link.href;
           const Icon = link.icon;
-          
+
           return (
             <Link
               key={link.name}
               href={link.href}
               className={`flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
-                isActive 
-                  ? "border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400" 
+                isActive
+                  ? "border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400"
                   : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >
@@ -231,3 +236,4 @@ export default function TopNav({ user }: { user: any }) {
     </div>
   );
 }
+                            

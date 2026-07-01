@@ -1,108 +1,88 @@
-import prisma from "@/lib/prisma";
+"use client";
+
+import { useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
-import Modal from "@/components/ui/Modal";
-import { Wallet, ArrowUpRight, ArrowDownRight, CreditCard, QrCode } from "lucide-react";
-import { getSession } from "@/lib/session";
+import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
 
-export default async function WalletPage() {
-  const session = await getSession();
-  if (!session || session.user.role !== 'STUDENT') return null;
+const mockTransactions = [
+  { id: 1, label: "Canteen Lunch", amount: -12.50, date: "2026-06-28", type: "debit" },
+  { id: 2, label: "Top Up via Card", amount: 50.00, date: "2026-06-25", type: "credit" },
+  { id: 3, label: "Library Fine", amount: -2.00, date: "2026-06-20", type: "debit" },
+  { id: 4, label: "Canteen Snacks", amount: -5.00, date: "2026-06-19", type: "debit" },
+  { id: 5, label: "Top Up via UPI", amount: 30.00, date: "2026-06-10", type: "credit" },
+];
 
-  const student = await prisma.student.findUnique({ where: { userId: session.user.id } });
-  if (!student) return null;
+function Modal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm p-6 relative shadow-2xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+          <X size={20} />
+        </button>
+        <h3 className="text-xl font-bold mb-4 dark:text-white">Top Up Wallet</h3>
+        <div className="space-y-4">
+          <input type="number" placeholder="Amount ($)" className="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-3 dark:bg-slate-800 dark:text-white outline-none focus:border-blue-500" />
+          <button onClick={onClose} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors">
+            Confirm Top Up
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  const transactions = await prisma.walletTransaction.findMany({
-    where: { studentId: student.id },
-    orderBy: { date: "desc" },
-    take: 10
-  });
-
-  // Calculate mock balance
-  let balance = 150.50; // Mock starting balance
+export default function StudentWalletPage() {
+  const [showModal, setShowModal] = useState(false);
+  const balance = 150.50; // Mock starting balance
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader 
-        title="Digital Wallet" 
-        description="Manage your cafeteria funds and digital payments."
+    <div className="max-w-3xl mx-auto space-y-6 pb-12">
+      <PageHeader
+        title="My Wallet"
+        description="Manage your canteen and campus spending balance."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6 flex flex-col justify-between bg-gradient-to-br from-indigo-900 to-navy-900 text-white dark:border-indigo-500/30 col-span-1 md:col-span-2 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-20">
-            <Wallet size={120} />
-          </div>
-          <div>
-            <p className="text-indigo-200 text-sm font-medium mb-1">Available Balance</p>
-            <h2 className="text-4xl font-bold tracking-tight">${balance.toFixed(2)}</h2>
-          </div>
-          <div className="mt-8 flex gap-4">
-            <Modal title="Top Up Wallet" buttonText="Top Up" buttonIcon={<Wallet size={16} />}>
-              <div className="space-y-4 text-left">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Amount ($)</label>
-                  <input type="number" defaultValue="50.00" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" />
+      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10">
+          <Wallet size={150} />
+        </div>
+        <div className="relative z-10">
+          <p className="text-blue-100 text-sm font-medium uppercase tracking-wider mb-2">Available Balance</p>
+          <h2 className="text-4xl font-black mb-6">${balance.toFixed(2)}</h2>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 font-bold rounded-xl shadow-lg hover:bg-blue-50 transition-colors"
+          >
+            <Plus size={16} /> Top Up Wallet
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h3 className="font-bold text-slate-800 dark:text-slate-100">Recent Transactions</h3>
+        </div>
+        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          {mockTransactions.map((tx) => (
+            <div key={tx.id} className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
+                  {tx.type === 'credit' ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payment Method</label>
-                  <select className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                    <option>Credit Card ending in 4242</option>
-                    <option>Apple Pay</option>
-                    <option>Bank Transfer</option>
-                  </select>
+                  <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tx.label}</p>
+                  <p className="text-xs text-slate-500">{tx.date}</p>
                 </div>
               </div>
-            </Modal>
-            <button className="px-4 py-2 bg-indigo-800 text-white border border-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-700 transition flex items-center gap-2">
-              <QrCode size={16} /> Pay with QR
-            </button>
-          </div>
-        </div>
-
-        <div className="glass-card p-6 flex flex-col justify-center items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-700 dark:text-slate-300">
-            <CreditCard size={32} />
-          </div>
-          <h3 className="font-bold text-navy-900 dark:text-white">Auto-Reload</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 mb-4">Your account will top-up when balance falls below ₹20.00</p>
-          <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded-full">
-            Active
-          </span>
+              <span className={`font-bold text-sm ${tx.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                {tx.type === 'credit' ? '+' : ''}{tx.amount.toFixed(2)}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="glass-card mt-4">
-        <div className="p-6 border-b border-ui-border dark:border-slate-800">
-          <h2 className="text-lg font-bold text-navy-900 dark:text-slate-100">Recent Transactions</h2>
-        </div>
-        <div className="p-6">
-          {transactions.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-              <Wallet className="mx-auto mb-3 opacity-50" size={32} />
-              <p>No recent transactions.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {transactions.map(t => (
-                <div key={t.id} className="flex justify-between items-center p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-ui-border dark:border-slate-700">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${t.type === 'TOP_UP' ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}`}>
-                      {t.type === 'TOP_UP' ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
-                    </div>
-                    <div>
-                      <p className="font-bold text-navy-900 dark:text-slate-200">{t.description}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{t.date.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <span className={`font-bold ${t.type === 'TOP_UP' ? 'text-green-600 dark:text-green-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                    {t.type === 'TOP_UP' ? '+' : '-'}${t.amount.toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      {showModal && <Modal onClose={() => setShowModal(false)} />}
     </div>
   );
 }

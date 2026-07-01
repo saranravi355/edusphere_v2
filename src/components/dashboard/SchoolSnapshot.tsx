@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Info, Users, Clock, ShieldAlert, GraduationCap, DollarSign, MessageSquare } from "lucide-react";
+import { Info, Users, Clock, ShieldAlert, GraduationCap, DollarSign, MessageSquare, Plane, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
@@ -15,11 +15,20 @@ export default async function SchoolSnapshot() {
 
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  let metrics: any[] = [];
+  interface Metric {
+    label: string;
+    value: string;
+    icon: LucideIcon;
+    color: string;
+    bg: string;
+    href: string;
+  }
+
+  let metrics: Metric[] = [];
 
   if (role === 'SUPER_ADMIN' || role === 'PRINCIPAL') {
     const totalStudents = await prisma.student.count();
-    
+
     const todayAttendances = await prisma.attendance.findMany({
       where: { date: { gte: today } }
     });
@@ -31,26 +40,39 @@ export default async function SchoolSnapshot() {
       where: { type: 'DEMERIT', date: { gte: startOfMonth } }
     });
 
-    const revenueResult = await prisma.feeInvoice.aggregate({
-      where: { status: 'PAID', paidAt: { gte: startOfMonth } },
-      _sum: { amount: true }
-    });
-    const revenue = revenueResult._sum.amount || 0;
-    const formattedRevenue = revenue >= 100000 ? `₹${(revenue/100000).toFixed(1)}L` : `₹${revenue.toLocaleString()}`;
+    if (role === 'PRINCIPAL') {
+      const totalTeachers = await prisma.teacher.count();
+      const pendingLeave = await prisma.leaveRequest.count({ where: { status: 'PENDING' } });
 
-    metrics = [
-      { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/users" },
-      { label: "Daily Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
-      { label: "Active Incidents", value: activeIncidents.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
-      { label: "Revenue MTD", value: formattedRevenue, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-900/30", href: "/admin/analytics" },
-    ];
-  } 
+      metrics = [
+        { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/students" },
+        { label: "Daily Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
+        { label: "Active Incidents", value: activeIncidents.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
+        { label: "Teaching Staff", value: totalTeachers.toString(), icon: GraduationCap, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30", href: "/admin/staff" },
+        { label: "Pending Leave", value: pendingLeave.toString(), icon: Plane, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/admin/staff/leave" },
+      ];
+    } else {
+      const revenueResult = await prisma.feeInvoice.aggregate({
+        where: { status: 'PAID', paidAt: { gte: startOfMonth } },
+        _sum: { amount: true }
+      });
+      const revenue = revenueResult._sum.amount || 0;
+      const formattedRevenue = revenue >= 100000 ? `₹${(revenue/100000).toFixed(1)}L` : `₹${revenue.toLocaleString()}`;
+
+      metrics = [
+        { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/users" },
+        { label: "Daily Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
+        { label: "Active Incidents", value: activeIncidents.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
+        { label: "Revenue MTD", value: formattedRevenue, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-900/30", href: "/admin/finance" },
+      ];
+    }
+  }
   else if (role === 'CLASS_TEACHER' || role === 'SUBJECT_TEACHER') {
     const teacher = await prisma.teacher.findUnique({
       where: { userId },
       include: { classes: true }
     });
-    
+
     let attendanceRate = "0%";
     if (teacher && teacher.classes.length > 0) {
       const classId = teacher.classes[0].id;
@@ -80,16 +102,16 @@ export default async function SchoolSnapshot() {
   else if (role === 'PARENT') {
     const parent = await prisma.parent.findUnique({
       where: { userId },
-      include: { 
-        students: { 
+      include: {
+        students: {
           include: { attendances: { where: { date: { gte: today } } } }
-        } 
+        }
       }
     });
 
     const children = parent?.students || [];
     const presentCount = children.filter(s => s.attendances.some(a => a.status === 'PRESENT')).length;
-    
+
     const upcomingFeesResult = await prisma.feeInvoice.aggregate({
       where: { studentId: { in: children.map(c => c.id) }, status: 'PENDING' },
       _sum: { amount: true }
@@ -120,7 +142,7 @@ export default async function SchoolSnapshot() {
     const homeworkDue = student?.classroomId ? await prisma.homework.count({
       where: { classroomId: student.classroomId, dueDate: { gte: today } }
     }) : 0;
-    
+
     const walletTransactions = student?.id ? await prisma.walletTransaction.findMany({ where: { studentId: student.id }}) : [];
     const balance = walletTransactions.reduce((acc, t) => t.type === 'TOP_UP' ? acc + t.amount : acc - t.amount, 0);
 
@@ -139,35 +161,5 @@ export default async function SchoolSnapshot() {
         </div>
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <h2 className="text-2xl font-bold font-heading mb-1">Today's Snapshot</h2>
-            <p className="text-slate-300 text-sm">Key metrics for {new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            {metrics.map((m, i) => {
-              const Icon = m.icon;
-              const content = (
-                <div className="flex items-center gap-3 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm px-4 py-3 rounded-xl border border-white/10 cursor-pointer h-full">
-                  <div className={`p-2 rounded-lg ${m.bg}`}>
-                    <Icon className={`w-5 h-5 ${m.color}`} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">{m.label}</p>
-                    <p className="text-xl font-bold">{m.value}</p>
-                  </div>
-                </div>
-              );
-
-              return m.href ? (
-                <Link key={i} href={m.href} className="block">
-                  {content}
-                </Link>
-              ) : (
-                <div key={i}>{content}</div>
-              );
-            })}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+            <h2 className="text-2xl font-bold font-heading mb-1">Today&apos;s Snapshot</h2>
+            <p className="text-slate-300 text-sm">Key metrics for {new Date().toLocaleDateString('en-IN', { weekday: 'l

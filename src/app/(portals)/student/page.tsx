@@ -18,7 +18,7 @@ export default async function StudentDashboard() {
   return (
     <div className="space-y-6 pb-12 max-w-6xl">
       <SchoolSnapshot />
-      <PageHeader 
+      <PageHeader
         title={`Welcome back, ${session?.user.name.split(' ')[0]}!`}
         description="Here is your academic progress and daily tasks."
       />
@@ -72,10 +72,9 @@ export default async function StudentDashboard() {
               <h3 className="font-semibold text-slate-800 dark:text-slate-100">My Progress</h3>
               <p className="text-sm text-slate-500">View your grades</p>
             </div>
-            <Link href="/student/progress" className="text-sm font-medium text-orange-600 hover:text-orange-700 mt-2">View Report →</Link>
+            <Link href="/student/report-card" className="text-sm font-medium text-orange-600 hover:text-orange-700 mt-2">View Report →</Link>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-}

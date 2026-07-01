@@ -11,6 +11,7 @@ export default function AdminActionModals() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-mount gate before using createPortal (no document during SSR)
     setMounted(true);
   }, []);
 
@@ -35,7 +36,7 @@ export default function AdminActionModals() {
             <button onClick={close} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
               <X size={20} />
             </button>
-            
+
             {activeModal === "teacher" && (
               <form action={async (fd) => {
                 setLoading(true);

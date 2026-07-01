@@ -8,7 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-mono);
   --font-heading: var(--font-heading);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -38,7 +38,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  
+
   /* PRD Design Tokens */
   --color-navy: #0F2747;
   --color-royal: #2563EB;
@@ -49,15 +49,15 @@
 
   /* Theme Overrides - EduNest Color Schema */
   /* Replaces default slate with Warm Ivory to Charcoal */
-  --color-slate-50: #F8F7F4; 
+  --color-slate-50: #F8F7F4;
   --color-slate-100: #F0EFEA;
   --color-slate-200: #E5E4DE;
   --color-slate-300: #D4D2C9;
   --color-slate-400: #A3A095;
-  --color-slate-500: #6B7280; 
+  --color-slate-500: #6B7280;
   --color-slate-600: #4B5563;
   --color-slate-700: #374151;
-  --color-slate-800: #2F3A3D; 
+  --color-slate-800: #2F3A3D;
   --color-slate-900: #1F292B;
   --color-slate-950: #0F1517;
 
@@ -67,7 +67,7 @@
   --color-blue-200: #AED1C7;
   --color-blue-300: #88BBAE;
   --color-blue-400: #68A395;
-  --color-blue-500: #5E8B7E; 
+  --color-blue-500: #5E8B7E;
   --color-blue-600: #4A7065;
   --color-blue-700: #3A5850;
   --color-blue-800: #2C423C;
@@ -110,6 +110,10 @@
 }
 
 :root {
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
   --background: #F8F7F4;
   --foreground: #2F3A3D;
   --card: #FFFFFF;
@@ -129,15 +133,15 @@
   --border: #E5E4DE;
   --input: #E5E4DE;
   --ring: #5E8B7E;
-  
+
   --chart-1: #5E8B7E;
   --chart-2: #C97C5D;
   --chart-3: #E9C46A;
   --chart-4: #48B07A;
   --chart-5: #E06A5F;
-  
+
   --radius: 0.625rem;
-  
+
   --sidebar: #FFFFFF;
   --sidebar-foreground: #2F3A3D;
   --sidebar-primary: #5E8B7E;
@@ -168,7 +172,7 @@
   --border: #2C423C;
   --input: #2C423C;
   --ring: #5E8B7E;
-  
+
   --chart-1: #5E8B7E;
   --chart-2: #C97C5D;
   --chart-3: #E9C46A;
@@ -208,7 +212,7 @@
   .dark .glass {
     @apply bg-slate-900/95 backdrop-blur-md border border-slate-800 shadow-sm;
   }
-  
+
   .glass-card {
     @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-[0px_2px_4px_rgba(0,0,0,0.02),0px_4px_12px_rgba(0,0,0,0.02)] rounded-xl transition-all duration-200 hover:shadow-[0px_4px_8px_rgba(0,0,0,0.04),0px_8px_24px_rgba(0,0,0,0.04)];
   }

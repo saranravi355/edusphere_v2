@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export type Role = "SUPER_ADMIN" | "PRINCIPAL" | "CLASS_TEACHER" | "PARENT" | "STUDENT";
 
@@ -33,11 +33,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
-  const pathname = usePathname();
 
   // On mount, auto-login as teacher for demo if no user
   useEffect(() => {
     const saved = localStorage.getItem("edu_auth_role");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-only demo auth hydration (localStorage unavailable during SSR)
     if (saved && mockUsers[saved as Role]) {
       setUser(mockUsers[saved as Role]);
     } else {

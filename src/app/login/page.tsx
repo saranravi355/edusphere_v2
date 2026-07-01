@@ -34,14 +34,14 @@ function LoginForm() {
         <ArrowLeft className="w-4 h-4 mr-2" /> Back to Roles
       </Link>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[480px]"
       >
         {/* Left Side - Branding & Quote */}
         <div className="w-full md:w-1/2 p-10 md:p-14 flex flex-col items-center justify-center text-center relative bg-slate-50 dark:bg-slate-900/50">
-          
+
           <div className="flex items-center justify-center gap-3 mb-10">
             <div className="text-slate-800 dark:text-slate-200 flex items-center justify-center">
               <BookOpen size={56} strokeWidth={2} />
@@ -67,31 +67,31 @@ function LoginForm() {
               Login to {roleTitle} Portal
             </h3>
 
-            <form action={login as any} className="flex flex-col gap-5">
+            <form action={async (formData) => { await login(formData); }} className="flex flex-col gap-5">
               <div>
-                <input 
-                  type="email" 
-                  name="email" 
+                <input
+                  type="email"
+                  name="email"
                   defaultValue={defaultEmail}
                   placeholder="Email Address"
-                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm" 
-                  required 
+                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
+                  required
                 />
               </div>
-              
+
               <div>
-                <input 
-                  type="password" 
-                  name="password" 
+                <input
+                  type="password"
+                  name="password"
                   defaultValue="password123"
                   placeholder="Password"
-                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm" 
-                  required 
+                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
+                  required
                 />
               </div>
-              
-              <button 
-                type="submit" 
+
+              <button
+                type="submit"
                 className="w-full py-2.5 mt-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-md transition-colors text-sm shadow-sm tracking-wide"
               >
                 Login
