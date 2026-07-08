@@ -59,6 +59,15 @@ async function main() {
     { email: 'teacher3@edusphere.com', name: 'Ananya Bose', subjects: 'English, Individuals & Societies' },
     { email: 'teacher4@edusphere.com', name: 'Vikram Nair', subjects: 'Sciences, Mathematics' },
     { email: 'teacher5@edusphere.com', name: 'Fatima Sheikh', subjects: 'Visual Arts, Spanish B' },
+    { email: 'teacher6@edusphere.com', name: 'Devika Menon', subjects: 'Mathematics, Sciences' },
+    { email: 'teacher7@edusphere.com', name: 'Arvind Rao', subjects: 'English, Individuals & Societies' },
+    { email: 'teacher8@edusphere.com', name: 'Neha Kapoor', subjects: 'Sciences, Visual Arts' },
+    { email: 'teacher9@edusphere.com', name: 'Suresh Iyer', subjects: 'Mathematics, Spanish B' },
+    { email: 'teacher10@edusphere.com', name: 'Priyanka Das', subjects: 'English, Sciences' },
+    { email: 'teacher11@edusphere.com', name: 'Rahul Chopra', subjects: 'Individuals & Societies, Mathematics' },
+    { email: 'teacher12@edusphere.com', name: 'Lakshmi Venkatesh', subjects: 'Visual Arts, English' },
+    { email: 'teacher13@edusphere.com', name: 'Manish Joshi', subjects: 'Sciences, Individuals & Societies' },
+    { email: 'teacher14@edusphere.com', name: 'Divya Pillai', subjects: 'Mathematics, English' },
   ];
   for (const t of extraTeachers) {
     const user = await prisma.user.upsert({
@@ -83,13 +92,13 @@ async function main() {
   const tongues = ['HINDI', 'TAMIL', 'GUJARATI', 'PUNJABI', 'TELUGU', 'MARATHI'];
 
   const students = [];
-  for (let i = 1; i <= 30; i++) {
+  for (let i = 1; i <= 150; i++) {
     const fn = firstNames[Math.floor(Math.random() * firstNames.length)];
     const ln = lastNames[Math.floor(Math.random() * lastNames.length)];
     const gender = fn.endsWith('a') || fn.endsWith('i') ? 'Female' : 'Male'; // simple heuristic
     students.push({
       name: `${fn} ${ln}`,
-      reg: `STU-26-10${i.toString().padStart(2, '0')}`,
+      reg: `STU-26-${(1000 + i)}`,
       cur: curriculums[Math.floor(Math.random() * curriculums.length)],
       gender: gender,
       dob: `201${Math.floor(Math.random() * 3)}-${Math.floor(Math.random() * 11) + 1}-15`,
@@ -167,15 +176,22 @@ async function main() {
 
   console.log('Seeding academic structure (classrooms, subjects, timetable)...');
 
-  // ---- Classrooms (IB Programme naming: MYP1-5, DP1-2) ----
+  // ---- Classrooms (IB Programme naming: MYP1-5, DP1-2, with A/B sections) ----
   const classroomDefs = [
-    { name: 'MYP1', gradeLevel: 6 },
-    { name: 'MYP2', gradeLevel: 7 },
-    { name: 'MYP3', gradeLevel: 8 },
-    { name: 'MYP4', gradeLevel: 9 },
-    { name: 'MYP5', gradeLevel: 10 },
-    { name: 'DP1', gradeLevel: 11 },
-    { name: 'DP2', gradeLevel: 12 },
+    { name: 'MYP1A', gradeLevel: 6 },
+    { name: 'MYP1B', gradeLevel: 6 },
+    { name: 'MYP2A', gradeLevel: 7 },
+    { name: 'MYP2B', gradeLevel: 7 },
+    { name: 'MYP3A', gradeLevel: 8 },
+    { name: 'MYP3B', gradeLevel: 8 },
+    { name: 'MYP4A', gradeLevel: 9 },
+    { name: 'MYP4B', gradeLevel: 9 },
+    { name: 'MYP5A', gradeLevel: 10 },
+    { name: 'MYP5B', gradeLevel: 10 },
+    { name: 'DP1A', gradeLevel: 11 },
+    { name: 'DP1B', gradeLevel: 11 },
+    { name: 'DP2A', gradeLevel: 12 },
+    { name: 'DP2B', gradeLevel: 12 },
   ];
 
   const classroomRecords: { id: string; name: string; gradeLevel: number }[] = [];
@@ -555,33 +571,303 @@ async function main() {
     }
   }
 
-  // ---- Quizzes ----
-  const existingQuizCount = await prisma.quiz.count();
-  if (existingQuizCount === 0) {
-    const subject = subjectRecords[0];
-    const classroom = classroomRecords[0];
-    const teacher = teacherRecords[0];
+  // ---- Exam Engine: quizzes/exams across the moderation + grade-release lifecycle ----
+  type SeedQuestion = {
+    type: 'MCQ' | 'SHORT_ANSWER' | 'ESSAY';
+    text: string;
+    points: number;
+    options?: string[];
+    correctIdx?: number;
+    rubric?: { criterion: string; maxPoints: number }[];
+    difficulty?: string;
+    bloomsLevel?: string;
+  };
+
+  async function createSeedExam(opts: {
+    title: string;
+    classroomId: string;
+    subjectId: string;
+    teacherId: string;
+    moderatorTeacherId?: string;
+    examType: string;
+    dueDate: Date;
+    timeLimitMinutes?: number;
+    questions: SeedQuestion[];
+    attemptStudentIds: string[];
+    targetStatus: 'DRAFT' | 'PUBLISHED' | 'PENDING_MODERATION' | 'MODERATED' | 'GRADES_RELEASED';
+  }) {
+    const totalMarks = opts.questions.reduce((s, q) => s + q.points, 0);
     const quiz = await prisma.quiz.create({
       data: {
-        title: `${subject.name} Pop Quiz`,
-        description: 'Quick formative check on recent unit content.',
-        teacherId: teacher.id,
-        classroomId: classroom.id,
-        dueDate: daysAgo(-7),
+        title: opts.title,
+        teacherId: opts.teacherId,
+        classroomId: opts.classroomId,
+        subjectId: opts.subjectId,
+        examType: opts.examType,
+        dueDate: opts.dueDate,
+        timeLimitMinutes: opts.timeLimitMinutes,
+        totalMarks,
+        status: opts.targetStatus === 'DRAFT' ? 'DRAFT' : 'PUBLISHED',
       }
     });
-    const questions = [
-      { text: 'Which of the following is a primary theme?', options: JSON.stringify(['A', 'B', 'C', 'D']), correctIdx: 1 },
-      { text: 'Select the best supporting evidence.', options: JSON.stringify(['A', 'B', 'C', 'D']), correctIdx: 2 },
-      { text: 'Identify the correct term.', options: JSON.stringify(['A', 'B', 'C', 'D']), correctIdx: 0 },
-    ];
-    for (const q of questions) {
-      await prisma.question.create({ data: { ...q, quizId: quiz.id } });
+
+    const questionRecords = [];
+    for (const q of opts.questions) {
+      const question = await prisma.question.create({
+        data: {
+          quizId: quiz.id,
+          text: q.text,
+          type: q.type,
+          points: q.points,
+          options: q.options ? JSON.stringify(q.options) : null,
+          correctIdx: q.correctIdx ?? null,
+          rubricCriteria: q.rubric ? JSON.stringify(q.rubric) : null,
+          difficulty: q.difficulty ?? null,
+          bloomsLevel: q.bloomsLevel ?? null,
+        }
+      });
+      questionRecords.push(question);
     }
-    const classroomStudents = studentRecords.filter((_, idx) => idx % classroomRecords.length === 0);
-    for (const s of classroomStudents.slice(0, 4)) {
-      await prisma.quizAttempt.create({
-        data: { quizId: quiz.id, studentId: s.id, score: 1 + Math.floor(Math.random() * 3), totalScore: 3, submittedAt: daysAgo(2) }
+
+    if (opts.targetStatus === 'DRAFT') return quiz;
+
+    const isGraded = ['PENDING_MODERATION', 'MODERATED', 'GRADES_RELEASED'].includes(opts.targetStatus);
+    const attemptStatus = opts.targetStatus === 'GRADES_RELEASED' ? 'RELEASED' : isGraded ? 'GRADED' : 'SUBMITTED';
+
+    for (const studentId of opts.attemptStudentIds) {
+      let totalAwarded = 0;
+      const responseInputs: { questionId: string; selectedIdx: number | null; textAnswer: string | null; marksAwarded: number | null; rubricScores?: string | null; feedback?: string | null }[] = [];
+
+      for (const question of questionRecords) {
+        if (question.type === 'MCQ') {
+          const isCorrect = Math.random() < 0.72;
+          const optionCount = question.options ? JSON.parse(question.options).length : 4;
+          const selectedIdx = isCorrect ? question.correctIdx! : (question.correctIdx! + 1) % optionCount;
+          const marks = isCorrect ? question.points : 0;
+          totalAwarded += isGraded ? marks : 0;
+          responseInputs.push({ questionId: question.id, selectedIdx, textAnswer: null, marksAwarded: isGraded ? marks : null });
+        } else {
+          const criteria: { criterion: string; maxPoints: number }[] = question.rubricCriteria ? JSON.parse(question.rubricCriteria) : [];
+          const rubricScores = criteria.map((c) => ({ criterion: c.criterion, points: isGraded ? Math.round(c.maxPoints * (0.6 + Math.random() * 0.4)) : 0 }));
+          const marks = rubricScores.reduce((s, c) => s + c.points, 0);
+          totalAwarded += isGraded ? marks : 0;
+          responseInputs.push({
+            questionId: question.id,
+            selectedIdx: null,
+            textAnswer: 'Sample response covering the key concepts discussed in class, with supporting examples.',
+            marksAwarded: isGraded ? marks : null,
+            rubricScores: isGraded ? JSON.stringify(rubricScores) : null,
+            feedback: isGraded ? 'Solid effort - see rubric breakdown for detail.' : null,
+          });
+        }
+      }
+
+      const attempt = await prisma.quizAttempt.create({
+        data: {
+          quizId: quiz.id,
+          studentId,
+          score: Math.round(totalAwarded),
+          totalScore: totalMarks,
+          status: attemptStatus,
+          submittedAt: opts.dueDate,
+          startedAt: opts.dueDate,
+        }
+      });
+
+      await prisma.quizResponse.createMany({
+        data: responseInputs.map((r) => ({ ...r, attemptId: attempt.id }))
+      });
+    }
+
+    if (isGraded) {
+      await prisma.quiz.update({
+        where: { id: quiz.id },
+        data: {
+          status: opts.targetStatus,
+          moderatedByTeacherId: opts.targetStatus !== 'PENDING_MODERATION' ? (opts.moderatorTeacherId ?? null) : null,
+          moderatedAt: opts.targetStatus !== 'PENDING_MODERATION' ? opts.dueDate : null,
+          gradesReleasedAt: opts.targetStatus === 'GRADES_RELEASED' ? opts.dueDate : null,
+        }
+      });
+    }
+
+    return quiz;
+  }
+
+  const existingQuizCount = await prisma.quiz.count();
+  if (existingQuizCount === 0) {
+    console.log('Seeding exam engine (quizzes, questions, attempts, moderation)...');
+
+    const studentsInClassroom = (classroomId: string) => studentRecords.filter((_, idx) => classroomRecords[idx % classroomRecords.length].id === classroomId);
+    const mathSubject = subjectRecords.find((s) => s.code === 'MATH')!;
+    const engSubject = subjectRecords.find((s) => s.code === 'ENG-A')!;
+    const sciSubject = subjectRecords.find((s) => s.code === 'SCI')!;
+    const iasSubject = subjectRecords.find((s) => s.code === 'I-AND-S')!;
+    const artsSubject = subjectRecords.find((s) => s.code === 'ARTS')!;
+
+    const mcq = (text: string, options: string[], correctIdx: number, points = 5): SeedQuestion => ({ type: 'MCQ', text, options, correctIdx, points, difficulty: pick(['EASY', 'MEDIUM', 'HARD']), bloomsLevel: pick(['Remember', 'Understand', 'Apply']) });
+    const essay = (text: string, points: number, rubric: { criterion: string; maxPoints: number }[]): SeedQuestion => ({ type: 'ESSAY', text, points, rubric, difficulty: pick(['MEDIUM', 'HARD']), bloomsLevel: pick(['Analyze', 'Evaluate', 'Create']) });
+
+    // 1. Fully released exam
+    const myp1a = classroomRecords.find((c) => c.name === 'MYP1A')!;
+    await createSeedExam({
+      title: 'Algebra Unit Test',
+      classroomId: myp1a.id,
+      subjectId: mathSubject.id,
+      teacherId: teacherRecords[0].id,
+      moderatorTeacherId: teacherRecords[1].id,
+      examType: 'UNIT_TEST',
+      dueDate: daysAgo(18),
+      timeLimitMinutes: 45,
+      questions: [
+        mcq('Solve for x: 2x + 4 = 12', ['2', '4', '6', '8'], 1),
+        mcq('Which expression simplifies to 3x?', ['x + x + x', '3 + x', 'x/3', 'x - 3'], 0),
+        mcq('What is the slope of y = 3x + 2?', ['1', '2', '3', '4'], 2),
+        essay('Explain, step by step, how you would solve a system of two linear equations.', 10, [
+          { criterion: 'Correct method identified', maxPoints: 4 },
+          { criterion: 'Steps clearly shown', maxPoints: 3 },
+          { criterion: 'Correct final answer', maxPoints: 3 },
+        ]),
+      ],
+      attemptStudentIds: studentsInClassroom(myp1a.id).map((s) => s.id),
+      targetStatus: 'GRADES_RELEASED',
+    });
+
+    // 2. Moderated, awaiting release
+    const myp2a = classroomRecords.find((c) => c.name === 'MYP2A')!;
+    await createSeedExam({
+      title: 'Literature Midterm',
+      classroomId: myp2a.id,
+      subjectId: engSubject.id,
+      teacherId: teacherRecords[2].id,
+      moderatorTeacherId: teacherRecords[3].id,
+      examType: 'MIDTERM',
+      dueDate: daysAgo(9),
+      timeLimitMinutes: 60,
+      questions: [
+        mcq('Identify the narrative perspective used in the excerpt.', ['First person', 'Second person', 'Third person limited', 'Third person omniscient'], 2),
+        mcq('Which literary device is exemplified by "the wind whispered"?', ['Simile', 'Personification', 'Metaphor', 'Hyperbole'], 1),
+        essay('Analyze how the author develops the theme of isolation in the assigned text.', 15, [
+          { criterion: 'Thesis clarity', maxPoints: 5 },
+          { criterion: 'Use of textual evidence', maxPoints: 5 },
+          { criterion: 'Organization and style', maxPoints: 5 },
+        ]),
+      ],
+      attemptStudentIds: studentsInClassroom(myp2a.id).map((s) => s.id),
+      targetStatus: 'MODERATED',
+    });
+
+    // 3. Graded, pending moderation
+    const dp1a = classroomRecords.find((c) => c.name === 'DP1A')!;
+    await createSeedExam({
+      title: 'Biology Final Exam',
+      classroomId: dp1a.id,
+      subjectId: sciSubject.id,
+      teacherId: teacherRecords[4].id,
+      examType: 'FINAL',
+      dueDate: daysAgo(4),
+      timeLimitMinutes: 90,
+      questions: [
+        mcq('Which organelle is responsible for ATP production?', ['Nucleus', 'Mitochondria', 'Ribosome', 'Golgi apparatus'], 1),
+        mcq('What is the primary function of chlorophyll?', ['Water transport', 'Light absorption', 'Nutrient storage', 'Cell division'], 1),
+        mcq('DNA replication is described as:', ['Conservative', 'Semi-conservative', 'Dispersive', 'Random'], 1),
+        essay('Describe the process of natural selection using a real-world example.', 12, [
+          { criterion: 'Accurate description of mechanism', maxPoints: 5 },
+          { criterion: 'Relevant real-world example', maxPoints: 4 },
+          { criterion: 'Scientific vocabulary used correctly', maxPoints: 3 },
+        ]),
+      ],
+      attemptStudentIds: studentsInClassroom(dp1a.id).map((s) => s.id),
+      targetStatus: 'PENDING_MODERATION',
+    });
+
+    // 4. Published, some submissions still ungraded
+    const dp2a = classroomRecords.find((c) => c.name === 'DP2A')!;
+    const dp2aStudents = studentsInClassroom(dp2a.id).map((s) => s.id);
+    await createSeedExam({
+      title: 'Global Politics Quiz',
+      classroomId: dp2a.id,
+      subjectId: iasSubject.id,
+      teacherId: teacherRecords[5].id,
+      examType: 'QUIZ',
+      dueDate: daysAgo(1),
+      timeLimitMinutes: 25,
+      questions: [
+        mcq('Which body is primarily responsible for international peacekeeping?', ['WTO', 'United Nations', 'IMF', 'WHO'], 1),
+        mcq('A "failed state" is best defined by:', ['High GDP growth', 'Loss of effective governance', 'Strong military', 'EU membership'], 1),
+      ],
+      attemptStudentIds: dp2aStudents.slice(0, Math.max(1, Math.floor(dp2aStudents.length * 0.6))),
+      targetStatus: 'PUBLISHED',
+    });
+
+    // 5. Draft, not yet published
+    const myp3a = classroomRecords.find((c) => c.name === 'MYP3A')!;
+    await createSeedExam({
+      title: 'Design Portfolio Project',
+      classroomId: myp3a.id,
+      subjectId: artsSubject.id,
+      teacherId: teacherRecords[6].id,
+      examType: 'PROJECT',
+      dueDate: daysAgo(-14),
+      questions: [
+        essay('Present your design process journal covering ideation through final piece.', 20, [
+          { criterion: 'Ideation and research', maxPoints: 7 },
+          { criterion: 'Technical execution', maxPoints: 7 },
+          { criterion: 'Reflection and evaluation', maxPoints: 6 },
+        ]),
+      ],
+      attemptStudentIds: [],
+      targetStatus: 'DRAFT',
+    });
+  }
+
+  // ---- Alumni & Progression Tracking ----
+  const existingAlumniCount = await prisma.alumni.count();
+  if (existingAlumniCount === 0) {
+    console.log('Seeding alumni registry...');
+    const alumniDefs = [
+      { name: 'Ishaan Mehta', year: 2023, dp: 41, uni: 'University of Toronto', course: 'Computer Science', country: 'Canada', status: 'STUDYING', achievements: 'National Robotics Champion 2022; DP top scorer in graduating cohort.', featured: true },
+      { name: 'Aisha Rahman', year: 2023, dp: 38, uni: 'University of Edinburgh', course: 'Medicine', country: 'United Kingdom', status: 'STUDYING', achievements: 'Founded the school Community Service (CAS) outreach program.', featured: true },
+      { name: 'Rohan Kapoor', year: 2023, dp: 34, uni: 'IIT Bombay', course: 'Mechanical Engineering', country: 'India', status: 'STUDYING', achievements: 'State-level chess champion.', featured: false },
+      { name: 'Meera Nair', year: 2024, dp: 43, uni: 'Stanford University', course: 'Economics', country: 'United States', status: 'STUDYING', achievements: 'Model UN Secretary-General; full merit scholarship recipient.', featured: true },
+      { name: 'Karan Malhotra', year: 2024, dp: 36, uni: 'National University of Singapore', course: 'Business Analytics', country: 'Singapore', status: 'STUDYING', achievements: 'Regional debate champion 2023.', featured: false },
+      { name: 'Zara Khan', year: 2024, dp: 39, uni: 'McGill University', course: 'Environmental Science', country: 'Canada', status: 'STUDYING', achievements: 'Published research note on urban biodiversity with local university.', featured: true },
+      { name: 'Aditya Bhatt', year: 2024, dp: 31, uni: 'Manipal Institute of Technology', course: 'Computer Science', country: 'India', status: 'STUDYING', achievements: 'Built and open-sourced a school timetabling tool.', featured: false },
+      { name: 'Naomi Fernandes', year: 2024, dp: 40, uni: 'University of Melbourne', course: 'Architecture', country: 'Australia', status: 'STUDYING', achievements: 'Design portfolio exhibited at a regional youth art fair.', featured: false },
+      { name: 'Vikrant Sethi', year: 2025, dp: 44, uni: 'University of Cambridge', course: 'Natural Sciences', country: 'United Kingdom', status: 'STUDYING', achievements: 'Highest DP score in school history at time of graduation.', featured: true },
+      { name: 'Simran Kaur', year: 2025, dp: 37, uni: 'University of British Columbia', course: 'Psychology', country: 'Canada', status: 'STUDYING', achievements: 'Peer counselling program founder.', featured: false },
+      { name: 'Farhan Ali', year: 2025, dp: 33, uni: 'Delhi University', course: 'Economics', country: 'India', status: 'STUDYING', achievements: 'School basketball team captain, 2 years.', featured: false },
+      { name: 'Elena Costa', year: 2025, dp: 42, uni: 'Bocconi University', course: 'International Management', country: 'Italy', status: 'STUDYING', achievements: 'Erasmus exchange scholarship; MUN best delegate award.', featured: true },
+      { name: 'Yusuf Ibrahim', year: 2025, dp: 30, uni: null, course: null, country: 'India', status: 'GAP_YEAR', achievements: 'Taking a gap year for a national-level cricket program before university.', featured: false },
+      { name: 'Priyansha Rao', year: 2025, dp: 35, uni: 'Amrita Vishwa Vidyapeetham', course: 'Biotechnology', country: 'India', status: 'STUDYING', achievements: 'School science fair grand prize, two consecutive years.', featured: false },
+      { name: 'Daniel Wong', year: 2025, dp: null, uni: null, course: null, country: 'India', status: 'WORKING', achievements: 'Joined a Bangalore-based startup as a junior analyst straight after graduation.', featured: false },
+      { name: 'Ananya Krishnan', year: 2025, dp: 39, uni: 'University of Amsterdam', course: 'Liberal Arts and Sciences', country: 'Netherlands', status: 'STUDYING', achievements: 'Editor-in-chief of the school newsletter for two years.', featured: false },
+    ];
+
+    for (const a of alumniDefs) {
+      const reg = `ALU-${a.year}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const alumStudent = await prisma.student.create({
+        data: {
+          registrationNo: reg,
+          name: a.name,
+          curriculum: 'DP',
+          isActive: false,
+          dateOfBirth: new Date(`${a.year - 18}-05-15`),
+        }
+      });
+      await prisma.alumni.create({
+        data: {
+          studentId: alumStudent.id,
+          graduationYear: a.year,
+          finalProgramme: 'DP',
+          finalDpScore: a.dp,
+          university: a.uni,
+          courseOfStudy: a.course,
+          country: a.country,
+          currentStatus: a.status,
+          achievements: a.achievements,
+          isFeatured: a.featured,
+        }
       });
     }
   }

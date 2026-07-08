@@ -41,6 +41,7 @@ model Teacher {
   clubs            Club[]
   leaveRequests    LeaveRequest[]
   quizzes          Quiz[]
+  moderatedQuizzes Quiz[] @relation("ModeratedQuizzes")
   timetable        TimetableEntry[]
 }
 
@@ -98,6 +99,7 @@ model Student {
   clinicVisits     ClinicVisit[]
   quizAttempts     QuizAttempt[]
   hostelRecord     HostelStudent?
+  alumniRecord     Alumni?
 }
 
 model Classroom {
@@ -121,6 +123,7 @@ model Subject {
   grades      Grade[]
   homeworks   Homework[]
   timetable   TimetableEntry[]
+  quizzes     Quiz[]
 }
 
 model Attendance {
@@ -311,9 +314,21 @@ model Quiz {
   teacher     Teacher  @relation(fields: [teacherId], references: [id])
   classroomId String
   classroom   Classroom @relation(fields: [classroomId], references: [id])
+  subjectId   String?
+  subject     Subject? @relation(fields: [subjectId], references: [id])
   dueDate     DateTime
   createdAt   DateTime @default(now())
-  
+
+  // Exam Engine fields
+  examType         String    @default("QUIZ") // UNIT_TEST, MIDTERM, FINAL, QUIZ, PRACTICAL, VIVA, PROJECT
+  timeLimitMinutes Int?      // null = untimed
+  totalMarks       Int       @default(0)
+  status           String    @default("DRAFT") // DRAFT, PUBLISHED, PENDING_MODERATION, MODERATED, GRADES_RELEASED
+  moderatedByTeacherId String?
+  moderatedByTeacher   Teacher? @relation("ModeratedQuizzes", fields: [moderatedByTeacherId], references: [id])
+  moderatedAt      DateTime?
+  gradesReleasedAt DateTime?
+
   questions   Question[]
   attempts    QuizAttempt[]
 }
@@ -323,9 +338,15 @@ model Question {
   quizId      String
   quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   text        String
-  options     String   // JSON string of options ["A", "B", "C", "D"]
-  correctIdx  Int      // Index of correct option (0-3)
+  type        String   @default("MCQ") // MCQ, SHORT_ANSWER, ESSAY
+  options     String?  // JSON string of options ["A", "B", "C", "D"], null for essay/short answer
+  correctIdx  Int?     // Index of correct option (0-3), null for essay/short answer
   points      Int      @default(1)
+  difficulty  String?  // EASY, MEDIUM, HARD
+  bloomsLevel String?  // Remember, Understand, Apply, Analyze, Evaluate, Create
+  rubricCriteria String? // JSON array of {criterion, maxPoints} for essay/short answer grading
+
+  responses   QuizResponse[]
 }
 
 model QuizAttempt {
@@ -337,6 +358,45 @@ model QuizAttempt {
   score       Int
   totalScore  Int
   submittedAt DateTime @default(now())
+
+  // Exam Engine fields
+  startedAt      DateTime?
+  autoSubmitted  Boolean   @default(false)
+  status         String    @default("SUBMITTED") // IN_PROGRESS, SUBMITTED, GRADED, RELEASED
+  questionOrder  String?   // JSON array of question ids in randomized order shown to this student
+
+  responses      QuizResponse[]
+}
+
+model QuizResponse {
+  id            String      @id @default(cuid())
+  attemptId     String
+  attempt       QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedIdx   Int?        // for MCQ
+  textAnswer    String?     // for short answer / essay
+  marksAwarded  Float?
+  rubricScores  String?     // JSON array of {criterion, points} awarded
+  feedback      String?
+  gradedByTeacherId String?
+}
+
+model Alumni {
+  id               String   @id @default(cuid())
+  studentId        String   @unique
+  student          Student  @relation(fields: [studentId], references: [id])
+  graduationYear   Int
+  finalProgramme   String   // PYP, MYP, or DP
+  finalDpScore     Int?     // out of 45, DP graduates only
+  university       String?
+  courseOfStudy    String?
+  country          String?
+  currentStatus    String?  // STUDYING, WORKING, GAP_YEAR, OTHER
+  achievements     String?
+  linkedinUrl      String?
+  isFeatured       Boolean  @default(false) // shown on the achievement wall
+  createdAt        DateTime @default(now())
 }
 
 model Asset {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, LogOut, Building, GraduationCap, Users, LayoutDashboard, Settings, UserPlus, BookOpen, Clock, FileText, MessageSquare, DollarSign, Activity, CheckCircle2, Calendar, Bus, ShieldAlert, Wallet, Tent, Pill, Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book, ShieldAlert as ShieldIcon, Navigation, Target, UtensilsCrossed as UtensilsIcon, Package as PackageIcon } from "lucide-react";
+import { Bell, Search, LogOut, Building, GraduationCap, Users, LayoutDashboard, Settings, UserPlus, BookOpen, Clock, FileText, MessageSquare, DollarSign, Activity, CheckCircle2, Calendar, Bus, ShieldAlert, Wallet, Tent, Pill, Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book, ShieldAlert as ShieldIcon, Navigation, Target, UtensilsCrossed as UtensilsIcon, Package as PackageIcon, Award, ClipboardCheck } from "lucide-react";
 import { logout } from "@/app/actions";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import Link from "next/link";
@@ -28,6 +28,8 @@ export default function TopNav({ user }: { user: TopNavUser }) {
       { name: "Staff", href: "/admin/staff", icon: Users },
       { name: "Students", href: "/admin/students", icon: GraduationCap },
       { name: "Behavior", href: "/admin/behavior", icon: ShieldIcon },
+      { name: "Exams", href: "/admin/exams", icon: ClipboardCheck },
+      { name: "Alumni", href: "/admin/alumni", icon: Award },
       { name: "Clubs", href: "/admin/clubs", icon: Tent },
       { name: "Library", href: "/admin/library", icon: Book },
       { name: "Finance", href: "/admin/finance", icon: DollarSign },
@@ -51,6 +53,8 @@ export default function TopNav({ user }: { user: TopNavUser }) {
       { name: "Staff", href: "/admin/staff", icon: Users },
       { name: "Students", href: "/admin/students", icon: GraduationCap },
       { name: "Behavior", href: "/admin/behavior", icon: ShieldIcon },
+      { name: "Exams", href: "/admin/exams", icon: ClipboardCheck },
+      { name: "Alumni", href: "/admin/alumni", icon: Award },
       { name: "Clubs", href: "/admin/clubs", icon: Tent },
       { name: "Library", href: "/admin/library", icon: Book },
     ],
@@ -65,6 +69,7 @@ export default function TopNav({ user }: { user: TopNavUser }) {
       { name: "Attendance", href: "/teacher/attendance", icon: CheckCircle2 },
       { name: "Assignments", href: "/teacher/assignments", icon: FileText },
       { name: "Quizzes", href: "/teacher/quizzes", icon: HelpCircle },
+      { name: "Moderation", href: "/teacher/moderation", icon: ClipboardCheck },
       { name: "Leave", href: "/teacher/leave", icon: Plane },
     ],
     SUBJECT_TEACHER: [
@@ -78,6 +83,7 @@ export default function TopNav({ user }: { user: TopNavUser }) {
       { name: "Attendance", href: "/teacher/attendance", icon: CheckCircle2 },
       { name: "Assignments", href: "/teacher/assignments", icon: FileText },
       { name: "Quizzes", href: "/teacher/quizzes", icon: HelpCircle },
+      { name: "Moderation", href: "/teacher/moderation", icon: ClipboardCheck },
       { name: "Leave", href: "/teacher/leave", icon: Plane },
     ],
     PARENT: [
@@ -97,6 +103,8 @@ export default function TopNav({ user }: { user: TopNavUser }) {
       { name: "My Grades", href: "/student/grades", icon: BookOpen },
       { name: "Schedule", href: "/student/timetable", icon: Clock },
       { name: "Assignments", href: "/student/homework", icon: FileText },
+      { name: "Exams", href: "/student/exams", icon: ClipboardCheck },
+      { name: "Alumni", href: "/student/alumni-wall", icon: Award },
       { name: "Wallet", href: "/student/wallet", icon: Wallet },
     ],
   };
@@ -220,19 +228,4 @@ export default function TopNav({ user }: { user: TopNavUser }) {
           return (
             <Link
               key={link.name}
-              href={link.href}
-              className={`flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
-                isActive
-                  ? "border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400"
-                  : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200"
-              }`}
-            >
-              <Icon size={16} />
-              {link.name}
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
-  );
-}
+ 
