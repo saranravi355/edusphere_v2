@@ -118,4 +118,88 @@ export default async function QuizzesPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Subject</label>
-              <select name="su
+              <select name="subjectId" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm">
+                <option value="">General</option>
+                {subjects.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Type</label>
+              <select name="examType" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm">
+                <option value="QUIZ">Quiz</option>
+                <option value="UNIT_TEST">Unit Test</option>
+                <option value="MIDTERM">Midterm</option>
+                <option value="FINAL">Final Exam</option>
+                <option value="PRACTICAL">Practical</option>
+                <option value="VIVA">Viva</option>
+                <option value="PROJECT">Project</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Due</label>
+                <input required name="dueDate" type="date" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm" />
+              </div>
+            </div>
+            <div className="lg:col-span-6 flex items-end gap-3">
+              <div className="w-40">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Time Limit (mins)</label>
+                <input name="timeLimitMinutes" type="number" placeholder="Untimed" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm" />
+              </div>
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm">
+                <Plus size={16} /> Create Exam
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="p-0">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-ui-border dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
+                <th className="p-4 font-medium">Title</th>
+                <th className="p-4 font-medium">Class</th>
+                <th className="p-4 font-medium">Type</th>
+                <th className="p-4 font-medium">Questions</th>
+                <th className="p-4 font-medium">Submissions</th>
+                <th className="p-4 font-medium">Status</th>
+                <th className="p-4 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody className="text-sm">
+              {teacher.quizzes.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-500 dark:text-slate-400">
+                    No exams created yet. Use the form above to create your first one.
+                  </td>
+                </tr>
+              ) : (
+                teacher.quizzes.map((q) => (
+                  <tr key={q.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                    <td className="p-4 font-medium text-slate-800 dark:text-slate-200">{q.title}</td>
+                    <td className="p-4 text-slate-600 dark:text-slate-400">{q.classroom.name}{q.subject ? ` - ${q.subject.name}` : ""}</td>
+                    <td className="p-4 text-slate-600 dark:text-slate-400">{q.examType.replace("_", " ")}</td>
+                    <td className="p-4 text-slate-600 dark:text-slate-400">{q.questions.length}</td>
+                    <td className="p-4 text-slate-600 dark:text-slate-400 flex items-center gap-1"><Clock size={12} />{q.attempts.length}</td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${STATUS_STYLES[q.status] || STATUS_STYLES.DRAFT}`}>
+                        {q.status.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <Link href={`/teacher/quizzes/${q.id}`} className="text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1 hover:underline">
+                        Manage <ChevronRight size={14} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

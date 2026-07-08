@@ -228,4 +228,19 @@ export default function TopNav({ user }: { user: TopNavUser }) {
           return (
             <Link
               key={link.name}
- 
+              href={link.href}
+              className={`flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                isActive
+                  ? "border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400"
+                  : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200"
+              }`}
+            >
+              <Icon size={16} />
+              {link.name}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
