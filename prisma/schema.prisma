@@ -47,6 +47,7 @@ model Teacher {
   iepCaseloads     IEPPlan[] @relation("IEPCaseloads")
   pdRecords        PDRecord[]
   observations     Observation[] @relation("ObservedTeacher")
+  lessonPlans      LessonPlan[]
 }
 
 model Parent {
@@ -582,4 +583,39 @@ model IBExamSession {
   durationMinutes Int
   room            String?
   notes           String?  // e.g. "Calculator allowed"
+}
+
+// Lesson planning with IB curriculum alignment (PRD M01)
+
+model LessonPlan {
+  id              String   @id @default(cuid())
+  teacherId       String
+  teacher         Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  title           String
+  subjectName     String
+  className       String?
+  date            DateTime
+  durationMinutes Int      @default(60)
+  ibUnit          String?  // MYP unit of inquiry / DP syllabus topic
+  atlSkills       String?  // comma-separated ATL skill categories
+  learnerProfile  String?  // comma-separated IB learner profile attributes
+  objectives      String?
+  activities      String?
+  resources       String?
+  assessment      String?  // formative/summative + criteria
+  status          String   @default("PLANNED") // DRAFT, PLANNED, DELIVERED
+  subPlan         String?  // generated substitute-teacher plan
+  createdAt       DateTime @default(now())
+}
+
+// Academic calendar with national-calendar sync (PRD M01)
+
+model AcademicEvent {
+  id        String    @id @default(cuid())
+  title     String
+  type      String    // TERM, HOLIDAY, NATIONAL_HOLIDAY, EXAM_WINDOW, EVENT
+  startDate DateTime
+  endDate   DateTime?
+  source    String    @default("SCHOOL") // SCHOOL, NATIONAL, IB
+  notes     String?
 }

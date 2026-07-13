@@ -1,5 +1,6 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle } from "lucide-react";
+import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, CalendarDays } from "lucide-react";
+import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
@@ -13,6 +14,19 @@ export default async function AcademicSetupPage() {
         title="Academic Setup & Import" 
         description="Bulk upload timetables, grade rosters, and section assignments via CSV or Excel."
       />
+
+      <Link href="/admin/academic-setup/calendar" className="group block">
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-5 shadow-sm flex items-center justify-between text-white hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3">
+            <CalendarDays size={20} />
+            <div>
+              <p className="font-bold">Academic Calendar</p>
+              <p className="text-xs text-emerald-100">Terms, holidays and exam windows — sync national and IB calendars.</p>
+            </div>
+          </div>
+          <span className="text-sm font-bold group-hover:translate-x-1 transition-transform">Open →</span>
+        </div>
+      </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Timetables Upload */}

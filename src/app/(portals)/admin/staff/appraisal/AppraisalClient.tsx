@@ -19,6 +19,7 @@ interface LastObservation {
 interface Row {
   id: string;
   name: string;
+  yearly: Record<string, number>;
   subjects: string;
   cpdHours: number;
   pdCount: number;
@@ -41,7 +42,7 @@ function scoreColor(score: number | null) {
   return "text-amber-600 dark:text-amber-400";
 }
 
-export default function AppraisalClient({ rows, observerName }: { rows: Row[]; observerName: string }) {
+export default function AppraisalClient({ rows, years, observerName }: { rows: Row[]; years: string[]; observerName: string }) {
   const [observing, setObserving] = useState<Row | null>(null);
   const [viewing, setViewing] = useState<Row | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +98,52 @@ export default function AppraisalClient({ rows, observerName }: { rows: Row[]; o
           </div>
         </div>
       </div>
+
+      {/* Year-on-year trends */}
+      {years.length > 1 && (
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-x-auto">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2">
+            <TrendingUp size={16} className="text-blue-600" />
+            <h3 className="font-bold text-slate-800 dark:text-slate-100">Year-on-year observation trends</h3>
+            <span className="text-xs text-slate-400 ml-2">Average score per academic year (IB 1–7 scale)</span>
+          </div>
+          <table className="w-full text-sm min-w-[640px]">
+            <thead>
+              <tr className="border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 text-left">
+                <th className="px-5 py-3 font-bold text-xs text-slate-500 uppercase tracking-wide">Teacher</th>
+                {years.map((y) => (
+                  <th key={y} className="px-5 py-3 font-bold text-xs text-slate-500 uppercase tracking-wide text-center">AY {y}</th>
+                ))}
+                <th className="px-5 py-3 font-bold text-xs text-slate-500 uppercase tracking-wide text-center">Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const vals = years.map((y) => r.yearly[y]);
+                const known = vals.filter((v): v is number => v !== undefined);
+                const delta = known.length >= 2 ? known[known.length - 1] - known[0] : null;
+                return (
+                  <tr key={r.id} className="border-b border-slate-50 dark:border-zinc-800/50">
+                    <td className="px-5 py-3 font-bold text-slate-800 dark:text-slate-100">{r.name}</td>
+                    {vals.map((v, i) => (
+                      <td key={i} className={`px-5 py-3 text-center font-bold ${scoreColor(v ?? null)}`}>{v ?? "—"}</td>
+                    ))}
+                    <td className="px-5 py-3 text-center">
+                      {delta === null ? (
+                        <span className="text-xs text-slate-400">—</span>
+                      ) : (
+                        <span className={`text-xs font-bold ${delta > 0.2 ? "text-emerald-600 dark:text-emerald-400" : delta < -0.2 ? "text-red-500" : "text-slate-500"}`}>
+                          {delta > 0.2 ? "▲" : delta < -0.2 ? "▼" : "▬"} {delta > 0 ? "+" : ""}{Math.round(delta * 10) / 10}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-sm">

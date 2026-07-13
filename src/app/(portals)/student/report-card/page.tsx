@@ -2,7 +2,8 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { Download, Globe2 } from "lucide-react";
+import { Globe2 } from "lucide-react";
+import PrintButton from "./PrintButton";
 
 export const dynamic = "force-dynamic";
 
@@ -58,12 +59,10 @@ export default async function StudentReportCard() {
           title={isDP ? "IB Diploma Programme Report" : isMYP ? "IB MYP Report" : "IB PYP Learning Report"}
           description={`${subjects[0]?.term || "Term 1 2026-27"} · criterion-referenced, IB 1–7 scale`}
         />
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg mb-6">
-          <Download size={18} /> Download PDF
-        </button>
+        <PrintButton />
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
+      <div id="report-print" className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between border-b border-slate-200 dark:border-zinc-800 pb-8 mb-8">
           <div>

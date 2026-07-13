@@ -18,6 +18,12 @@ export default async function StaffAppraisalPage() {
     },
   });
 
+  function academicYear(d: Date): string {
+    const y = d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
+    return `${y}-${String(y + 1).slice(2)}`;
+  }
+
+  const yearSet = new Set<string>();
   const rows = teachers.map((t) => {
     const obs = t.observations;
     const avg =
@@ -27,6 +33,16 @@ export default async function StaffAppraisalPage() {
             0
           ) / obs.length
         : null;
+    const yearly: Record<string, number> = {};
+    const grouped: Record<string, number[]> = {};
+    for (const o of obs) {
+      const y = academicYear(o.date);
+      yearSet.add(y);
+      (grouped[y] = grouped[y] || []).push((o.planningScore + o.deliveryScore + o.engagementScore + o.assessmentScore) / 4);
+    }
+    for (const [y, vals] of Object.entries(grouped)) {
+      yearly[y] = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+    }
     return {
       id: t.id,
       name: t.user?.name || "Unnamed",
@@ -35,6 +51,7 @@ export default async function StaffAppraisalPage() {
       pdCount: t.pdRecords.length,
       obsCount: obs.length,
       avgScore: avg,
+      yearly,
       lastObservation: obs[0]
         ? {
             date: obs[0].date.toISOString(),
@@ -57,7 +74,7 @@ export default async function StaffAppraisalPage() {
         title="PD & Appraisal"
         description="Track CPD hours, run classroom observations on the IB 1–7 scale, and spot coaching opportunities."
       />
-      <AppraisalClient rows={rows} observerName={session.user.name || "Principal"} />
+      <AppraisalClient rows={rows} years={[...yearSet].sort()} observerName={session.user.name || "Principal"} />
     </div>
   );
 }
