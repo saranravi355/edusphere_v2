@@ -105,6 +105,8 @@ model Student {
   hostelRecord     HostelStudent?
   alumniRecord     Alumni?
   iepPlans         IEPPlan[]
+  ibSubjects       IBSubjectRecord[]
+  ibCore           IBCoreRecord[]
 }
 
 model Classroom {
@@ -534,4 +536,50 @@ model Observation {
   strengths       String?
   growthAreas     String?
   status          String   @default("FINAL") // DRAFT, FINAL
+}
+
+// IB Academic Records (criterion-based assessment, DP/MYP)
+
+model IBSubjectRecord {
+  id             String  @id @default(cuid())
+  studentId      String
+  student        Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectName    String  // e.g. "Mathematics: Analysis & Approaches"
+  subjectGroup   Int     // IB groups 1-6
+  level          String  // HL, SL (DP) or MYP
+  currentGrade   Int?    // 1-7
+  predictedGrade Int?    // 1-7
+  critA          Int?    // MYP criteria 0-8
+  critB          Int?
+  critC          Int?
+  critD          Int?
+  teacherComment String?
+  term           String  @default("Term 1 2026-27")
+}
+
+model IBCoreRecord {
+  id              String  @id @default(cuid())
+  studentId       String
+  student         Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  element         String  // TOK, EE, CAS
+  title           String? // EE title / TOK essay title
+  status          String  @default("IN_PROGRESS") // NOT_STARTED, IN_PROGRESS, SUBMITTED, COMPLETE
+  grade           String? // A-E for TOK/EE
+  creativityHours Int     @default(0)
+  activityHours   Int     @default(0)
+  serviceHours    Int     @default(0)
+  reflections     Int     @default(0)
+}
+
+model IBExamSession {
+  id              String   @id @default(cuid())
+  programme       String   // DP, MYP
+  session         String   // e.g. "November 2026 Mock", "May 2027"
+  subjectName     String
+  level           String?  // HL / SL for DP
+  paper           String   // Paper 1, Paper 2, Paper 3, On-screen exam, ePortfolio
+  date            DateTime
+  durationMinutes Int
+  room            String?
+  notes           String?  // e.g. "Calculator allowed"
 }
