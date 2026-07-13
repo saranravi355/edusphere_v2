@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { UserPlus, BrainCircuit, ArrowRight, GraduationCap } from "lucide-react";
+import { UserPlus, BrainCircuit, ArrowRight, GraduationCap, HeartHandshake } from "lucide-react";
 
 export default async function StudentsHubPage() {
   const session = await getSession();
@@ -25,6 +25,13 @@ export default async function StudentsHubPage() {
       href: "/admin/students/sentiment-ai",
       icon: BrainCircuit,
       color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
+    },
+    {
+      title: "Learning Needs & IEP",
+      description: "Flag SEN students, track individualised goals and accommodations.",
+      href: "/admin/students/learning-needs",
+      icon: HeartHandshake,
+      color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400",
     },
   ];
 

@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { Plane, ArrowRight, Users } from "lucide-react";
+import { Plane, ArrowRight, Users, ClipboardCheck } from "lucide-react";
 
 export default async function StaffHubPage() {
   const session = await getSession();
@@ -47,6 +47,23 @@ export default async function StaffHubPage() {
           <div>
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Leave Management</h3>
             <p className="text-sm text-slate-500 mt-1">Review and approve or reject staff leave requests.</p>
+          </div>
+          <span className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 group-hover:gap-2 transition-all">
+            Open <ArrowRight size={14} />
+          </span>
+        </div>
+      </Link>
+
+      <Link href="/admin/staff/appraisal" className="group block">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400">
+              <ClipboardCheck size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">PD & Appraisal</h3>
+              <p className="text-sm text-slate-500 mt-1">Track CPD hours and run IB-scale classroom observations.</p>
+            </div>
           </div>
           <span className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 group-hover:gap-2 transition-all">
             Open <ArrowRight size={14} />

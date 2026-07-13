@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["windows"]
 }
 
 datasource db {
@@ -43,6 +44,9 @@ model Teacher {
   quizzes          Quiz[]
   moderatedQuizzes Quiz[] @relation("ModeratedQuizzes")
   timetable        TimetableEntry[]
+  iepCaseloads     IEPPlan[] @relation("IEPCaseloads")
+  pdRecords        PDRecord[]
+  observations     Observation[] @relation("ObservedTeacher")
 }
 
 model Parent {
@@ -100,6 +104,7 @@ model Student {
   quizAttempts     QuizAttempt[]
   hostelRecord     HostelStudent?
   alumniRecord     Alumni?
+  iepPlans         IEPPlan[]
 }
 
 model Classroom {
@@ -467,4 +472,66 @@ model ResourceBooking {
   endTime     DateTime
   purpose     String
   status      String   @default("APPROVED") // PENDING, APPROVED, CANCELLED
+}
+
+// Learning Needs & IEP (PRD Module 01)
+
+model IEPPlan {
+  id             String    @id @default(cuid())
+  studentId      String
+  student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  caseManagerId  String?
+  caseManager    Teacher?  @relation("IEPCaseloads", fields: [caseManagerId], references: [id])
+  needType       String    // e.g. Dyslexia, ADHD, Autism Spectrum, Gifted & Talented, EAL
+  status         String    @default("ACTIVE") // ACTIVE, UNDER_REVIEW, ARCHIVED
+  summary        String
+  accommodations String?   // newline-separated list of classroom accommodations
+  reviewDate     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  goals          IEPGoal[]
+}
+
+model IEPGoal {
+  id         String    @id @default(cuid())
+  planId     String
+  plan       IEPPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title      String
+  targetDate DateTime?
+  progress   Int       @default(0) // 0-100
+  status     String    @default("IN_PROGRESS") // IN_PROGRESS, ACHIEVED, AT_RISK
+  notes      String?
+  createdAt  DateTime  @default(now())
+}
+
+// Teacher Professional Development & Appraisal (PRD Module 02)
+
+model PDRecord {
+  id            String   @id @default(cuid())
+  teacherId     String
+  teacher       Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  title         String
+  type          String   // WORKSHOP, CERTIFICATION, COURSE, CONFERENCE
+  provider      String?
+  hours         Int
+  dateCompleted DateTime @default(now())
+  notes         String?
+}
+
+model Observation {
+  id              String   @id @default(cuid())
+  teacherId       String
+  teacher         Teacher  @relation("ObservedTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  observerName    String
+  date            DateTime @default(now())
+  className       String?
+  focusArea       String?  // e.g. ATL skill integration, Inquiry-based learning
+  planningScore   Int      // IB 1-7 scale
+  deliveryScore   Int
+  engagementScore Int
+  assessmentScore Int
+  strengths       String?
+  growthAreas     String?
+  status          String   @default("FINAL") // DRAFT, FINAL
 }

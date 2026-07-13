@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, LogOut, Building, GraduationCap, Users, LayoutDashboard, Settings, UserPlus, BookOpen, Clock, FileText, MessageSquare, DollarSign, Activity, CheckCircle2, Calendar, Bus, ShieldAlert, Wallet, Tent, Pill, Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book, ShieldAlert as ShieldIcon, Navigation, Target, UtensilsCrossed as UtensilsIcon, Package as PackageIcon, Award, ClipboardCheck } from "lucide-react";
+import { Bell, Search, LogOut, Building, GraduationCap, Users, LayoutDashboard, Settings, UserPlus, BookOpen, Clock, FileText, MessageSquare, DollarSign, Activity, CheckCircle2, Calendar, Bus, ShieldAlert, Wallet, Tent, Pill, Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book, ShieldAlert as ShieldIcon, Navigation, Target, UtensilsCrossed as UtensilsIcon, Package as PackageIcon, Award, ClipboardCheck, HeartHandshake } from "lucide-react";
 import { logout } from "@/app/actions";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import Link from "next/link";
@@ -64,12 +64,14 @@ export default function TopNav({ user }: { user: TopNavUser }) {
       { name: "Grading", href: "/teacher/grading", icon: BookOpen },
       { name: "Planner", href: "/teacher/planner", icon: Calendar },
       { name: "My Classes", href: "/teacher/classes", icon: Users },
+      { name: "IEP", href: "/teacher/learning-needs", icon: HeartHandshake },
       { name: "AI Tools", href: "/teacher/ai-tools", icon: BrainCircuit },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldIcon },
       { name: "Attendance", href: "/teacher/attendance", icon: CheckCircle2 },
       { name: "Assignments", href: "/teacher/assignments", icon: FileText },
       { name: "Quizzes", href: "/teacher/quizzes", icon: HelpCircle },
       { name: "Moderation", href: "/teacher/moderation", icon: ClipboardCheck },
+      { name: "My PD", href: "/teacher/pd", icon: GraduationCap },
       { name: "Leave", href: "/teacher/leave", icon: Plane },
     ],
     SUBJECT_TEACHER: [
@@ -78,12 +80,14 @@ export default function TopNav({ user }: { user: TopNavUser }) {
       { name: "Grading", href: "/teacher/grading", icon: BookOpen },
       { name: "Planner", href: "/teacher/planner", icon: Calendar },
       { name: "My Classes", href: "/teacher/classes", icon: Users },
+      { name: "IEP", href: "/teacher/learning-needs", icon: HeartHandshake },
       { name: "AI Tools", href: "/teacher/ai-tools", icon: BrainCircuit },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldIcon },
       { name: "Attendance", href: "/teacher/attendance", icon: CheckCircle2 },
       { name: "Assignments", href: "/teacher/assignments", icon: FileText },
       { name: "Quizzes", href: "/teacher/quizzes", icon: HelpCircle },
       { name: "Moderation", href: "/teacher/moderation", icon: ClipboardCheck },
+      { name: "My PD", href: "/teacher/pd", icon: GraduationCap },
       { name: "Leave", href: "/teacher/leave", icon: Plane },
     ],
     PARENT: [
