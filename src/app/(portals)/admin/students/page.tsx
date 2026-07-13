@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { UserPlus, BrainCircuit, ArrowRight, GraduationCap, HeartHandshake } from "lucide-react";
+import { UserPlus, BrainCircuit, ArrowRight, GraduationCap, HeartHandshake, BookUser } from "lucide-react";
 
 export default async function StudentsHubPage() {
   const session = await getSession();
@@ -12,6 +12,13 @@ export default async function StudentsHubPage() {
   const studentCount = await prisma.student.count();
 
   const sections = [
+    {
+      title: "Student Registry",
+      description: "Browse the full enrolment register with filters and Platform AI insights.",
+      href: "/admin/students/registry",
+      icon: BookUser,
+      color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400",
+    },
     {
       title: "Register Student",
       description: "Enroll a new student and capture family details.",
@@ -48,7 +55,7 @@ export default async function StudentsHubPage() {
         </div>
         <div>
           <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{studentCount}</p>
-          <p className="text-xs text-slate-500">Students enrolled &middot; see full directory under Users</p>
+          <p className="text-xs text-slate-500">Students enrolled &middot; browse them all in the Student Registry</p>
         </div>
       </div>
 
