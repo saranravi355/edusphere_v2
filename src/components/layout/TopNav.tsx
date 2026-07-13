@@ -52,29 +52,25 @@ export default function TopNav({
         <div className="relative group">
           <button className="flex items-center gap-1 p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors dark:text-slate-400 dark:hover:bg-zinc-800">
             <span className="text-sm font-bold" suppressHydrationWarning>{t('nav.language_label', 'A/अ')}</span>
-            <span className="text-xs uppercase font-medium" suppressHydrationWarning>{i18n.language ? (i18n.language === 'en' ? 'EN' : i18n.language === 'hi' ? 'HI' : 'TA') : 'EN'}</span>
+            <span className="text-xs uppercase font-medium" suppressHydrationWarning>{(i18n.language || 'en').slice(0, 2).toUpperCase()}</span>
           </button>
           <div className="absolute right-0 top-full pt-2 hidden group-hover:block z-50 w-40">
             <div className="bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 shadow-lg rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="p-1">
-                <button
-                  onClick={() => i18n.changeLanguage('en')}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === 'en' ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
-                  <div className="flex items-center gap-2"><span className="text-lg">🇺🇸</span> <span suppressHydrationWarning>{t('nav.english', 'English')}</span></div>
-                  {i18n.language === 'en' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
-                </button>
-                <button
-                  onClick={() => i18n.changeLanguage('hi')}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === 'hi' ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
-                  <div className="flex items-center gap-2"><span className="text-lg">🇮🇳</span> <span suppressHydrationWarning>{t('nav.hindi', 'Hindi')}</span></div>
-                  {i18n.language === 'hi' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
-                </button>
-                <button
-                  onClick={() => i18n.changeLanguage('ta')}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === 'ta' ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
-                  <div className="flex items-center gap-2"><span className="text-lg">🇮🇳</span> <span suppressHydrationWarning>{t('nav.tamil', 'Tamil')}</span></div>
-                  {i18n.language === 'ta' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
-                </button>
+                {[
+                  { code: 'en', key: 'nav.english', fallback: 'English', flag: '🇺🇸' },
+                  { code: 'hi', key: 'nav.hindi', fallback: 'Hindi', flag: '🇮🇳' },
+                  { code: 'ta', key: 'nav.tamil', fallback: 'Tamil', flag: '🇮🇳' },
+                  { code: 'kn', key: 'nav.kannada', fallback: 'Kannada', flag: '🇮🇳' },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => i18n.changeLanguage(lang.code)}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === lang.code ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
+                    <div className="flex items-center gap-2"><span className="text-lg">{lang.flag}</span> <span suppressHydrationWarning>{t(lang.key, lang.fallback)}</span></div>
+                    {i18n.language === lang.code && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

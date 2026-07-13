@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import {
   Building, GraduationCap, Users, LayoutDashboard, Settings, BookOpen, Clock,
   FileText, DollarSign, Activity, CheckCircle2, Calendar, Bus, Wallet, Tent,
@@ -199,6 +200,7 @@ export default function SideNav({
   onCollapseToggle: () => void;
 }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const sections = SECTIONS[role] || [];
 
   // Longest-prefix match so nested routes highlight only the most specific link
@@ -247,8 +249,8 @@ export default function SideNav({
           {sections.map((section) => (
             <div key={section.label}>
               {!collapsed && (
-                <p className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-600">
-                  {section.label}
+                <p className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-600" suppressHydrationWarning>
+                  {t(`sidenav.sections.${section.label}`, section.label)}
                 </p>
               )}
               {collapsed && <div className="mx-2.5 mb-2 border-t border-slate-100 dark:border-zinc-800/70 first:hidden" />}
@@ -261,7 +263,7 @@ export default function SideNav({
                       key={link.href}
                       href={link.href}
                       onClick={onClose}
-                      title={collapsed ? link.name : undefined}
+                      title={collapsed ? t(`sidenav.links.${link.name}`, link.name) : undefined}
                       className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${collapsed ? "lg:justify-center" : ""} ${
                         isActive
                           ? "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 font-semibold"
@@ -269,7 +271,7 @@ export default function SideNav({
                       }`}
                     >
                       <Icon size={17} className="flex-shrink-0" />
-                      <span className={collapsed ? "lg:hidden" : ""}>{link.name}</span>
+                      <span className={collapsed ? "lg:hidden" : ""} suppressHydrationWarning>{t(`sidenav.links.${link.name}`, link.name)}</span>
                     </Link>
                   );
                 })}
