@@ -7,7 +7,7 @@ import {
   FileText, DollarSign, Activity, CheckCircle2, Calendar, Bus, Wallet, Tent,
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
-  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X,
+  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -27,6 +27,8 @@ const ADMIN_ACADEMICS: NavSection = {
   links: [
     { name: "Academic Setup", href: "/admin/academic-setup", icon: BookOpen },
     { name: "Timetable", href: "/admin/academic-setup/timetable", icon: Calendar },
+    { name: "IB Programmes", href: "/admin/programmes", icon: Globe2 },
+    { name: "CAS Tracker", href: "/admin/programmes/cas", icon: HeartHandshake },
     { name: "Exams", href: "/admin/exams", icon: ClipboardCheck },
     { name: "Library", href: "/admin/library", icon: Book },
   ],
