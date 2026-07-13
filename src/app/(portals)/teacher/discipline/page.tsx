@@ -133,7 +133,7 @@ export default function TeacherDisciplineEngine() {
                     <td className="p-4 text-sm text-slate-500">Yesterday, 1:15 PM</td>
                   </tr>
                   <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                    <td className="p-4 text-sm font-medium text-slate-800 dark:text-slate-100">Alex Carter</td>
+                    <td className="p-4 text-sm font-medium text-slate-800 dark:text-slate-100">Arjun Nair</td>
                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Academic Dishonesty</td>
                     <td className="p-4">
                       <span className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md text-xs font-bold">

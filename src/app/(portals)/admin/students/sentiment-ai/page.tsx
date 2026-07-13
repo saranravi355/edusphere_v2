@@ -6,8 +6,8 @@ import { BrainCircuit, Sparkles, AlertTriangle, Smile, Frown, Meh } from "lucide
 
 const mockNotes = [
   { student: "Aarav Patel", note: "&quot;Seemed withdrawn during group activities today, didn't participate much.&quot;", sentiment: "negative", teacher: "Ms. Sharma" },
-  { student: "Diya Reddy", note: "&quot;Bright and enthusiastic in class discussions, asked great questions.&quot;", sentiment: "positive", teacher: "Mr. Clark" },
-  { student: "Kabir Singh", note: "&quot;Average engagement, completed assignments but seemed distracted.&quot;", sentiment: "neutral", teacher: "Mrs. Davis" },
+  { student: "Diya Reddy", note: "&quot;Bright and enthusiastic in class discussions, asked great questions.&quot;", sentiment: "positive", teacher: "Mr. Venkatesh" },
+  { student: "Kabir Singh", note: "&quot;Average engagement, completed assignments but seemed distracted.&quot;", sentiment: "neutral", teacher: "Mrs. Lakshmi Rajan" },
 ];
 
 export default function SentimentAIPage() {

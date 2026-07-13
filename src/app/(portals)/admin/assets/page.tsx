@@ -80,7 +80,7 @@ export default async function AssetsPage() {
               <tr className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
                 <td className="p-4 font-medium text-slate-800 dark:text-slate-200">MacBook Air M2</td>
                 <td className="p-4 text-slate-600 dark:text-slate-400 font-mono text-xs">C02X87B9</td>
-                <td className="p-4 text-slate-600 dark:text-slate-400">Mr. Anderson (Teacher)</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">Mr. Suresh Pillai (Teacher)</td>
                 <td className="p-4 text-slate-600 dark:text-slate-400">Sep 1, 2026</td>
                 <td className="p-4">
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full text-xs font-semibold">

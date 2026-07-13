@@ -55,8 +55,11 @@ function LoginForm() {
           <h2 className="text-2xl md:text-[1.65rem] font-bold text-slate-800 dark:text-white mb-5 leading-tight max-w-[90%]">
             Empowering the next generation of leaders and thinkers
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
-            — fostering excellence and building a brighter future, together.
+          <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[85%]">
+            An IB World School community fostering excellence, inquiry and compassion, and building a brighter future together.
+          </p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs mt-4 max-w-[85%]">
+            One platform for every student, teacher, parent and coordinator, from PYP portfolios to DP diploma points.
           </p>
         </div>
 

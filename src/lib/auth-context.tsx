@@ -21,8 +21,8 @@ interface AuthContextType {
 }
 
 const mockUsers: Record<Role, User> = {
-  SUPER_ADMIN: { id: "U1", name: "Sarah Admin", role: "SUPER_ADMIN", avatar: "/avatars/admin.png" },
-  PRINCIPAL: { id: "U2", name: "Dr. Matthews", role: "PRINCIPAL", avatar: "/avatars/principal.png" },
+  SUPER_ADMIN: { id: "U1", name: "Shalini Rao", role: "SUPER_ADMIN", avatar: "/avatars/admin.png" },
+  PRINCIPAL: { id: "U2", name: "Dr. Nandini Menon", role: "PRINCIPAL", avatar: "/avatars/principal.png" },
   CLASS_TEACHER: { id: "U3", name: "Meena Krishnan", role: "CLASS_TEACHER", avatar: "/avatars/teacher.png", contextId: "9A" },
   PARENT: { id: "U4", name: "Rahul Patel", role: "PARENT", avatar: "/avatars/parent.png" },
   STUDENT: { id: "U5", name: "Aarav Patel", role: "STUDENT", avatar: "/avatars/student.png", contextId: "S001" },

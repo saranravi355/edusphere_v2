@@ -47,11 +47,11 @@ export default function AdminActionModals() {
                 <h3 className="text-xl font-heading font-bold text-slate-800 dark:text-slate-100 mb-4">Onboard Teacher</h3>
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
-                  <input required name="name" type="text" placeholder="John Doe" className="mt-1 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-royal-600" />
+                  <input required name="name" type="text" placeholder="Anita Sharma" className="mt-1 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-royal-600" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
-                  <input required name="email" type="email" placeholder="john@edusphere.com" className="mt-1 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-royal-600" />
+                  <input required name="email" type="email" placeholder="anita.sharma@edusphere.com" className="mt-1 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-royal-600" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Subjects</label>

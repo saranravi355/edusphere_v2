@@ -95,7 +95,7 @@ export default function TeacherGradingEngine() {
                 </tr>
                 <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 transition-colors bg-red-50/50 dark:bg-red-900/10">
                   <td className="p-4">
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Alex Carter</p>
+                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Arjun Nair</p>
                     <p className="text-xs text-slate-500 flex items-center gap-1 text-red-500"><AlertCircle size={12}/> Needs Review</p>
                   </td>
                   <td className="p-4"><input type="number" defaultValue="6" className="w-16 p-1.5 border border-red-300 dark:border-red-900/50 rounded text-center text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none bg-white dark:bg-black text-red-600" /></td>

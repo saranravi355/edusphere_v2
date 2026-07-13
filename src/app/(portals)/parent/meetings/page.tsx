@@ -33,7 +33,7 @@ export default async function ParentMeetingsPage() {
                     <User className="text-slate-400" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 dark:text-slate-100">Mr. Davis (Mathematics)</h4>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-100">Mr. Rajesh Kumar (Mathematics)</h4>
                     <p className="text-sm text-slate-500">Term 1 Progress Review for Aarav</p>
                   </div>
                 </div>
@@ -71,9 +71,9 @@ export default async function ParentMeetingsPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Select Teacher</label>
                   <select className="w-full p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option>Mr. Davis (Mathematics)</option>
+                    <option>Mr. Rajesh Kumar (Mathematics)</option>
                     <option>Ms. Sindhu (Physics)</option>
-                    <option>Mrs. Smith (English)</option>
+                    <option>Mrs. Meena Krishnan (English A)</option>
                   </select>
                 </div>
                 <div>
