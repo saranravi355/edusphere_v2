@@ -172,14 +172,14 @@ export default function SubjectsClient({
                 ) : (
                   <>
                     {/* mini bar chart */}
-                    <div className="flex items-end gap-1.5 h-20 mb-5">
+                    <div className="flex items-end gap-1.5 mb-5 border-b border-slate-100 dark:border-zinc-800 pb-1">
                       {hist.map((r) => (
-                        <div key={r.id} className="flex-1 flex flex-col items-center gap-1 group relative" title={`${r.title}: ${r.grade}/${r.maxGrade}`}>
+                        <div key={r.id} className="flex-1 flex flex-col items-center justify-end gap-1" title={`${r.title}: ${r.grade}/${r.maxGrade}`}>
+                          <span className={`text-[10px] font-bold ${r.grade >= 6 ? "text-emerald-600 dark:text-emerald-400" : r.grade >= 4 ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"}`}>{r.grade}</span>
                           <div
-                            className={`w-full rounded-t-md ${r.grade >= 6 ? "bg-emerald-400" : r.grade >= 4 ? "bg-blue-400" : "bg-amber-400"}`}
-                            style={{ height: `${(r.grade / r.maxGrade) * 100}%` }}
+                            className={`w-full max-w-[38px] rounded-t-md ${r.grade >= 6 ? "bg-emerald-400" : r.grade >= 4 ? "bg-blue-400" : "bg-amber-400"}`}
+                            style={{ height: `${Math.max(6, (r.grade / r.maxGrade) * 64)}px` }}
                           />
-                          <span className="text-[9px] font-bold text-slate-400">{r.grade}</span>
                         </div>
                       ))}
                     </div>
