@@ -108,6 +108,7 @@ model Student {
   iepPlans         IEPPlan[]
   ibSubjects       IBSubjectRecord[]
   ibCore           IBCoreRecord[]
+  assessmentResults AssessmentResult[]
 }
 
 model Classroom {
@@ -618,4 +619,32 @@ model AcademicEvent {
   endDate   DateTime?
   source    String    @default("SCHOOL") // SCHOOL, NATIONAL, IB
   notes     String?
+}
+
+// Subject resources and assessment history (student all-in-one subject view)
+
+model SubjectResource {
+  id          String  @id @default(cuid())
+  subjectName String  // matches IBSubjectRecord.subjectName
+  programme   String  @default("DP") // DP, MYP, PYP
+  title       String
+  type        String  // NOTES, PAST_PAPER, VIDEO, LINK, WORKSHEET
+  description String?
+  url         String?
+  addedBy     String? // teacher name
+  createdAt   DateTime @default(now())
+}
+
+model AssessmentResult {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectName String
+  title       String   // e.g. "Unit Test 2: Mechanics"
+  type        String   // FORMATIVE, SUMMATIVE, MOCK, IA_DRAFT, ORAL
+  date        DateTime
+  grade       Int      // IB 1-7
+  maxGrade    Int      @default(7)
+  comment     String?
+  term        String   @default("Term 1 2026-27")
 }

@@ -50,6 +50,7 @@ const ADMIN_OVERVIEW: NavSection = {
   label: "Overview",
   links: [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Live Ops", href: "/admin/live", icon: Activity },
     { name: "Analytics", href: "/admin/analytics", icon: Activity },
     { name: "AI Insights", href: "/admin/ai-insights", icon: BrainCircuit },
   ],
@@ -120,6 +121,7 @@ const SECTIONS: Record<string, NavSection[]> = {
     {
       label: "Learning",
       links: [
+        { name: "My Subjects", href: "/student/subjects", icon: BookOpen },
         { name: "AI Tools", href: "/student/ai-tools", icon: Target },
         { name: "Assignments", href: "/student/homework", icon: FileText },
         { name: "Schedule", href: "/student/timetable", icon: Clock },
