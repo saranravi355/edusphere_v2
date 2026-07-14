@@ -9,12 +9,12 @@ export default function LiveRefresh({ intervalSeconds = 30 }: { intervalSeconds?
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
-    setLastUpdated(new Date());
+    const t = setTimeout(() => setLastUpdated(new Date()), 0);
     const id = setInterval(() => {
       router.refresh();
       setLastUpdated(new Date());
     }, intervalSeconds * 1000);
-    return () => clearInterval(id);
+    return () => { clearTimeout(t); clearInterval(id); };
   }, [router, intervalSeconds]);
 
   return (

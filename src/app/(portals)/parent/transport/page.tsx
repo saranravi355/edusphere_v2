@@ -23,7 +23,7 @@ export default async function ParentTransportHubPage() {
             </div>
             <div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100">Live Transport Tracker</h3>
-              <p className="text-sm text-slate-500 mt-1">Real-time GPS tracking and ETA for your child's bus route.</p>
+              <p className="text-sm text-slate-500 mt-1">Real-time GPS tracking and ETA for your child&apos;s bus route.</p>
             </div>
           </div>
           <span className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 group-hover:gap-2 transition-all shrink-0 ml-4">

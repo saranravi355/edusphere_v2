@@ -138,6 +138,7 @@ const SECTIONS: Record<string, NavSection[]> = {
     {
       label: "School Life",
       links: [
+        { name: "Clubs", href: "/student/clubs", icon: Tent },
         { name: "Alumni", href: "/student/alumni-wall", icon: Award },
         { name: "Wallet", href: "/student/wallet", icon: Wallet },
       ],

@@ -231,6 +231,19 @@ model Club {
   teacherId   String
   teacher     Teacher  @relation(fields: [teacherId], references: [id])
   members     ClubMembership[]
+  activities  ClubActivity[]
+}
+
+model ClubActivity {
+  id          String   @id @default(cuid())
+  clubId      String
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  title       String
+  type        String   // MEETING, COMPETITION, WORKSHOP, TRIP, SERVICE, EVENT
+  date        DateTime
+  location    String?
+  description String?
+  outcome     String?  // filled in after the activity, e.g. "Won 2nd place"
 }
 
 model ClubMembership {

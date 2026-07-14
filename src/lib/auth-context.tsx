@@ -36,13 +36,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // On mount, auto-login as teacher for demo if no user
   useEffect(() => {
-    const saved = localStorage.getItem("edu_auth_role");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-only demo auth hydration (localStorage unavailable during SSR)
-    if (saved && mockUsers[saved as Role]) {
-      setUser(mockUsers[saved as Role]);
-    } else {
-      setUser(mockUsers.CLASS_TEACHER);
-    }
+    // async hydration keeps the initial render pure (localStorage is unavailable during SSR)
+    const t = setTimeout(() => {
+      const saved = localStorage.getItem("edu_auth_role");
+      if (saved && mockUsers[saved as Role]) {
+        setUser(mockUsers[saved as Role]);
+      } else {
+        setUser(mockUsers.CLASS_TEACHER);
+      }
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   const login = (u: User) => {

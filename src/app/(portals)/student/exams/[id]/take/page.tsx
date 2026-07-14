@@ -71,8 +71,23 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
   const existingAttempt = await prisma.quizAttempt.findFirst({ where: { quizId: id, studentId: student.id } });
   if (existingAttempt) redirect(`/student/exams/${id}/result`);
 
-  // Randomize question order and MCQ option order for this attempt
-  const shuffled = [...quiz.questions].sort(() => Math.random() - 0.5);
+  // Deterministic per-student shuffle (seeded), so the order is randomized
+  // between students but stable across refreshes — and pure for React.
+  function seededShuffle<T>(arr: T[], seedStr: string): T[] {
+    let seed = 0;
+    for (let i = 0; i < seedStr.length; i++) seed = (seed * 31 + seedStr.charCodeAt(i)) >>> 0;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const out = [...arr];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+  const shuffled = seededShuffle(quiz.questions, `${quiz.id}:${student.id}`);
   const questions = shuffled.map((q) => ({
     id: q.id,
     text: q.text,

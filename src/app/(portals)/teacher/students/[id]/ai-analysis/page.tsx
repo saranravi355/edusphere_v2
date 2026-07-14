@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import { BrainCircuit, TrendingUp, TrendingDown, AlertTriangle, Sparkles, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -45,11 +45,7 @@ function generateData(studentId: string) {
 export default function AIAnalysisPage() {
   const params = useParams();
   const studentId = (params?.id as string) || "demo";
-  const [data, setData] = useState<ReturnType<typeof generateData> | null>(null);
-
-  useEffect(() => {
-    setData(generateData(studentId));
-  }, [studentId]);
+  const data = useMemo(() => generateData(studentId), [studentId]);
 
   const studentName = "Aarav Patel";
   const subject = "Mathematics";
