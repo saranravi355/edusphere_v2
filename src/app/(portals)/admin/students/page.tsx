@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { UserPlus, BrainCircuit, ArrowRight, GraduationCap, HeartHandshake, BookUser } from "lucide-react";
+import { UserPlus, BrainCircuit, ArrowRight, GraduationCap, HeartHandshake, BookUser, UploadCloud } from "lucide-react";
 
 export default async function StudentsHubPage() {
   const session = await getSession();
@@ -39,6 +39,13 @@ export default async function StudentsHubPage() {
       href: "/admin/students/learning-needs",
       icon: HeartHandshake,
       color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400",
+    },
+    {
+      title: "Bulk Import",
+      description: "Upload an Excel or CSV file to enrol many students at once — with column mapping and row-by-row validation.",
+      href: "/admin/students/import",
+      icon: UploadCloud,
+      color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400",
     },
   ];
 

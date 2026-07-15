@@ -8,7 +8,7 @@ import {
   FileText, DollarSign, Activity, CheckCircle2, Calendar, Bus, Wallet, Tent,
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
-  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2,
+  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -40,6 +40,7 @@ const ADMIN_PEOPLE: NavSection = {
   links: [
     { name: "Staff", href: "/admin/staff", icon: Users },
     { name: "Students", href: "/admin/students", icon: GraduationCap },
+    { name: "Data Import", href: "/admin/students/import", icon: Upload },
     { name: "Behavior", href: "/admin/behavior", icon: ShieldAlert },
     { name: "Clubs", href: "/admin/clubs", icon: Tent },
     { name: "Alumni", href: "/admin/alumni", icon: Award },
