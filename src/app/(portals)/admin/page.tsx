@@ -83,7 +83,7 @@ export default async function AdminDashboard() {
                         <p className="text-xs text-slate-500">{incident.description}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400">{new Date(incident.date).toLocaleDateString()}</span>
+                    <span className="text-xs text-slate-400">{new Date(incident.date).toLocaleDateString('en-GB')}</span>
                   </div>
                 ))}
                 {recentIncidents.length === 0 && (
@@ -131,7 +131,7 @@ export default async function AdminDashboard() {
                     <div key={lr.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
                       <div>
                         <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{lr.teacher.user.name}</p>
-                        <p className="text-xs text-slate-500">{new Date(lr.startDate).toLocaleDateString()} – {new Date(lr.endDate).toLocaleDateString()}</p>
+                        <p className="text-xs text-slate-500">{new Date(lr.startDate).toLocaleDateString('en-GB')} – {new Date(lr.endDate).toLocaleDateString('en-GB')}</p>
                       </div>
                       <span className="text-xs font-semibold px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
                         Pending

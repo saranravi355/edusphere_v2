@@ -81,7 +81,7 @@ export default async function ClinicPage() {
             ) : (
               visits.map((visit) => (
                 <tr key={visit.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{visit.date.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{visit.date.toLocaleString('en-GB')}</td>
                   <td className="px-6 py-4 font-bold text-navy-900 dark:text-slate-200">{visit.student.name}</td>
                   <td className="px-6 py-4 text-red-600 dark:text-red-400 font-medium">{visit.reason}</td>
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{visit.treatment}</td>

@@ -271,7 +271,7 @@ export default function AppraisalClient({ rows, years, observerName }: { rows: R
               </button>
             </div>
             <p className="text-xs text-slate-500">
-              Observed by {viewing.lastObservation.observerName} on {new Date(viewing.lastObservation.date).toLocaleDateString()}
+              Observed by {viewing.lastObservation.observerName} on {new Date(viewing.lastObservation.date).toLocaleDateString('en-GB')}
               {viewing.lastObservation.focusArea ? ` · Focus: ${viewing.lastObservation.focusArea}` : ""}
             </p>
             <div className="grid grid-cols-2 gap-3">

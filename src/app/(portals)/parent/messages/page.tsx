@@ -57,7 +57,7 @@ export default async function ParentMessagesPage() {
                     <div key={msg.id} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
                       <div className="flex justify-between items-start mb-1">
                         <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">{otherUser.name}</span>
-                        <span className="text-xs text-slate-400">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                        <span className="text-xs text-slate-400">{new Date(msg.createdAt).toLocaleDateString('en-GB')}</span>
                       </div>
                       <p className="text-xs text-slate-500 line-clamp-1">{msg.content}</p>
                     </div>

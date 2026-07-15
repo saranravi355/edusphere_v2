@@ -45,7 +45,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <p className="text-xs uppercase font-bold text-slate-400 mb-1">Date of Birth</p>
-            <p className="text-slate-700 dark:text-slate-300">{student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : "—"}</p>
+            <p className="text-slate-700 dark:text-slate-300">{student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('en-GB') : "—"}</p>
           </div>
           <div>
             <p className="text-xs uppercase font-bold text-slate-400 mb-1">Grade Level</p>

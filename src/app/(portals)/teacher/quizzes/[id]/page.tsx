@@ -250,7 +250,7 @@ export default async function ExamDetailPage({ params }: { params: Promise<{ id:
                 quiz.attempts.map((a) => (
                   <tr key={a.id} className="border-b border-slate-100 dark:border-slate-800/50">
                     <td className="p-4 font-medium text-slate-800 dark:text-slate-200">{a.student.name}</td>
-                    <td className="p-4 text-slate-600 dark:text-slate-400">{a.autoSubmitted ? "Auto-submitted" : "Submitted"} {a.submittedAt.toLocaleDateString()}</td>
+                    <td className="p-4 text-slate-600 dark:text-slate-400">{a.autoSubmitted ? "Auto-submitted" : "Submitted"} {a.submittedAt.toLocaleDateString('en-GB')}</td>
                     <td className="p-4 text-slate-600 dark:text-slate-400">{a.score} / {a.totalScore}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${a.status === "GRADED" || a.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"}`}>

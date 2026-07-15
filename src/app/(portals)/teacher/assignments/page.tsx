@@ -83,7 +83,7 @@ export default async function TeacherAssignmentsPage() {
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 text-xs font-semibold text-orange-500">
-                      <Clock size={12} /> Due {new Date(hw.dueDate).toLocaleDateString()}
+                      <Clock size={12} /> Due {new Date(hw.dueDate).toLocaleDateString('en-GB')}
                     </span>
                   )}
                 </div>

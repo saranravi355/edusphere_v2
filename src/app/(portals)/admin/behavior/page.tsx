@@ -117,7 +117,7 @@ export default async function BehaviorPage() {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{incident.category}</td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400 max-w-xs truncate">{incident.description}</td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{incident.teacher.user.name}</td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{incident.date.toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{incident.date.toLocaleDateString('en-GB')}</td>
                   </tr>
                 ))
               )}

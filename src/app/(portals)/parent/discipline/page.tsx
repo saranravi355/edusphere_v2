@@ -39,7 +39,7 @@ export default async function ParentDisciplinePage() {
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-semibold text-slate-800 dark:text-slate-200">{incident.student.name}</p>
-                <span className="text-xs text-slate-400">{new Date(incident.date).toLocaleDateString()}</span>
+                <span className="text-xs text-slate-400">{new Date(incident.date).toLocaleDateString('en-GB')}</span>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 italic">&quot;{incident.description}&quot;</p>
             </div>

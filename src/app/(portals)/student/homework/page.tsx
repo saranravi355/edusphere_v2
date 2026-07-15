@@ -69,7 +69,7 @@ export default async function StudentHomeworkPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-slate-800 dark:text-slate-200">{hw.title}</p>
-                  <p className="text-sm text-slate-500">{hw.subject.name} • Due {new Date(hw.dueDate).toLocaleDateString()}</p>
+                  <p className="text-sm text-slate-500">{hw.subject.name} • Due {new Date(hw.dueDate).toLocaleDateString('en-GB')}</p>
                 </div>
               </div>
               <form action={submitHomework}>

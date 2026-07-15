@@ -86,7 +86,7 @@ export default async function ParentGradesPage() {
                 <tr key={grade.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
                   <td className="p-4 font-medium text-slate-800 dark:text-slate-200">{grade.examName}</td>
                   <td className="p-4 text-slate-600 dark:text-slate-400">{grade.subject.name}</td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{new Date(grade.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{new Date(grade.date).toLocaleDateString('en-GB')}</td>
                   <td className="px-6 py-4">
                     <span className="px-2 py-1 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 rounded text-xs font-medium uppercase tracking-wider">
                       Term Exam

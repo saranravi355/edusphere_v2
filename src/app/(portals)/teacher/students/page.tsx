@@ -91,7 +91,7 @@ export default async function TeacherStudentsDirectory({
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">DOB</span>
                   <span className="font-medium text-slate-700 dark:text-slate-300">
-                    {student.dateOfBirth ? student.dateOfBirth.toLocaleDateString() : "Unknown"}
+                    {student.dateOfBirth ? student.dateOfBirth.toLocaleDateString('en-GB') : "Unknown"}
                   </span>
                 </div>
               </div>

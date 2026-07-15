@@ -119,7 +119,7 @@ export default async function AdminExamsPage() {
                     <td className="p-4 font-medium text-slate-800 dark:text-slate-200">{q.title}</td>
                     <td className="p-4 text-slate-600 dark:text-slate-400">{q.classroom.name}</td>
                     <td className="p-4 text-slate-600 dark:text-slate-400">{q.teacher.user.name}</td>
-                    <td className="p-4 text-slate-600 dark:text-slate-400">{q.gradesReleasedAt?.toLocaleDateString()}</td>
+                    <td className="p-4 text-slate-600 dark:text-slate-400">{q.gradesReleasedAt?.toLocaleDateString('en-GB')}</td>
                   </tr>
                 ))
               )}

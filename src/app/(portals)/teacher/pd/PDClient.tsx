@@ -111,7 +111,7 @@ export default function PDClient({
                       <p className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{r.title}</p>
                       <p className="text-xs text-slate-500">
                         {r.type.charAt(0) + r.type.slice(1).toLowerCase()}
-                        {r.provider ? ` · ${r.provider}` : ""} · {new Date(r.dateCompleted).toLocaleDateString()}
+                        {r.provider ? ` · ${r.provider}` : ""} · {new Date(r.dateCompleted).toLocaleDateString('en-GB')}
                       </p>
                     </div>
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">{r.hours}h</span>
@@ -138,7 +138,7 @@ export default function PDClient({
                 <div key={o.id} className="px-6 py-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-slate-500">
-                      {new Date(o.date).toLocaleDateString()} · {o.observerName}
+                      {new Date(o.date).toLocaleDateString('en-GB')} · {o.observerName}
                       {o.className ? ` · ${o.className}` : ""}
                     </p>
                     <span

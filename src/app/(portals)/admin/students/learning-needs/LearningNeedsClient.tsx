@@ -145,7 +145,7 @@ export default function LearningNeedsClient({
                 {plan.reviewDate && (
                   <span className="flex items-center gap-1">
                     <CalendarClock size={13} />
-                    Review {new Date(plan.reviewDate).toLocaleDateString()}
+                    Review {new Date(plan.reviewDate).toLocaleDateString('en-GB')}
                   </span>
                 )}
               </div>

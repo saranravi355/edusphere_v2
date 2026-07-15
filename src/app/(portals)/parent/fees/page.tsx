@@ -57,7 +57,7 @@ export default async function ParentFeesPage() {
                 <tr key={invoice.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="py-4 px-6 font-medium text-slate-800 dark:text-slate-200">{invoice.student.name}</td>
                   <td className="py-4 px-6 text-slate-600 dark:text-slate-400">{invoice.title}</td>
-                  <td className="py-4 px-6 text-slate-600 dark:text-slate-400">{new Date(invoice.dueDate).toLocaleDateString()}</td>
+                  <td className="py-4 px-6 text-slate-600 dark:text-slate-400">{new Date(invoice.dueDate).toLocaleDateString('en-GB')}</td>
                   <td className="py-4 px-6 text-right font-bold text-slate-800 dark:text-slate-200">₹{invoice.amount.toLocaleString()}</td>
                   <td className="py-4 px-6 text-center">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${config.bg} ${config.color}`}>

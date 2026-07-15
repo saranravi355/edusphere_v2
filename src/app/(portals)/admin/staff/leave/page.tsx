@@ -44,7 +44,7 @@ export default async function StaffLeavePage() {
                 <div>
                   <p className="font-bold text-slate-800 dark:text-slate-200">{req.teacher.user.name}</p>
                   <p className="text-sm text-slate-500">
-                    {new Date(req.startDate).toLocaleDateString()} – {new Date(req.endDate).toLocaleDateString()}
+                    {new Date(req.startDate).toLocaleDateString('en-GB')} – {new Date(req.endDate).toLocaleDateString('en-GB')}
                   </p>
                 </div>
                 <span className={`text-xs font-bold px-3 py-1 rounded-full ${config.bg} ${config.color}`}>
