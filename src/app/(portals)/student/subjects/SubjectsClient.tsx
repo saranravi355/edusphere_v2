@@ -76,12 +76,14 @@ export default function SubjectsClient({
   subjects,
   results,
   resources,
+  initialSubject,
 }: {
   subjects: SubjectRow[];
   results: ResultRow[];
   resources: ResourceRow[];
+  initialSubject?: string;
 }) {
-  const [active, setActive] = useState<string>("ALL");
+  const [active, setActive] = useState<string>(initialSubject ?? "ALL");
 
   const shown = active === "ALL" ? subjects : subjects.filter((s) => s.subjectName === active);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 
 export type TimetableEntryProps = {
@@ -33,12 +33,14 @@ export default function TimetableGrid({
   entries, 
   isEditable = false,
   onAllocate,
-  onEdit
+  onEdit,
+  getSubjectHref
 }: { 
   entries: TimetableEntryProps[], 
   isEditable?: boolean,
   onAllocate?: (day: number, period: number) => void,
-  onEdit?: (day: number, period: number) => void
+  onEdit?: (day: number, period: number) => void,
+  getSubjectHref?: (subject: string) => string
 }) {
 
   const getEntry = (day: number, period: number) => {
@@ -86,14 +88,26 @@ export default function TimetableGrid({
               return (
                 <div key={`${day.id}-${period.id}`} className="p-2 border-r border-slate-100 dark:border-zinc-800/50 last:border-0 h-28 flex">
                   {entry ? (
-                    <div 
-                      onClick={() => onEdit?.(day.id, period.id)}
-                      className={`w-full h-full rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-colors cursor-pointer hover:shadow-sm ${getColors(entry.subject)}`}
-                    >
-                      <span className="font-bold text-sm leading-tight mb-1">{entry.subject}</span>
-                      <span className="text-xs font-medium opacity-80">{entry.teacher}</span>
-                      <span className="text-[10px] opacity-70">{entry.room}</span>
-                    </div>
+                    (() => {
+                      const cellClass = `w-full h-full rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-colors cursor-pointer hover:shadow-sm ${getColors(entry.subject)}`;
+                      const inner = (
+                        <>
+                          <span className="font-bold text-sm leading-tight mb-1">{entry.subject}</span>
+                          <span className="text-xs font-medium opacity-80">{entry.teacher}</span>
+                          <span className="text-[10px] opacity-70">{entry.room}</span>
+                        </>
+                      );
+                      const href = getSubjectHref?.(entry.subject);
+                      return href ? (
+                        <Link href={href} className={cellClass} title={`Open ${entry.subject}`}>
+                          {inner}
+                        </Link>
+                      ) : (
+                        <div onClick={() => onEdit?.(day.id, period.id)} className={cellClass}>
+                          {inner}
+                        </div>
+                      );
+                    })()
                   ) : (
                     isEditable ? (
                       <button 
