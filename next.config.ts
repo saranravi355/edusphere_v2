@@ -1,15 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The SQLite database isn't imported as a module, so Next can't auto-detect it
+  // for tracing — we include it explicitly. The Prisma query engine IS traced
+  // automatically when @prisma/client is imported, so it must NOT be added here
+  // (bundling the whole engines folder blows past Vercel's function size limit).
   outputFileTracingIncludes: {
-    // Bundle the SQLite database AND the Prisma engine/client into every
-    // serverless function so queries work on Vercel's Linux runtime.
-    '/**': [
-      './prisma/dev.db',
-      './prisma/schema.prisma',
-      './node_modules/.prisma/client/**',
-      './node_modules/@prisma/engines/**',
-    ],
+    '/**': ['./prisma/dev.db'],
   },
 };
 
