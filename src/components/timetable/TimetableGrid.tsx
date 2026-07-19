@@ -34,13 +34,15 @@ export default function TimetableGrid({
   isEditable = false,
   onAllocate,
   onEdit,
-  getSubjectHref
+  subjectLinkBase
 }: { 
   entries: TimetableEntryProps[], 
   isEditable?: boolean,
   onAllocate?: (day: number, period: number) => void,
   onEdit?: (day: number, period: number) => void,
-  getSubjectHref?: (subject: string) => string
+  // Base path a subject cell links to, e.g. "/student/subjects". Must be a
+  // plain string (not a function) so it can be passed from a Server Component.
+  subjectLinkBase?: string
 }) {
 
   const getEntry = (day: number, period: number) => {
@@ -97,7 +99,9 @@ export default function TimetableGrid({
                           <span className="text-[10px] opacity-70">{entry.room}</span>
                         </>
                       );
-                      const href = getSubjectHref?.(entry.subject);
+                      const href = subjectLinkBase
+                        ? `${subjectLinkBase}?subject=${encodeURIComponent(entry.subject)}`
+                        : undefined;
                       return href ? (
                         <Link href={href} className={cellClass} title={`Open ${entry.subject}`}>
                           {inner}

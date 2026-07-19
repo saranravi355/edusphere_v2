@@ -30,7 +30,7 @@ export default async function StudentTimetablePage() {
       <TimetableGrid 
         entries={mockEntries} 
         isEditable={false} 
-        getSubjectHref={(subject) => `/student/subjects?subject=${encodeURIComponent(subject)}`}
+        subjectLinkBase="/student/subjects"
       />
     </div>
   );
