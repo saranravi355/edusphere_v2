@@ -74,7 +74,7 @@ export default async function HostelPage() {
         </div>
         
         <div className="p-0">
-          <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-ui-border dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
                 <th className="p-4 font-medium">Room No.</th>
@@ -134,7 +134,7 @@ export default async function HostelPage() {
                 <td className="p-4 text-blue-600 dark:text-blue-400 font-medium cursor-pointer">View Occupants</td>
               </tr>
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     </div>

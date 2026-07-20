@@ -38,7 +38,7 @@ export default async function ParentFeesPage() {
       />
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left">
+        <div className="overflow-x-auto"><table className="w-full text-left">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-bold text-slate-500 dark:text-slate-400">
               <th className="py-3 px-6">Student</th>
@@ -89,7 +89,7 @@ export default async function ParentFeesPage() {
               </tr>
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );

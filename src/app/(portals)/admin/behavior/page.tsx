@@ -85,7 +85,7 @@ export default async function BehaviorPage() {
         </div>
         
         <div className="p-0">
-          <table className="w-full text-sm text-left">
+          <div className="overflow-x-auto"><table className="w-full text-sm text-left">
             <thead className="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 font-medium">
               <tr>
                 <th className="px-6 py-4">Student</th>
@@ -122,7 +122,7 @@ export default async function BehaviorPage() {
                 ))
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     </div>

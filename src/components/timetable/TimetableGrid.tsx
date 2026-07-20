@@ -10,6 +10,7 @@ export type TimetableEntryProps = {
   subject: string;
   teacher: string;
   room: string;
+  level?: string; // HL / SL for DP subjects (optional)
 };
 
 const periods = [
@@ -49,17 +50,25 @@ export default function TimetableGrid({
     return entries.find(e => e.dayOfWeek === day && e.period === period);
   };
 
+  // Colour by IB subject group, matching on keywords so it works for real IB
+  // subject names ("English A: Language & Literature", "Mathematics: A&A", ...)
+  // as well as the legacy generic names used by the admin timetable manager.
   const getColors = (subject: string) => {
-    const map: Record<string, string> = {
-      Mathematics: "text-blue-600 bg-blue-50 dark:bg-blue-900/10 dark:text-blue-400 border-blue-100 dark:border-blue-900/30",
-      Physics: "text-cyan-600 bg-cyan-50 dark:bg-cyan-900/10 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30",
-      Calculus: "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/10 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800",
-      "English Language": "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30",
-      "English Literature": "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30",
-      "World History": "text-amber-600 bg-amber-50 dark:bg-amber-900/10 dark:text-amber-400 border-amber-100 dark:border-amber-900/30",
-      Chemistry: "text-purple-600 bg-purple-50 dark:bg-purple-900/10 dark:text-purple-400 border-purple-100 dark:border-purple-900/30",
-    };
-    return map[subject] || "text-slate-600 bg-slate-50 dark:bg-zinc-800/50 dark:text-slate-400 border-slate-200 dark:border-zinc-800";
+    const n = subject.toLowerCase();
+    const emerald = "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30";
+    const teal = "text-teal-600 bg-teal-50 dark:bg-teal-900/10 dark:text-teal-400 border-teal-100 dark:border-teal-900/30";
+    const amber = "text-amber-600 bg-amber-50 dark:bg-amber-900/10 dark:text-amber-400 border-amber-100 dark:border-amber-900/30";
+    const cyan = "text-cyan-600 bg-cyan-50 dark:bg-cyan-900/10 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30";
+    const blue = "text-blue-600 bg-blue-50 dark:bg-blue-900/10 dark:text-blue-400 border-blue-100 dark:border-blue-900/30";
+    const purple = "text-purple-600 bg-purple-50 dark:bg-purple-900/10 dark:text-purple-400 border-purple-100 dark:border-purple-900/30";
+    const slate = "text-slate-600 bg-slate-50 dark:bg-zinc-800/50 dark:text-slate-400 border-slate-200 dark:border-zinc-800";
+    if (n.includes("math") || n.includes("calculus")) return blue;                       // Group 5
+    if (n.includes("physics") || n.includes("chemistry") || n.includes("biology") || n.includes("science") || n.includes("computer")) return cyan; // Group 4
+    if (n.includes("art") || n.includes("music") || n.includes("theatre") || n.includes("film") || n.includes("dance")) return purple; // Group 6
+    if (n.includes("spanish") || n.includes("french") || n.includes("hindi") || n.includes("language b") || n.includes("acquisition") || n.includes(": b")) return teal; // Group 2
+    if (n.includes("english") || n.includes("literature") || n.includes("language & lit") || n.includes("language a")) return emerald; // Group 1
+    if (n.includes("econom") || n.includes("history") || n.includes("geograph") || n.includes("business") || n.includes("psycholog") || n.includes("individuals") || n.includes("societies") || n.includes("global")) return amber; // Group 3
+    return slate;
   };
 
   return (
@@ -95,7 +104,10 @@ export default function TimetableGrid({
                       const inner = (
                         <>
                           <span className="font-bold text-sm leading-tight mb-1">{entry.subject}</span>
-                          <span className="text-xs font-medium opacity-80">{entry.teacher}</span>
+                          {entry.level && entry.level !== "MYP" && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white/60 dark:bg-black/20 mb-1">{entry.level}</span>
+                          )}
+                          {entry.teacher && <span className="text-xs font-medium opacity-80">{entry.teacher}</span>}
                           <span className="text-[10px] opacity-70">{entry.room}</span>
                         </>
                       );

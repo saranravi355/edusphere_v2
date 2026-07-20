@@ -63,7 +63,7 @@ export default async function ClinicPage() {
           <h2 className="text-lg font-bold text-navy-900 dark:text-slate-100">Recent Clinic Log</h2>
         </div>
         
-        <table className="w-full text-sm text-left">
+        <div className="overflow-x-auto"><table className="w-full text-sm text-left">
           <thead className="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 font-medium border-b border-ui-border dark:border-slate-800">
             <tr>
               <th className="px-6 py-4">Date & Time</th>
@@ -90,7 +90,7 @@ export default async function ClinicPage() {
               ))
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );

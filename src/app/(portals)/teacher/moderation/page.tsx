@@ -57,7 +57,7 @@ export default async function ModerationQueuePage() {
           <h2 className="text-lg font-bold text-navy-900 dark:text-slate-100">Awaiting Your Review ({pending.length})</h2>
         </div>
         <div className="p-0">
-          <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-ui-border dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
                 <th className="p-4 font-medium">Exam</th>
@@ -91,7 +91,7 @@ export default async function ModerationQueuePage() {
                 ))
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
 
@@ -100,7 +100,7 @@ export default async function ModerationQueuePage() {
           <h2 className="text-lg font-bold text-navy-900 dark:text-slate-100">Recently Moderated by You</h2>
         </div>
         <div className="p-0">
-          <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-ui-border dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
                 <th className="p-4 font-medium">Exam</th>
@@ -123,7 +123,7 @@ export default async function ModerationQueuePage() {
                 ))
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     </div>

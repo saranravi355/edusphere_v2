@@ -96,7 +96,7 @@ export default async function ResourcesPage() {
           </div>
         </div>
         
-        <table className="w-full">
+        <div className="overflow-x-auto"><table className="w-full">
           <thead>
             <tr className="border-b border-slate-200 dark:border-zinc-800 text-left text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-zinc-900/30">
               <th className="p-4 font-medium">Resource Name</th>
@@ -168,7 +168,7 @@ export default async function ResourcesPage() {
                   </td>
                 </tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );

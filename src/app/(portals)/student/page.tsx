@@ -15,6 +15,15 @@ export default async function StudentDashboard() {
     include: { grades: true, classroom: true }
   });
 
+  // Real count of homework not yet submitted, for the dashboard card.
+  const homeworks = studentProfile?.classroomId
+    ? await prisma.homework.findMany({
+        where: { classroomId: studentProfile.classroomId },
+        include: { submissions: { where: { studentId: studentProfile.id } } },
+      })
+    : [];
+  const pendingHomework = homeworks.filter((h) => h.submissions.length === 0).length;
+
   return (
     <div className="space-y-6 pb-12 max-w-6xl">
       <SchoolSnapshot />
@@ -31,7 +40,7 @@ export default async function StudentDashboard() {
             </div>
             <div>
               <h3 className="font-semibold text-slate-800 dark:text-slate-100">My Homework</h3>
-              <p className="text-sm text-slate-500">2 Due Today</p>
+              <p className="text-sm text-slate-500">{pendingHomework === 0 ? "All caught up" : `${pendingHomework} pending`}</p>
             </div>
             <Link href="/student/homework" className="text-sm font-medium text-blue-600 hover:text-blue-700 mt-2">View All →</Link>
           </CardContent>
@@ -57,7 +66,7 @@ export default async function StudentDashboard() {
             </div>
             <div>
               <h3 className="font-semibold text-slate-800 dark:text-slate-100">Timetable</h3>
-              <p className="text-sm text-slate-500">Class {studentProfile?.classroom?.name || "9A"}</p>
+              <p className="text-sm text-slate-500">{studentProfile?.classroom?.name || studentProfile?.curriculum || "Not assigned"}</p>
             </div>
             <Link href="/student/timetable" className="text-sm font-medium text-green-600 hover:text-green-700 mt-2">View Schedule →</Link>
           </CardContent>

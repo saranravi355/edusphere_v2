@@ -72,7 +72,7 @@ export default async function TeacherAttendancePage() {
       />
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm text-left">
+        <div className="overflow-x-auto"><table className="w-full text-sm text-left">
           <thead className="bg-slate-50 dark:bg-slate-950/50 text-slate-500 font-medium border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="px-6 py-4">Student</th>
@@ -127,7 +127,7 @@ export default async function TeacherAttendancePage() {
               )
             })}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
