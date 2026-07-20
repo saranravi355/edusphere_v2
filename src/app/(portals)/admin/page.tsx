@@ -58,7 +58,7 @@ export default async function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-6">
-                <div className="text-4xl font-black text-slate-800 dark:text-slate-100">{attendanceRate}%</div>
+                <div className="text-4xl font-semibold text-foreground">{attendanceRate}%</div>
                 <div className="flex-1 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div className="h-full bg-green-500" style={{ width: `${attendanceRate}%` }} />
                 </div>
@@ -75,7 +75,7 @@ export default async function AdminDashboard() {
                 {recentIncidents.map((incident) => (
                   <div key={incident.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+                      <div className="w-8 h-8 rounded-md bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
                         <AlertTriangle size={14} />
                       </div>
                       <div>
