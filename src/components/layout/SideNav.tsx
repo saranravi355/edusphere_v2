@@ -8,7 +8,7 @@ import {
   FileText, DollarSign, Activity, CheckCircle2, Calendar, Bus, Wallet, Tent,
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
-  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload,
+  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -110,6 +110,7 @@ const SECTIONS: Record<string, NavSection[]> = {
       links: [
         { name: "Live Tracker", href: "/parent/transport/live", icon: Navigation },
         { name: "Meetings", href: "/parent/meetings", icon: Video },
+        { name: "Messages", href: "/parent/messages", icon: MessageSquare },
         { name: "Fees", href: "/parent/fees", icon: DollarSign },
       ],
     },
@@ -170,6 +171,7 @@ const TEACHER_SECTIONS: NavSection[] = [
       { name: "Directory", href: "/teacher/students", icon: Search },
       { name: "IEP", href: "/teacher/learning-needs", icon: HeartHandshake },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldAlert },
+      { name: "Messages", href: "/teacher/messages", icon: MessageSquare },
     ],
   },
   {

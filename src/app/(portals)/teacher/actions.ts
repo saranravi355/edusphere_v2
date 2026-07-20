@@ -116,3 +116,24 @@ export async function uploadAssignment(formData: FormData) {
   revalidatePath("/teacher");
   return { success: true };
 }
+
+export async function sendMessage(formData: FormData) {
+  const session = await getSession();
+  if (!session) return;
+
+  const receiverId = String(formData.get("receiverId") || "").trim();
+  const content = String(formData.get("content") || "").trim();
+  if (!receiverId || !content) return;
+
+  await prisma.message.create({
+    data: {
+      senderId: session.user.id,
+      receiverId,
+      subject: "Teacher message",
+      content,
+      isRead: false,
+    },
+  });
+
+  revalidatePath("/teacher/messages");
+}
