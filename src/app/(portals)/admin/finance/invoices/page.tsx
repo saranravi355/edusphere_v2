@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import ExportButton from "@/components/data/ExportButton";
 import { Receipt, FileText, CheckCircle2, Clock, Send } from "lucide-react";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -43,11 +44,14 @@ export default async function FeeInvoicesPage() {
     revalidatePath("/admin/finance/invoices");
   }
 
+  const exportRows = recentInvoices.map((inv) => ({ Student: inv.student.name, Title: inv.title, Amount: inv.amount, Status: inv.status, DueDate: inv.dueDate.toISOString().slice(0, 10), PaidAt: inv.paidAt ? inv.paidAt.toISOString().slice(0, 10) : "" }));
+
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
       <PageHeader 
         title="Fee Invoicing & Generation" 
         description="Generate, track, and send invoices to parents based on global fee plans."
+        action={<ExportButton rows={exportRows} filename="fee-invoices" />}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

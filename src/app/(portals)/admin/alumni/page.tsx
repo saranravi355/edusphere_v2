@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import ExportButton from "@/components/data/ExportButton";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
@@ -76,11 +77,14 @@ export default async function AlumniPage() {
   const workingCount = alumni.filter((a) => a.currentStatus === "WORKING").length;
   const countries = new Set(alumni.map((a) => a.country).filter(Boolean));
 
+  const exportRows = alumni.map((a) => ({ Student: a.student?.name ?? "", GraduationYear: a.graduationYear, Programme: a.finalProgramme, DPScore: a.finalDpScore ?? "", University: a.university ?? "", Course: a.courseOfStudy ?? "", Country: a.country ?? "", Status: a.currentStatus ?? "" }));
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="Alumni & Progression Tracking"
         description="Track graduating students, their university and career paths, and celebrate achievements."
+        action={<ExportButton rows={exportRows} filename="alumni" />}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

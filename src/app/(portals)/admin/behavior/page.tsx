@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
+import ExportButton from "@/components/data/ExportButton";
 import Modal from "@/components/ui/Modal";
 import { ShieldAlert, ThumbsUp, ThumbsDown, User, Calendar } from "lucide-react";
 import { revalidatePath } from "next/cache";
@@ -11,11 +12,14 @@ export default async function BehaviorPage() {
     take: 20
   });
 
+  const exportRows = incidents.map((i) => ({ Student: i.student.name, Type: i.type, Category: i.category, Description: i.description, Points: i.points, Teacher: i.teacher?.user?.name ?? "", Date: i.date.toISOString().slice(0, 10) }));
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
         title="Behavior & Disciplinary" 
         description="Manage merits, demerits, and student conduct."
+        action={<ExportButton rows={exportRows} filename="behavior-incidents" />}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

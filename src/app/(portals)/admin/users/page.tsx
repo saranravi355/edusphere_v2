@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, ChevronDown } from "lucide-react";
+import ExportButton from "@/components/data/ExportButton";
 
 export default async function StudentRegistryPage() {
   const students = await prisma.student.findMany({
@@ -69,6 +70,8 @@ export default async function StudentRegistryPage() {
     };
   });
 
+  const exportRows = tableRows.map((r) => ({ RegNo: r.regNo, Name: r.name, Class: r.class, Parent: r.parentName, Phone: r.parentPhone, Attendance: `${r.presencePercentage}%`, FeeStatus: r.feeStatusText, Risk: r.riskLevel }));
+
   return (
     <div className="bg-white min-h-[calc(100vh-100px)] font-sans -mt-6 -mx-8 px-8 py-12 md:px-16 text-slate-800 rounded-tl-3xl shadow-sm border-l border-t border-slate-100">
       <div className="max-w-[1400px] mx-auto">
@@ -80,6 +83,7 @@ export default async function StudentRegistryPage() {
             <p className="text-slate-400 text-[13px] font-medium tracking-wide">
               {enrolledCount} students enrolled &middot; {pendingFeeCount} pending fee collections
             </p>
+            <div className="mt-4"><ExportButton rows={exportRows} filename="student-registry" /></div>
           </div>
           <Link href="/admin/students/register">
             <button className="bg-[#111] hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-95 shadow-md">

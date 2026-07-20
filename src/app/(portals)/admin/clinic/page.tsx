@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
+import ExportButton from "@/components/data/ExportButton";
 import Modal from "@/components/ui/Modal";
 import { Activity, Thermometer, Pill, UserPlus } from "lucide-react";
 
@@ -10,11 +11,14 @@ export default async function ClinicPage() {
     take: 20
   });
 
+  const exportRows = visits.map((v) => ({ Student: v.student.name, Reason: v.reason, Treatment: v.treatment, Notes: v.notes ?? "", Date: v.date.toISOString().slice(0, 10) }));
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
         title="Health & Clinic" 
         description="School nurse digital logbook and medical records."
+        action={<ExportButton rows={exportRows} filename="clinic-visits" />}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
