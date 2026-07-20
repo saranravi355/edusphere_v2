@@ -57,7 +57,7 @@ export default function AutoGenerateClient({
           <button
             onClick={generate}
             disabled={!classroomId || isPending}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 shadow-sm"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary hover:opacity-90 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 shadow-sm"
           >
             {isPending ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
             {isPending ? "Solving constraints…" : "Generate Timetable"}

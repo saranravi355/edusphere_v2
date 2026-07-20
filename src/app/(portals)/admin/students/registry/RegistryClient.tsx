@@ -184,7 +184,7 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
           </button>
           <button
             onClick={() => setAiOpen((v) => !v)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:opacity-90 text-white text-xs font-bold rounded-xl transition-all shadow-sm"
           >
             <Sparkles size={14} /> Platform AI <ChevronDown size={13} className={`transition-transform ${aiOpen ? "rotate-180" : ""}`} />
           </button>
@@ -194,7 +194,7 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
       {/* Platform AI panel (preview mock) */}
       {aiOpen && (
         <div className="bg-white dark:bg-zinc-900 border border-purple-200 dark:border-purple-900/40 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-b border-purple-100 dark:border-purple-900/30 flex items-center justify-between">
+          <div className="px-5 py-3 bg-muted dark:from-blue-950/30 dark:to-purple-950/30 border-b border-purple-100 dark:border-purple-900/30 flex items-center justify-between">
             <p className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <Sparkles size={15} className="text-purple-600" /> Platform AI
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300">PREVIEW</span>
@@ -263,7 +263,7 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
               <tr key={r.id} className="border-b border-slate-50 dark:border-zinc-800/50 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30">
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                       {r.name[0]}
                     </div>
                     <div>

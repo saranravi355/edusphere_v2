@@ -63,7 +63,7 @@ export default function AutomatedPayroll() {
           </div>
 
           {complete && (
-            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-sm flex flex-col justify-center animate-in fade-in slide-in-from-bottom-4">
+            <div className="bg-primary rounded-2xl p-6 text-white shadow-sm flex flex-col justify-center animate-in fade-in slide-in-from-bottom-4">
               <p className="text-emerald-100 font-medium text-sm">Total Disbursable</p>
               <h3 className="text-4xl font-bold mt-1">₹2,45,600</h3>
               <p className="text-xs text-emerald-200 mt-2">Across 85 Staff Members</p>

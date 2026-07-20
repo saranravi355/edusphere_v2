@@ -34,7 +34,7 @@ export default async function AlumniWallPage() {
           {featured.map((a) => (
             <div key={a.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm relative overflow-hidden">
               <Star size={16} className="absolute top-4 right-4 text-amber-400" fill="currentColor" />
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg mb-3">
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg mb-3">
                 {a.student.name[0]}
               </div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100">{a.student.name}</h3>

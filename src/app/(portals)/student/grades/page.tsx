@@ -78,7 +78,7 @@ export default async function StudentGrades() {
         <>
           {/* Diploma points summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-sm text-white">
+            <div className="bg-primary rounded-2xl p-6 shadow-sm text-white">
               <div className="flex items-center gap-2 text-blue-100 text-xs font-bold uppercase tracking-wide"><Trophy size={14} /> Diploma Points (current)</div>
               <p className="text-4xl font-bold mt-2">{total} <span className="text-lg font-normal text-blue-100">/ 45</span></p>
               <p className="text-xs text-blue-100 mt-1">{subjectPoints}/42 from 6 subjects + {bonus}/3 TOK & EE bonus</p>

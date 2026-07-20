@@ -46,7 +46,7 @@ export default async function ParentGradesPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="glass-card bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10">
+        <Card className="glass-card bg-muted dark:from-green-900/10 dark:to-emerald-900/10">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <Award className="w-6 h-6 text-green-600 dark:text-green-400" />

@@ -35,7 +35,7 @@ export default function SentimentAIPage() {
         description="Scan teacher notes and behavior logs to flag at-risk students early."
       />
 
-      <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <BrainCircuit size={150} />
         </div>

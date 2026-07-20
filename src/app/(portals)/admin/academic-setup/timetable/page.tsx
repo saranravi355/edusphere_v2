@@ -26,7 +26,7 @@ export default async function AITimetableOptimizer() {
       />
 
       <Link href="/admin/academic-setup/timetable/auto-generate" className="group block">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-5 shadow-sm flex items-center justify-between text-white hover:shadow-md transition-shadow">
+        <div className="bg-primary rounded-2xl p-5 shadow-sm flex items-center justify-between text-white hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
             <Sparkles size={20} />
             <div>

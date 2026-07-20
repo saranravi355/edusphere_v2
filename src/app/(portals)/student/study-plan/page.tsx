@@ -24,7 +24,7 @@ export default function StudyPlanPage() {
         description="Builds a personalized weekly study schedule from your timetable, upcoming IA/EE deadlines, and learning-gap map."
       />
 
-      <div className="bg-gradient-to-br from-sky-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-sky-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-sky-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><CalendarRange size={150} /></div>
         <div className="relative z-10">
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles size={18} className="text-sky-300" /> Plan Builder</h2>

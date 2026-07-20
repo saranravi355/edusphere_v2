@@ -33,7 +33,7 @@ export default function AIFeedbackReviewPage() {
         description="Drafts criterion-referenced feedback on submitted homework and IA drafts for you to review, edit and approve before it reaches students."
       />
 
-      <div className="bg-gradient-to-br from-emerald-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><FileEdit size={150} /></div>
         <div className="relative z-10">
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles size={18} className="text-emerald-300" /> Feedback Drafting Engine</h2>

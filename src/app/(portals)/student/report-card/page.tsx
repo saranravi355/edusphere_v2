@@ -117,7 +117,7 @@ export default async function StudentReportCard() {
                 <p className="text-slate-600 dark:text-slate-300">CAS: <b>{casHours}h logged</b> · {cas?.reflections || 0} reflections — requirement {casHours >= 100 ? "met" : "in progress"}</p>
                 <p className="text-xs text-slate-400 pt-1">TOK + EE combine for up to 3 bonus points. CAS is required but not scored.</p>
               </div>
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-5 text-white flex flex-col justify-center">
+              <div className="bg-primary rounded-2xl p-5 text-white flex flex-col justify-center">
                 <p className="text-xs font-bold uppercase tracking-wide text-blue-100">Diploma points</p>
                 <p className="text-4xl font-black mt-1">{currentTotal + bonus} <span className="text-lg font-normal text-blue-100">/ 45</span></p>
                 <p className="text-xs text-blue-100 mt-1">{currentTotal}/42 subjects + {bonus}/3 core bonus · Predicted: {predictedTotal + bonus}/45</p>

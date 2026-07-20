@@ -33,7 +33,7 @@ export default function CareerAIPage() {
         description="Discover career paths aligned with your academic strengths."
       />
 
-      <div className="bg-gradient-to-br from-emerald-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <Target size={150} />
         </div>

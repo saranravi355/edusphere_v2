@@ -25,7 +25,7 @@ export default function CashflowForecastPage() {
         description="Projects 6-month cash inflow (term fee cycles) against outflow (payroll, vendor, facilities) to flag upcoming liquidity gaps."
       />
 
-      <div className="bg-gradient-to-br from-slate-900 to-zinc-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-700/40">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-700/40">
         <div className="absolute top-0 right-0 p-8 opacity-10"><LineChart size={150} /></div>
         <div className="relative z-10">
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles size={18} className="text-amber-300" /> Forecast Engine</h2>

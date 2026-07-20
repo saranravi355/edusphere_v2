@@ -126,7 +126,7 @@ export default function ClubsClient({ clubs }: { clubs: ClubRow[] }) {
                       {club.members.length === 0 && <p className="text-xs text-slate-400 col-span-3">No members enrolled yet.</p>}
                       {club.members.map((m) => (
                         <div key={m.registrationNo} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/50">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                             {m.name[0]}
                           </div>
                           <div className="min-w-0">

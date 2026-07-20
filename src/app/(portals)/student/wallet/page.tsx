@@ -42,7 +42,7 @@ export default function StudentWalletPage() {
         description="Manage your canteen and campus spending balance."
       />
 
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-primary rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <Wallet size={150} />
         </div>

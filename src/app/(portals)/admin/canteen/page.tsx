@@ -22,7 +22,7 @@ export default function CanteenAIPage() {
         description="Predicts daily meal demand per item using enrolment, weather, exam-week schedules and past consumption patterns, to cut food waste and avoid shortages."
       />
 
-      <div className="bg-gradient-to-br from-amber-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-amber-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-amber-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><UtensilsCrossed size={150} /></div>
         <div className="relative z-10">
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles size={18} className="text-amber-300" /> Demand Forecast Engine</h2>

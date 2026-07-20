@@ -60,7 +60,7 @@ export default function LibraryManagement() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-6 text-white shadow-sm flex items-center gap-4">
+          <div className="bg-primary rounded-2xl p-6 text-white shadow-sm flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl">
               <AlertCircle size={32} />
             </div>

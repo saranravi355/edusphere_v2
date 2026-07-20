@@ -101,7 +101,7 @@ export default function PlannerClient({ plans, subjects }: { plans: Plan[]; subj
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-2xl p-5 shadow-sm text-white flex items-center justify-center gap-2 font-bold text-sm transition-all"
+          className="bg-primary hover:opacity-90 rounded-2xl p-5 shadow-sm text-white flex items-center justify-center gap-2 font-bold text-sm transition-all"
         >
           <Plus size={18} /> New IB Lesson Plan
         </button>

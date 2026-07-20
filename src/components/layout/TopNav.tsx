@@ -32,7 +32,7 @@ export default function TopNav({
 
         {/* Brand shown on mobile where the sidebar is hidden */}
         <div className="flex items-center gap-2 lg:hidden">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-royal-600 to-navy-900 flex items-center justify-center text-white font-bold font-heading">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-heading">
             E
           </div>
           <span className="font-heading font-extrabold text-lg tracking-tight text-navy-900 dark:text-white hidden sm:block">
@@ -117,7 +117,7 @@ export default function TopNav({
             <p className="text-sm font-bold text-navy-900 dark:text-slate-100 leading-none">{user.name || "User"}</p>
             <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{user.role.replace("_", " ")}</p>
           </div>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
+          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
             {(user.name || "U")[0]}
           </div>
 

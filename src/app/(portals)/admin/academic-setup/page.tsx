@@ -16,7 +16,7 @@ export default async function AcademicSetupPage() {
       />
 
       <Link href="/admin/academic-setup/calendar" className="group block">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-5 shadow-sm flex items-center justify-between text-white hover:shadow-md transition-shadow">
+        <div className="bg-primary rounded-2xl p-5 shadow-sm flex items-center justify-between text-white hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
             <CalendarDays size={20} />
             <div>

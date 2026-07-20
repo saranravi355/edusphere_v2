@@ -89,7 +89,7 @@ export default async function FeeInvoicesPage() {
             </form>
           </div>
           
-          <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-sm">
+          <div className="bg-primary rounded-2xl p-6 text-white shadow-sm">
             <h3 className="font-medium text-green-100 mb-1">Revenue Collected (MTD)</h3>
             <p className="text-4xl font-extrabold">₹1,42,500</p>
             <div className="mt-4 pt-4 border-t border-white/20 flex justify-between text-sm">

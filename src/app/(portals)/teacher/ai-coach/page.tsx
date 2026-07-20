@@ -22,7 +22,7 @@ export default function AICoachPage() {
         description="Personalized, weekly teaching insights drawn from your gradebook, attendance and ATL/CAS records — built for IB pedagogy."
       />
 
-      <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><GraduationCap size={150} /></div>
         <div className="relative z-10">
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles size={18} className="text-indigo-300" /> Weekly Coaching Engine</h2>

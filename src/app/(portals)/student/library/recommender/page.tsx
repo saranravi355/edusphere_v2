@@ -21,7 +21,7 @@ export default function ReadingRecommenderPage() {
         description="Suggests books matched to your reading level and current coursework — drawn from the school library catalogue."
       />
 
-      <div className="bg-gradient-to-br from-amber-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-amber-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-amber-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><BookOpen size={150} /></div>
         <div className="relative z-10">
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles size={18} className="text-amber-300" /> Recommendation Engine</h2>

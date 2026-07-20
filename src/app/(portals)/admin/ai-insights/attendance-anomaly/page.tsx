@@ -21,7 +21,7 @@ export default function AttendanceAnomalyPage() {
         description="Detects unusual attendance patterns across the school — beyond simple absence-rate thresholds — that may indicate disengagement, bullying, or scheduling issues."
       />
 
-      <div className="bg-gradient-to-br from-slate-900 to-zinc-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-700/40">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-700/40">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <ScanLine size={150} />
         </div>

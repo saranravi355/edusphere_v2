@@ -129,7 +129,7 @@ export default function ProgrammesClient({ data }: { data: Data }) {
                 </div>
               </div>
               <Link href="/admin/programmes/cas" className="group block">
-                <div className="bg-gradient-to-r from-rose-500 to-pink-600 rounded-2xl p-5 text-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+                <div className="bg-primary rounded-2xl p-5 text-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <HeartHandshake size={20} />
                     <div>

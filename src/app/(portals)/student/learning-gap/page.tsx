@@ -21,7 +21,7 @@ export default function LearningGapPage() {
         description="After each formative assessment, see exactly which sub-topics you're weakest on and what to review next."
       />
 
-      <div className="bg-gradient-to-br from-rose-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-rose-500/30">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-rose-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><Map size={150} /></div>
         <div className="relative z-10">
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles size={18} className="text-rose-300" /> Mastery Mapper</h2>

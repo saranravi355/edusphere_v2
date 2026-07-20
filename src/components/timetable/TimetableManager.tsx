@@ -83,7 +83,7 @@ export default function TimetableManager({
       )}
 
       {/* Hero Control Panel */}
-      <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30 mb-8">
+      <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30 mb-8">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <BrainCircuit size={150} />
         </div>

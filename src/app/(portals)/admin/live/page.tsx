@@ -71,7 +71,7 @@ export default async function LiveDashboardPage() {
       </div>
 
       {/* Health score banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-sm flex items-center justify-between">
+      <div className="bg-primary rounded-2xl p-6 text-white shadow-sm flex items-center justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-blue-100 flex items-center gap-1.5"><Activity size={14} /> School Health Score</p>
           <p className="text-4xl font-black mt-1">{healthScore} <span className="text-lg font-normal text-blue-100">/ 100</span></p>

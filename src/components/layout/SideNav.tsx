@@ -233,7 +233,7 @@ export default function SideNav({
         {/* Brand */}
         <div className={`h-16 flex items-center border-b border-slate-100 dark:border-zinc-800/50 flex-shrink-0 ${collapsed ? "lg:justify-center lg:px-0 px-5" : "px-5"} justify-between`}>
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-royal-600 to-navy-900 flex items-center justify-center text-white font-bold font-heading flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-heading flex-shrink-0">
               E
             </div>
             {!collapsed && (
