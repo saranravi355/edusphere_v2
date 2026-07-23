@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, Search, LogOut, Menu } from "lucide-react";
+import { LogoMark } from "@/components/ui/Logo";
 import { logout } from "@/app/actions";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useTranslation } from "react-i18next";
@@ -32,11 +33,9 @@ export default function TopNav({
 
         {/* Brand shown on mobile where the sidebar is hidden */}
         <div className="flex items-center gap-2 lg:hidden">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-heading">
-            E
-          </div>
+          <LogoMark size={32} />
           <span className="font-heading font-extrabold text-lg tracking-tight text-navy-900 dark:text-white hidden sm:block">
-            EduSphere <span className="text-xs font-bold text-blue-500 align-top ml-0.5">AlphaV1</span>
+            EduSphere <span className="text-xs font-bold text-blue-500 align-top ml-0.5">360</span>
           </span>
         </div>
 

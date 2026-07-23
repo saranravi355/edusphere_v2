@@ -11,6 +11,7 @@ import {
   ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { LogoMark } from "@/components/ui/Logo";
 
 interface NavLink {
   name: string;
@@ -233,12 +234,10 @@ export default function SideNav({
         {/* Brand */}
         <div className={`h-16 flex items-center border-b border-slate-100 dark:border-zinc-800/50 flex-shrink-0 ${collapsed ? "lg:justify-center lg:px-0 px-5" : "px-5"} justify-between`}>
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-heading flex-shrink-0">
-              E
-            </div>
+            <LogoMark size={34} />
             {!collapsed && (
               <span className="font-heading font-extrabold text-lg tracking-tight text-navy-900 dark:text-white truncate">
-                EduSphere <span className="text-xs font-bold text-blue-500 align-top ml-0.5">AlphaV1</span>
+                EduSphere <span className="text-xs font-bold text-blue-500 align-top ml-0.5">360</span>
               </span>
             )}
             {collapsed && (

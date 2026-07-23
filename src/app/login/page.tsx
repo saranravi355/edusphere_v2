@@ -4,7 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { login } from "../actions";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, BookOpen } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { LogoFull } from "@/components/ui/Logo";
 import { Suspense } from "react";
 
 function LoginForm() {
@@ -42,14 +43,8 @@ function LoginForm() {
         {/* Left Side - Branding & Quote */}
         <div className="w-full md:w-1/2 p-10 md:p-14 flex flex-col items-center justify-center text-center relative bg-slate-50 dark:bg-slate-900/50">
 
-          <div className="flex items-center justify-center gap-3 mb-10">
-            <div className="text-slate-800 dark:text-slate-200 flex items-center justify-center">
-              <BookOpen size={56} strokeWidth={2} />
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none tracking-wide">EDU</span>
-              <span className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none tracking-wide">SPHERE<sup className="text-sm font-bold ml-1 text-blue-500">AlphaV1</sup></span>
-            </div>
+          <div className="flex items-center justify-center mb-8">
+            <LogoFull className="h-44 w-auto object-contain" />
           </div>
 
           <h2 className="text-2xl md:text-[1.65rem] font-bold text-slate-800 dark:text-white mb-5 leading-tight max-w-[90%]">
