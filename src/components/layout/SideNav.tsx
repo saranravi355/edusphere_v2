@@ -237,7 +237,7 @@ export default function SideNav({
             <LogoMark size={34} />
             {!collapsed && (
               <span className="font-heading font-extrabold text-lg tracking-tight text-navy-900 dark:text-white truncate">
-                EduSphere <span className="text-xs font-bold text-blue-500 align-top ml-0.5">360</span>
+                EduSphere <span className="text-xs font-bold text-blue-500 align-top ml-0.5">Alpha2</span>
               </span>
             )}
             {collapsed && (

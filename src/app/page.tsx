@@ -4,6 +4,7 @@ import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { GraduationCap, Users, UserCircle, School, Bell, ChevronRight, Building, Briefcase } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { LogoFull } from "@/components/ui/Logo";
 
 export default function LandingPage() {
   const containerVariants = {
@@ -32,9 +33,8 @@ export default function LandingPage() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="text-center mb-12 z-10 w-full"
       >
-        <h1 className="text-5xl md:text-6xl font-heading font-extrabold text-blue-700 dark:text-blue-500 tracking-tight">
-          EduSphere <span className="text-2xl text-blue-500 font-bold align-top">AlphaV1</span>
-        </h1>
+        <LogoFull className="h-44 md:h-56 w-auto object-contain mx-auto" />
+        <p className="mt-3 text-sm font-bold text-blue-500 tracking-[0.3em] uppercase">Alpha2</p>
       </motion.div>
 
       <motion.div

@@ -38,7 +38,7 @@ export function LogoFull({ className = "" }: { className?: string }) {
       <div className="flex flex-col text-left leading-none">
         <span className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-wide">EDU</span>
         <span className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-wide">
-          SPHERE<sup className="text-sm font-bold ml-1 text-blue-500">360</sup>
+          SPHERE<sup className="text-sm font-bold ml-1 text-blue-500">Alpha2</sup>
         </span>
       </div>
     );
