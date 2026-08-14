@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { Receipt, DollarSign, LineChart, Wallet, ArrowRight } from "lucide-react";
+import { Receipt, IndianRupee, LineChart, Wallet, ArrowRight } from "lucide-react";
 
 export default async function FinanceHubPage() {
   const session = await getSession();
@@ -29,7 +29,7 @@ export default async function FinanceHubPage() {
       title: "Payroll",
       description: "Run automated monthly payroll batches for staff.",
       href: "/admin/finance/payroll",
-      icon: DollarSign,
+      icon: IndianRupee,
       color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400",
     },
     {

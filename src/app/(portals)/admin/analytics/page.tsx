@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import AnalyticsCharts from "@/components/admin/AnalyticsCharts";
-import { Users, DollarSign, Clock, TrendingUp, GraduationCap } from "lucide-react";
+import { Users, IndianRupee, Clock, TrendingUp, GraduationCap } from "lucide-react";
 
 function formatCurrency(amount: number) {
   return amount >= 100000 ? `₹${(amount / 100000).toFixed(1)}L` : `₹${amount.toLocaleString()}`;
@@ -105,7 +105,7 @@ export default async function AdminAnalyticsPage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <IndianRupee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
             <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{formatCurrency(totalRevenue)}</p>

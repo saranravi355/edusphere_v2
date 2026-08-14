@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, MessageSquare, DollarSign } from "lucide-react";
+import { Clock, MessageSquare, IndianRupee } from "lucide-react";
 import Link from "next/link";
 
 async function payFee(invoiceId: string) {

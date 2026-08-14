@@ -661,3 +661,15 @@ model AssessmentResult {
   comment     String?
   term        String   @default("Term 1 2026-27")
 }
+
+model FeeItem {
+  id           String   @id @default(cuid())
+  academicYear String   @default("2025-26")
+  gradeBand    String   // Toddler, PREKG-LKG, UKG, 1-5, 6-8, 9, 10, General
+  category     String   // Tuition, Annual Material, Registration, Uniform Kit, Lab, Bus, etc.
+  amount       Float    // per-installment amount
+  installments Int      @default(1) // number of terms/installments (x3, x2, x1)
+  mandatory    Boolean  @default(true)
+  notes        String?
+  createdAt    DateTime @default(now())
+}

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
   Building, GraduationCap, Users, LayoutDashboard, Settings, BookOpen, Clock,
-  FileText, DollarSign, Activity, CheckCircle2, Calendar, Bus, Wallet, Tent,
+  FileText, IndianRupee, Activity, CheckCircle2, Calendar, Bus, Wallet, Tent,
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
   ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare,
@@ -66,7 +66,7 @@ const SECTIONS: Record<string, NavSection[]> = {
     {
       label: "Finance",
       links: [
-        { name: "Finance", href: "/admin/finance", icon: DollarSign },
+        { name: "Finance", href: "/admin/finance", icon: IndianRupee },
         { name: "Fee Plans", href: "/admin/fees", icon: Receipt },
       ],
     },
@@ -112,7 +112,7 @@ const SECTIONS: Record<string, NavSection[]> = {
         { name: "Live Tracker", href: "/parent/transport/live", icon: Navigation },
         { name: "Meetings", href: "/parent/meetings", icon: Video },
         { name: "Messages", href: "/parent/messages", icon: MessageSquare },
-        { name: "Fees", href: "/parent/fees", icon: DollarSign },
+        { name: "Fees", href: "/parent/fees", icon: IndianRupee },
       ],
     },
   ],

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import LiveRefresh from "./LiveRefresh";
 import {
-  Users, GraduationCap, CheckCircle2, DollarSign, ShieldAlert, Stethoscope,
+  Users, GraduationCap, CheckCircle2, IndianRupee, ShieldAlert, Stethoscope,
   CalendarClock, Bell, HeartHandshake, Activity, BookOpen, MessageSquare,
 } from "lucide-react";
 
@@ -55,7 +55,7 @@ export default async function LiveDashboardPage() {
     { label: "Attendance (latest day)", value: `${attendancePct}%`, sub: `${presentToday}/${totalToday} present`, icon: CheckCircle2, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400" },
     { label: "Students enrolled", value: studentCount, sub: `${activeIEP} active IEP plans`, icon: GraduationCap, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400" },
     { label: "Teaching staff", value: teacherCount, sub: `${coverage}% lesson coverage`, icon: Users, color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400" },
-    { label: "Fees collected", value: inr(collected), sub: `${inr(outstanding)} outstanding · ${collectionPct}%`, icon: DollarSign, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400" },
+    { label: "Fees collected", value: inr(collected), sub: `${inr(outstanding)} outstanding · ${collectionPct}%`, icon: IndianRupee, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400" },
     { label: "Incidents (7 days)", value: incidentsWeek, sub: "behaviour reports", icon: ShieldAlert, color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400" },
     { label: "Clinic visits", value: clinicWeek, sub: "total logged", icon: Stethoscope, color: "text-teal-600 bg-teal-100 dark:bg-teal-900/30 dark:text-teal-400" },
   ];
@@ -158,7 +158,7 @@ export default async function LiveDashboardPage() {
         {[
           { label: "IEP support", value: activeIEP, icon: HeartHandshake, href: "learning support plans active" },
           { label: "Lesson plans delivered", value: `${lessonPlansDelivered}/${lessonPlansTotal}`, icon: BookOpen, href: "curriculum coverage tracking" },
-          { label: "Collection rate", value: `${collectionPct}%`, icon: DollarSign, href: "of invoiced fees received" },
+          { label: "Collection rate", value: `${collectionPct}%`, icon: IndianRupee, href: "of invoiced fees received" },
         ].map((x) => (
           <div key={x.label} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
             <x.icon size={18} className="mx-auto text-slate-400 mb-1" />

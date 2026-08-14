@@ -21,7 +21,7 @@ function Modal({ onClose }: { onClose: () => void }) {
         </button>
         <h3 className="text-xl font-bold mb-4 dark:text-white">Top Up Wallet</h3>
         <div className="space-y-4">
-          <input type="number" placeholder="Amount ($)" className="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-3 dark:bg-slate-800 dark:text-white outline-none focus:border-blue-500" />
+          <input type="number" placeholder="Amount (₹)" className="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-3 dark:bg-slate-800 dark:text-white outline-none focus:border-blue-500" />
           <button onClick={onClose} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors">
             Confirm Top Up
           </button>

@@ -13,7 +13,7 @@ export default async function ParentFeesPage() {
 
   const parent = await prisma.parent.findUnique({
     where: { userId: session.user.id },
-    include: { students: true }
+    include: { students: { include: { classroom: true } } }
   });
 
   const studentIds = parent?.students.map(s => s.id) || [];
@@ -23,6 +23,19 @@ export default async function ParentFeesPage() {
     include: { student: true },
     orderBy: { dueDate: 'asc' }
   });
+
+  // Applicable fee structure for the child's grade band (from the loaded fee items).
+  const gradeLevel = parent?.students[0]?.classroom?.gradeLevel ?? 0;
+  const band = gradeLevel <= 5 ? "1-5" : gradeLevel <= 8 ? "6-8" : gradeLevel === 9 ? "9" : gradeLevel >= 10 ? "10" : "General";
+  const feeItems = await prisma.feeItem.findMany({
+    where: { gradeBand: { in: [band, "General"] } },
+    orderBy: [{ gradeBand: "asc" }, { createdAt: "asc" }],
+  });
+  const bandItems = feeItems.filter((i) => i.gradeBand === band);
+  const optionalItems = feeItems.filter((i) => i.gradeBand === "General");
+  const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+  const bandTotal = bandItems.filter((i) => i.mandatory).reduce((sum, i) => sum + i.amount * i.installments, 0);
+  const bandLabel: Record<string, string> = { "1-5": "Grade 1 – 5", "6-8": "Grade 6 – 8", "9": "Grade 9", "10": "Grade 10 & above", "General": "General" };
 
   const statusConfig: Record<string, { label: string; color: string; bg: string; icon: typeof CheckCircle2 }> = {
     PAID: { label: "Paid", color: "text-green-700 dark:text-green-400", bg: "bg-green-100 dark:bg-green-900/30", icon: CheckCircle2 },
@@ -36,6 +49,41 @@ export default async function ParentFeesPage() {
         title="Fee Payments"
         description="View invoices and pay outstanding fees for your children."
       />
+
+      {bandItems.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 className="font-heading text-base text-slate-800 dark:text-slate-100">Fee structure &mdash; {bandLabel[band] ?? band}</h3>
+              <p className="text-xs text-slate-500">Academic year {feeItems[0]?.academicYear ?? "2025-26"} &middot; amounts shown per term</p>
+            </div>
+            <span className="text-sm text-slate-500">Mandatory annual: <span className="font-semibold text-slate-800 dark:text-slate-100">{inr(bandTotal)}</span></span>
+          </div>
+          <div className="overflow-x-auto"><table className="w-full text-sm text-left">
+            <thead><tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-bold text-slate-500">
+              <th className="py-2.5 px-6">Category</th>
+              <th className="py-2.5 px-6 text-right">Per term</th>
+              <th className="py-2.5 px-6 text-center">Terms</th>
+              <th className="py-2.5 px-6 text-right">Total</th>
+            </tr></thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {bandItems.map((it) => (
+                <tr key={it.id}>
+                  <td className="py-2.5 px-6 text-slate-700 dark:text-slate-200">{it.category}{!it.mandatory && <span className="ml-2 text-[10px] text-slate-400">(optional)</span>}</td>
+                  <td className="py-2.5 px-6 text-right text-slate-700 dark:text-slate-200">{inr(it.amount)}</td>
+                  <td className="py-2.5 px-6 text-center text-slate-400">&times; {it.installments}</td>
+                  <td className="py-2.5 px-6 text-right font-semibold text-slate-800 dark:text-slate-100">{inr(it.amount * it.installments)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table></div>
+          {optionalItems.length > 0 && (
+            <div className="px-6 py-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500">
+              Optional add-ons available: {optionalItems.map((i) => i.category).join(", ")}.
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto"><table className="w-full text-left">

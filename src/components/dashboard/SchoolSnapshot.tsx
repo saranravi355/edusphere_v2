@@ -1,4 +1,4 @@
-import { Users, Clock, ShieldAlert, GraduationCap, DollarSign, MessageSquare, Plane, type LucideIcon } from "lucide-react";
+import { Users, Clock, ShieldAlert, GraduationCap, IndianRupee, MessageSquare, Plane, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
@@ -62,7 +62,7 @@ export default async function SchoolSnapshot() {
         { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/users" },
         { label: "Daily Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
         { label: "Active Incidents", value: activeIncidents.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
-        { label: "Revenue MTD", value: formattedRevenue, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-900/30", href: "/admin/finance" },
+        { label: "Revenue MTD", value: formattedRevenue, icon: IndianRupee, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-900/30", href: "/admin/finance" },
       ];
     }
   }
@@ -123,7 +123,7 @@ export default async function SchoolSnapshot() {
 
     metrics = [
       { label: "Children Attending", value: `${presentCount}/${children.length}`, icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/parent/attendance" },
-      { label: "Upcoming Fees", value: `₹${upcomingFees.toLocaleString()}`, icon: DollarSign, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/parent/fees" },
+      { label: "Upcoming Fees", value: `₹${upcomingFees.toLocaleString()}`, icon: IndianRupee, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/parent/fees" },
       { label: "New Messages", value: unreadMessages.toString(), icon: MessageSquare, color: "text-indigo-500", bg: "bg-indigo-100 dark:bg-indigo-900/30", href: "/parent/messages" },
     ];
   }
@@ -148,7 +148,7 @@ export default async function SchoolSnapshot() {
     metrics = [
       { label: "Today's Classes", value: todaysClasses.toString(), icon: Clock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/student/timetable" },
       { label: "Homework Due", value: homeworkDue.toString(), icon: GraduationCap, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/student/homework" },
-      { label: "Wallet Balance", value: `₹${balance}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/student/wallet" },
+      { label: "Wallet Balance", value: `₹${balance}`, icon: IndianRupee, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/student/wallet" },
     ];
   }
 

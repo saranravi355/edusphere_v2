@@ -1,7 +1,7 @@
 "use client";
 
 import PageHeader from "@/components/ui/PageHeader";
-import { DollarSign, FileDown, CheckCircle2, AlertCircle, PlayCircle, Plane } from "lucide-react";
+import { IndianRupee, FileDown, CheckCircle2, AlertCircle, PlayCircle, Plane } from "lucide-react";
 import { useState } from "react";
 
 export default function AutomatedPayroll() {
@@ -75,7 +75,7 @@ export default function AutomatedPayroll() {
         <div className="lg:col-span-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
           <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex justify-between items-center">
             <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <DollarSign size={18} className="text-slate-500" />
+              <IndianRupee size={18} className="text-slate-500" />
               Salary Ledger (Jun 2026)
             </h3>
             {complete && (
@@ -132,7 +132,7 @@ export default function AutomatedPayroll() {
               </table>
             ) : (
               <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-slate-400">
-                <DollarSign size={64} className="mb-4 opacity-20" />
+                <IndianRupee size={64} className="mb-4 opacity-20" />
                 <p className="font-medium text-slate-600 dark:text-slate-300">Ledger Empty</p>
                 <p className="text-sm max-w-xs text-center mt-2">Run the Payroll Batch to generate the monthly salary ledger.</p>
               </div>
