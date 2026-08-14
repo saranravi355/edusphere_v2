@@ -1,88 +1,85 @@
-"use client";
-
-import { useState } from "react";
+import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
-import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 
-const mockTransactions = [
-  { id: 1, label: "Canteen Lunch", amount: -12.50, date: "2026-06-28", type: "debit" },
-  { id: 2, label: "Top Up via Card", amount: 50.00, date: "2026-06-25", type: "credit" },
-  { id: 3, label: "Library Fine", amount: -2.00, date: "2026-06-20", type: "debit" },
-  { id: 4, label: "Canteen Snacks", amount: -5.00, date: "2026-06-19", type: "debit" },
-  { id: 5, label: "Top Up via UPI", amount: 30.00, date: "2026-06-10", type: "credit" },
-];
+export const dynamic = "force-dynamic";
+const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
-function Modal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm p-6 relative shadow-2xl">
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-          <X size={20} />
-        </button>
-        <h3 className="text-xl font-bold mb-4 dark:text-white">Top Up Wallet</h3>
-        <div className="space-y-4">
-          <input type="number" placeholder="Amount (₹)" className="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-3 dark:bg-slate-800 dark:text-white outline-none focus:border-blue-500" />
-          <button onClick={onClose} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors">
-            Confirm Top Up
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+async function topUp(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.user.role !== "STUDENT") return;
+  const amount = parseFloat(String(formData.get("amount") || ""));
+  if (isNaN(amount) || amount <= 0) return;
+  const student = await prisma.student.findUnique({ where: { userId: session.user.id } });
+  if (!student) return;
+  await prisma.walletTransaction.create({
+    data: { studentId: student.id, type: "TOP_UP", amount, description: "Parent Top-up", date: new Date() },
+  });
+  revalidatePath("/student/wallet");
 }
 
-export default function StudentWalletPage() {
-  const [showModal, setShowModal] = useState(false);
-  const balance = 150.50; // Mock starting balance
+export default async function StudentWalletPage() {
+  const session = await getSession();
+  if (!session || session.user.role !== "STUDENT") redirect("/");
+
+  const student = await prisma.student.findUnique({ where: { userId: session.user.id } });
+  const txns = student
+    ? await prisma.walletTransaction.findMany({ where: { studentId: student.id }, orderBy: { date: "desc" }, take: 30 })
+    : [];
+  // Balance across all transactions (not just the 30 most recent shown below).
+  const allForBalance = student ? await prisma.walletTransaction.findMany({ where: { studentId: student.id } }) : [];
+  const trueBalance = allForBalance.reduce((b, t) => (t.type === "TOP_UP" ? b + t.amount : b - t.amount), 0);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12">
-      <PageHeader
-        title="My Wallet"
-        description="Manage your canteen and campus spending balance."
-      />
+      <PageHeader title="My Wallet" description="Your canteen and campus spending balance." />
 
-      <div className="bg-primary rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <Wallet size={150} />
-        </div>
+      <div className="bg-primary rounded-lg p-8 text-white shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10"><Wallet size={150} /></div>
         <div className="relative z-10">
-          <p className="text-blue-100 text-sm font-medium uppercase tracking-wider mb-2">Available Balance</p>
-          <h2 className="text-4xl font-black mb-6">${balance.toFixed(2)}</h2>
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 font-bold rounded-xl shadow-lg hover:bg-blue-50 transition-colors"
-          >
-            <Plus size={16} /> Top Up Wallet
-          </button>
+          <p className="text-white/80 text-sm font-medium uppercase tracking-wider mb-2">Available Balance</p>
+          <h2 className="text-4xl font-bold mb-6">{inr(trueBalance)}</h2>
+          <form action={topUp} className="flex items-center gap-2">
+            <input name="amount" type="number" min="1" step="1" placeholder="Amount (₹)"
+              className="px-4 py-2.5 rounded-lg text-slate-900 text-sm w-40 outline-none" />
+            <button type="submit" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary font-bold rounded-lg shadow hover:bg-slate-50 transition-colors text-sm">
+              <Plus size={16} /> Top Up
+            </button>
+          </form>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h3 className="font-bold text-slate-800 dark:text-slate-100">Recent Transactions</h3>
+          <h3 className="font-heading text-base text-slate-800 dark:text-slate-100">Recent Transactions</h3>
         </div>
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {mockTransactions.map((tx) => (
-            <div key={tx.id} className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
-                  {tx.type === 'credit' ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}
+          {txns.length === 0 && <p className="px-6 py-8 text-center text-sm text-slate-400">No transactions yet.</p>}
+          {txns.map((tx) => {
+            const credit = tx.type === "TOP_UP";
+            return (
+              <div key={tx.id} className="flex items-center justify-between px-6 py-3.5">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${credit ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"}`}>
+                    {credit ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tx.description || (credit ? "Top-up" : "Purchase")}</p>
+                    <p className="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tx.label}</p>
-                  <p className="text-xs text-slate-500">{tx.date}</p>
-                </div>
+                <span className={`font-semibold text-sm ${credit ? "text-green-600 dark:text-green-400" : "text-slate-800 dark:text-slate-200"}`}>
+                  {credit ? "+" : "−"}{inr(tx.amount)}
+                </span>
               </div>
-              <span className={`font-bold text-sm ${tx.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-200'}`}>
-                {tx.type === 'credit' ? '+' : ''}{tx.amount.toFixed(2)}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
-
-      {showModal && <Modal onClose={() => setShowModal(false)} />}
     </div>
   );
 }

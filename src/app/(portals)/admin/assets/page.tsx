@@ -1,95 +1,83 @@
 import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
-import Modal from "@/components/ui/Modal";
-import { Monitor, Laptop, Plus, CheckCircle2 } from "lucide-react";
+import ExportButton from "@/components/data/ExportButton";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { Monitor, CheckCircle2, Wrench, PackageOpen } from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+const STATUS_STYLE: Record<string, string> = {
+  AVAILABLE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  CHECKED_OUT: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  MAINTENANCE: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+};
 
 export default async function AssetsPage() {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) redirect("/");
+
+  const assets = await prisma.asset.findMany({ orderBy: [{ category: "asc" }, { serialNo: "asc" }] });
+  const total = assets.length;
+  const available = assets.filter((a) => a.status === "AVAILABLE").length;
+  const checkedOut = assets.filter((a) => a.status === "CHECKED_OUT").length;
+  const maintenance = assets.filter((a) => a.status === "MAINTENANCE").length;
+
+  const exportRows = assets.map((a) => ({ Name: a.name, Category: a.category, SerialNo: a.serialNo, Status: a.status.replace("_", " ") }));
+
+  const stats = [
+    { label: "Total assets", value: total, icon: Monitor, color: "text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300" },
+    { label: "Available", value: available, icon: CheckCircle2, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400" },
+    { label: "Checked out", value: checkedOut, icon: PackageOpen, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400" },
+    { label: "In maintenance", value: maintenance, icon: Wrench, color: "text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400" },
+  ];
+
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <PageHeader 
-        title="IT Asset Management" 
-        description="Track school devices, laptops, and lab equipment checkouts."
+    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
+      <PageHeader
+        title="IT & Asset Management"
+        description="Track school devices, lab equipment, sports gear and instruments."
+        action={<ExportButton rows={exportRows} filename="asset-inventory" label="Export inventory" />}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/10 border-slate-100 dark:border-slate-800">
-          <Monitor className="text-slate-600 dark:text-slate-400 mb-2" size={32} />
-          <h3 className="text-2xl font-bold text-navy-900 dark:text-white">450</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Total Assets</p>
-        </div>
-        <div className="glass-card p-6 flex flex-col items-center justify-center bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30">
-          <CheckCircle2 className="text-green-600 dark:text-green-400 mb-2" size={32} />
-          <h3 className="text-2xl font-bold text-navy-900 dark:text-white">412</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Available</p>
-        </div>
-        <div className="glass-card flex items-center justify-center bg-primary-600 border-none shadow-lg shadow-primary-600/30">
-          <Modal title="Add New Asset" buttonText="Add Asset" buttonIcon={<Plus size={24} />}>
-            <div className="space-y-4 text-left">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Device Name</label>
-                <input type="text" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" placeholder="e.g. MacBook Air M2" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
-                  <select className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                    <option>Laptop</option>
-                    <option>Tablet / iPad</option>
-                    <option>Lab Equipment</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Serial Number</label>
-                  <input type="text" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" placeholder="e.g. C02X..." />
-                </div>
-              </div>
-            </div>
-          </Modal>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-card border border-border rounded-lg p-5 shadow-sm">
+            <div className={`w-10 h-10 rounded-md flex items-center justify-center mb-3 ${s.color}`}><s.icon size={20} /></div>
+            <p className="text-2xl font-semibold text-foreground">{s.value}</p>
+            <p className="text-xs text-muted-foreground">{s.label}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="glass-card">
-        <div className="p-6 border-b border-ui-border dark:border-slate-800 flex justify-between items-center bg-white/50 dark:bg-slate-900/50">
-          <h2 className="text-lg font-bold text-navy-900 dark:text-slate-100">Active Checkouts</h2>
-          <Modal title="Checkout Asset" buttonText="New Checkout" buttonIcon={<Laptop size={16} />}>
-             <div className="space-y-4 text-left">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Asset Serial Number</label>
-                <input type="text" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" placeholder="Scan barcode or type serial..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Assign To (User ID/Email)</label>
-                <input type="text" className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" placeholder="Search user..." />
-              </div>
-            </div>
-          </Modal>
-        </div>
-        
-        <div className="p-0">
-          <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-ui-border dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
-                <th className="p-4 font-medium">Device Name</th>
-                <th className="p-4 font-medium">Serial No</th>
-                <th className="p-4 font-medium">Assigned To</th>
-                <th className="p-4 font-medium">Checkout Date</th>
-                <th className="p-4 font-medium">Status</th>
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-border"><h3 className="font-heading text-base text-foreground">Asset inventory</h3></div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-muted-foreground">
+              <tr>
+                <th className="text-left font-medium px-5 py-2.5">Asset</th>
+                <th className="text-left font-medium px-5 py-2.5">Category</th>
+                <th className="text-left font-medium px-5 py-2.5">Serial no.</th>
+                <th className="text-left font-medium px-5 py-2.5">Status</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
-              <tr className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
-                <td className="p-4 font-medium text-slate-800 dark:text-slate-200">MacBook Air M2</td>
-                <td className="p-4 text-slate-600 dark:text-slate-400 font-mono text-xs">C02X87B9</td>
-                <td className="p-4 text-slate-600 dark:text-slate-400">Mr. Suresh Pillai (Teacher)</td>
-                <td className="p-4 text-slate-600 dark:text-slate-400">Sep 1, 2026</td>
-                <td className="p-4">
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full text-xs font-semibold">
-                    Checked Out
-                  </span>
-                </td>
-              </tr>
+            <tbody>
+              {assets.map((a) => (
+                <tr key={a.id} className="border-t border-border">
+                  <td className="px-5 py-2.5 text-foreground">{a.name}</td>
+                  <td className="px-5 py-2.5 text-muted-foreground">{a.category.replace("_", " ")}</td>
+                  <td className="px-5 py-2.5 text-muted-foreground font-mono text-xs">{a.serialNo}</td>
+                  <td className="px-5 py-2.5">
+                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_STYLE[a.status] || "bg-slate-100 text-slate-600"}`}>
+                      {a.status.replace("_", " ")}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {assets.length === 0 && <tr><td colSpan={4} className="px-5 py-8 text-center text-muted-foreground">No assets recorded.</td></tr>}
             </tbody>
-          </table></div>
+          </table>
         </div>
       </div>
     </div>
