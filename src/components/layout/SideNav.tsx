@@ -104,6 +104,7 @@ const SECTIONS: Record<string, NavSection[]> = {
         { name: "Attendance", href: "/parent/attendance", icon: CheckCircle2 },
         { name: "Gradebook", href: "/parent/grades", icon: BookOpen },
         { name: "Discipline", href: "/parent/discipline", icon: ShieldAlert },
+        { name: "Canteen", href: "/parent/canteen", icon: UtensilsCrossed },
       ],
     },
     {

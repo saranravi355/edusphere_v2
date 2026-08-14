@@ -78,6 +78,8 @@ model Student {
   medicalNotes     String?
   bloodGroup       String?
   learningNeeds    String?
+  allergies        String?
+  flaggedFoods     String?
   isActive         Boolean      @default(true)
   userId           String?      @unique
   user             User?        @relation("StudentUser", fields: [userId], references: [id])
@@ -672,4 +674,15 @@ model FeeItem {
   mandatory    Boolean  @default(true)
   notes        String?
   createdAt    DateTime @default(now())
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  dayOfWeek   Int      // 1 = Monday ... 5 = Friday
+  mealType    String   // BREAKFAST, LUNCH, SNACK
+  name        String
+  description String?
+  allergens   String?  // comma-separated: Nuts, Dairy, Gluten, Egg, ...
+  isVeg       Boolean  @default(true)
+  createdAt   DateTime @default(now())
 }
