@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { encrypt } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { revalidatePath } from "next/cache";
 
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;
@@ -48,4 +50,14 @@ export async function logout() {
   const cookieStore = await cookies();
   cookieStore.set("session", "", { expires: new Date(0) });
   redirect("/");
+}
+
+export async function markAllNotificationsRead() {
+  const session = await getSession();
+  if (!session) return;
+  await prisma.notification.updateMany({
+    where: { userId: session.user.id, isRead: false },
+    data: { isRead: true },
+  });
+  revalidatePath("/", "layout");
 }

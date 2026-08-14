@@ -20,10 +20,28 @@ async function saveAllergies(formData: FormData) {
   const selected = formData.getAll("allergen").map((a) => String(a).trim()).filter(Boolean);
   const custom = String(formData.get("customAllergens") || "").split(",").map((a) => a.trim()).filter(Boolean);
   const all = Array.from(new Set([...selected, ...custom]));
+  const newAllergies = all.join(", ") || null;
   // Only allow updating the parent's own child.
-  const student = await prisma.student.findFirst({ where: { id: studentId, parent: { userId: session.user.id } } });
+  const student = await prisma.student.findFirst({
+    where: { id: studentId, parent: { userId: session.user.id } },
+    include: { classroom: { include: { teacher: { include: { user: true } } } } },
+  });
   if (!student) return;
-  await prisma.student.update({ where: { id: studentId }, data: { allergies: all.join(", ") || null } });
+  await prisma.student.update({ where: { id: studentId }, data: { allergies: newAllergies } });
+  // Notify the class teacher when allergies change.
+  const teacherUserId = student.classroom?.teacher?.userId;
+  if (teacherUserId && (student.allergies || "") !== (newAllergies || "")) {
+    await prisma.notification.create({
+      data: {
+        userId: teacherUserId,
+        title: "Allergy update",
+        message: newAllergies
+          ? `${student.name}'s family updated allergies: ${newAllergies}. See Canteen — Allergies.`
+          : `${student.name}'s family cleared their recorded allergies.`,
+        type: "ALERT",
+      },
+    });
+  }
   revalidatePath("/parent/canteen");
 }
 
@@ -33,12 +51,31 @@ async function toggleFlag(formData: FormData) {
   if (!session || session.user.role !== "PARENT") return;
   const studentId = String(formData.get("studentId") || "");
   const menuItemId = String(formData.get("menuItemId") || "");
-  const student = await prisma.student.findFirst({ where: { id: studentId, parent: { userId: session.user.id } } });
+  const student = await prisma.student.findFirst({
+    where: { id: studentId, parent: { userId: session.user.id } },
+    include: { classroom: { include: { teacher: { include: { user: true } } } } },
+  });
   if (!student || !menuItemId) return;
   const set = new Set((student.flaggedFoods || "").split(",").map((s) => s.trim()).filter(Boolean));
-  if (set.has(menuItemId)) set.delete(menuItemId);
-  else set.add(menuItemId);
+  const adding = !set.has(menuItemId);
+  if (adding) set.add(menuItemId);
+  else set.delete(menuItemId);
   await prisma.student.update({ where: { id: studentId }, data: { flaggedFoods: Array.from(set).join(",") || null } });
+  // Notify the class teacher when a new food is flagged.
+  const teacherUserId = student.classroom?.teacher?.userId;
+  if (adding && teacherUserId) {
+    const item = await prisma.menuItem.findUnique({ where: { id: menuItemId } });
+    if (item) {
+      await prisma.notification.create({
+        data: {
+          userId: teacherUserId,
+          title: "Food flagged by parent",
+          message: `${student.name}'s family flagged "${item.name}" — please do not serve.`,
+          type: "ALERT",
+        },
+      });
+    }
+  }
   revalidatePath("/parent/canteen");
 }
 
