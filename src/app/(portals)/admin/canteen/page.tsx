@@ -43,6 +43,13 @@ export default async function CanteenPage() {
   if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) redirect("/");
 
   const items = await prisma.menuItem.findMany({ orderBy: [{ dayOfWeek: "asc" }, { mealType: "asc" }] });
+  const flagged = await prisma.student.findMany({
+    where: { OR: [{ allergies: { not: null } }, { flaggedFoods: { not: null } }] },
+    include: { classroom: true },
+    orderBy: { name: "asc" },
+  });
+  const menuMap = new Map(items.map((m) => [m.id, m.name]));
+  const flaggedNames = (ff: string | null) => (ff || "").split(",").map((x) => x.trim()).filter(Boolean).map((id) => menuMap.get(id)).filter(Boolean) as string[];
   const exportRows = items.map((it) => ({
     Day: DAYS[it.dayOfWeek] || it.dayOfWeek, Meal: MEAL_LABEL[it.mealType] || it.mealType,
     Name: it.name, Type: it.isVeg ? "Veg" : "Non-Veg", Allergens: it.allergens || "None", Description: it.description || "",
@@ -84,6 +91,38 @@ export default async function CanteenPage() {
           <button type="submit" className="px-4 py-2 rounded-md bg-primary hover:opacity-90 text-primary-foreground text-sm font-medium">Add dish</button>
         </div>
       </form>
+
+      {flagged.length > 0 && (
+        <div className="bg-card border border-red-200 dark:border-red-900/50 rounded-lg shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+            <AlertTriangle size={16} className="text-red-600" />
+            <h3 className="font-heading text-base text-foreground">Allergy &amp; flag register</h3>
+            <span className="text-xs text-muted-foreground">{flagged.length} student{flagged.length === 1 ? "" : "s"} &middot; share with kitchen staff</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted text-muted-foreground">
+                <tr>
+                  <th className="text-left font-medium px-5 py-2.5">Student</th>
+                  <th className="text-left font-medium px-5 py-2.5">Class</th>
+                  <th className="text-left font-medium px-5 py-2.5">Allergic to</th>
+                  <th className="text-left font-medium px-5 py-2.5">Parent-flagged dishes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {flagged.map((s) => (
+                  <tr key={s.id} className="border-t border-border">
+                    <td className="px-5 py-2.5 text-foreground">{s.name}</td>
+                    <td className="px-5 py-2.5 text-muted-foreground">{s.classroom?.name ?? "\u2014"}</td>
+                    <td className="px-5 py-2.5 text-red-600 dark:text-red-400">{s.allergies || "\u2014"}</td>
+                    <td className="px-5 py-2.5 text-amber-700 dark:text-amber-400">{flaggedNames(s.flaggedFoods).join(", ") || "\u2014"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {[1, 2, 3, 4, 5].map((day) => {

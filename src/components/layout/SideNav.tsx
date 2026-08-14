@@ -174,6 +174,7 @@ const TEACHER_SECTIONS: NavSection[] = [
       { name: "IEP", href: "/teacher/learning-needs", icon: HeartHandshake },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldAlert },
       { name: "Messages", href: "/teacher/messages", icon: MessageSquare },
+      { name: "Allergies", href: "/teacher/allergies", icon: UtensilsCrossed },
     ],
   },
   {
