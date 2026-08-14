@@ -46,6 +46,50 @@ async function deleteFeeItem(formData: FormData) {
   revalidatePath("/admin/fees");
 }
 
+async function generateInvoices(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) return;
+  const scope = String(formData.get("scope") || "ALL");
+  const academicYear = String(formData.get("academicYear") || "2025-26").trim();
+
+  const termDueDates = [new Date(`${academicYear.slice(0, 4)}-06-15`), new Date(`${academicYear.slice(0, 4)}-09-15`), new Date(`${academicYear.slice(0, 4)}-12-15`)];
+  const bandFor = (g: number) => (g <= 5 ? "1-5" : g <= 8 ? "6-8" : g === 9 ? "9" : g >= 10 ? "10" : "General");
+
+  const feeItems = await prisma.feeItem.findMany({ where: { academicYear, mandatory: true } });
+  const itemsByBand: Record<string, typeof feeItems> = {};
+  for (const it of feeItems) (itemsByBand[it.gradeBand] ??= []).push(it);
+
+  const students = await prisma.student.findMany({ where: { isActive: true }, include: { classroom: true } });
+  const existing = await prisma.feeInvoice.findMany({ select: { studentId: true, title: true } });
+  const seen = new Set(existing.map((e) => `${e.studentId}|${e.title}`));
+
+  const toCreate: { studentId: string; title: string; amount: number; dueDate: Date; status: string }[] = [];
+  for (const st of students) {
+    const band = bandFor(st.classroom?.gradeLevel ?? 0);
+    if (scope !== "ALL" && scope !== band) continue;
+    const items = itemsByBand[band] || [];
+    if (items.length === 0) continue;
+    const terms = Math.max(1, ...items.filter((i) => i.installments > 1).map((i) => i.installments));
+    for (let t = 1; t <= terms; t++) {
+      let amount = 0;
+      for (const it of items) {
+        if (it.installments > 1) amount += it.amount;
+        else if (t === 1) amount += it.amount;
+      }
+      if (amount <= 0) continue;
+      const title = `Term ${t} \u00b7 Tuition & Fees (AY ${academicYear})`;
+      if (seen.has(`${st.id}|${title}`)) continue;
+      seen.add(`${st.id}|${title}`);
+      toCreate.push({ studentId: st.id, title, amount, dueDate: termDueDates[t - 1] ?? termDueDates[termDueDates.length - 1], status: "PENDING" });
+    }
+  }
+  if (toCreate.length) await prisma.feeInvoice.createMany({ data: toCreate });
+  revalidatePath("/admin/fees");
+  revalidatePath("/admin/finance/invoices");
+  revalidatePath("/parent/fees");
+}
+
 export default async function FeesPage() {
   const session = await getSession();
   if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) redirect("/");
@@ -110,6 +154,28 @@ export default async function FeesPage() {
             <input type="checkbox" name="mandatory" defaultChecked className="accent-primary" /> Mandatory fee
           </label>
           <button type="submit" className="px-4 py-2 rounded-md bg-primary hover:opacity-90 text-primary-foreground text-sm font-medium">Add fee item</button>
+        </div>
+      </form>
+
+      {/* Generate invoices from the fee structure */}
+      <form action={generateInvoices} className="bg-card border border-border rounded-lg p-5 shadow-sm">
+        <h3 className="font-heading text-base text-foreground mb-1">Generate term invoices</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Creates pending term invoices for active students from the <span className="font-medium">mandatory</span> fees above (recurring fees per term; one-time and annual fees billed in Term&nbsp;1). Safe to run repeatedly &mdash; existing term invoices are skipped.
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground block mb-1">Grade band</label>
+            <select name="scope" className="p-2 border border-border rounded-md bg-card text-foreground text-sm outline-none focus:border-primary" defaultValue="ALL">
+              <option value="ALL">All grade bands</option>
+              {BANDS.filter((b) => b !== "General").map((b) => <option key={b} value={b}>{BAND_LABEL[b]}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground block mb-1">Academic year</label>
+            <input name="academicYear" defaultValue={year} className="p-2 border border-border rounded-md bg-card text-foreground text-sm outline-none focus:border-primary" />
+          </div>
+          <button type="submit" className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium">Generate invoices</button>
         </div>
       </form>
 
