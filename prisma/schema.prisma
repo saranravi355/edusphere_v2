@@ -106,6 +106,7 @@ model Student {
   clinicVisits     ClinicVisit[]
   quizAttempts     QuizAttempt[]
   hostelRecord     HostelStudent?
+  hostelLeaves     HostelLeave[]
   alumniRecord     Alumni?
   iepPlans         IEPPlan[]
   ibSubjects       IBSubjectRecord[]
@@ -449,6 +450,9 @@ model HostelRoom {
   id          String   @id @default(cuid())
   roomNumber  String   @unique
   block       String
+  gender      String   @default("BOYS") // BOYS, GIRLS
+  floor       Int?
+  warden      String?
   capacity    Int
   type        String   // AC, NON_AC
   occupants   HostelStudent[]
@@ -685,4 +689,17 @@ model MenuItem {
   allergens   String?  // comma-separated: Nuts, Dairy, Gluten, Egg, ...
   isVeg       Boolean  @default(true)
   createdAt   DateTime @default(now())
+}
+
+model HostelLeave {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fromDate     DateTime
+  toDate       DateTime
+  reason       String
+  destination  String?
+  contactPhone String?
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, RETURNED
+  createdAt    DateTime @default(now())
 }
