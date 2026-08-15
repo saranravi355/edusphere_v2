@@ -35,6 +35,11 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  /* Aliases used across pages (previously undefined -> silently fell back) */
+  --color-navy-900: #0F2747;
+  --color-ui-border: var(--border);
+  --color-ui-bg: var(--background);
+  --color-primary-600: var(--primary);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
