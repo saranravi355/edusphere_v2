@@ -61,3 +61,18 @@ edusphere360_changelog.pdf
 edusphere360_feature_overview.pdf
 edusphere360_feature_overview_v2.pdf
 ~$*
+
+# stray root SQLite (the real DB is prisma/dev.db) + one-off local dev utilities
+/dev.db
+fix-prisma.js
+seed-risk.js
+trace.js
+*.ps1
+
+# generated deliverable docs (kept in the working folder, not the repo)
+EduSphere360_Presentation_Script.pdf
+EduSphere360_Changelog.docx
+EduSphere360_AI_RAG_Prep.docx
+EduSphere360_Technical_Documentation.pdf
+EduSphere360_Engineering_Reference.pdf
+EduSphere360_PRD_Coverage_Report.docx
