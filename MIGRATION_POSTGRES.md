@@ -30,41 +30,58 @@ whole mechanism is gone.
 
 ---
 
-## Step 1 — Create the Supabase project
+## The target project already exists
 
-1. Go to <https://supabase.com/dashboard> and create a new project.
-2. **Region: `ap-south-1` (Mumbai)** — lowest latency from Bengaluru.
-3. Set a strong database password and save it in your password manager. You cannot
-   read it back later, only reset it.
+You already have a Supabase project named **`edusphere`** in the **Rapdfly** org:
 
-## Step 2 — Configure `.env`
+| | |
+|---|---|
+| Project ref | `mypgubeimwwsjcuzzujm` |
+| Region | AWS `ap-northeast-1` (Tokyo) |
+| Pooler host | `aws-0-ap-northeast-1.pooler.supabase.com` |
+| `public` schema | **empty — 0 tables** |
+| Plan | Free (26 MB of 500 MB used, all Supabase internal schemas) |
 
-In the Supabase dashboard: **Project Settings → Database → Connection string**.
-You need two different URLs. Put them in `.env` in the repo root (`.env` is
-gitignored — never commit it):
+Because `public` is empty there is nothing to work around: the migration goes
+straight in, no separate schema needed. Tokyo rather than Mumbai adds maybe
+40-60 ms of latency from Bengaluru, which is not worth recreating the project over
+and is irrelevant once the database moves on-premises.
+
+## Step 1 — Just run the script
+
+Double-click **`RUN_POSTGRES_MIGRATION.bat`** in the repo root. It does the whole
+cutover: checks the branch, writes `.env`, installs dependencies, creates the
+schema, loads the data and type-checks.
+
+The only thing it asks for is the **database password**, at a masked prompt.
+
+## Step 2 — About that password
+
+Supabase does not let you read the database password back after project creation
+("The database password isn't viewable after creation"). So either you still have
+it, or you reset it:
+
+**Dashboard → edusphere → Database → Settings → Reset database password**
+
+Resetting breaks any existing connections using the old password — with `public`
+empty, nothing is currently using it.
+
+The password is read by `scripts/setup-env.ps1` from a masked prompt, percent-encoded,
+and written only to `.env` (which is gitignored). It is never echoed, never passed as
+a command-line argument, and never leaves your machine. Your previous `.env` is backed
+up to `.env.sqlite.bak`.
+
+## Step 3 — What the script writes
 
 ```ini
-# Runtime queries: transaction pooler, port 6543
-DATABASE_URL="postgresql://postgres.<PROJECT-REF>:<PASSWORD>@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
-
-# Migrations and the data port: direct session, port 5432
-DIRECT_URL="postgresql://postgres.<PROJECT-REF>:<PASSWORD>@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+DATABASE_URL="postgresql://postgres.mypgubeimwwsjcuzzujm:<PW>@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres.mypgubeimwwsjcuzzujm:<PW>@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres"
 ```
 
-Both are required. Prisma Migrate cannot run through pgbouncer, which is why
-`schema.prisma` now declares `directUrl`.
-
-> If your password contains `@`, `:`, `/`, `?`, `#` or `&`, URL-encode it
-> (`@` → `%40`, `#` → `%23`). A raw `@` silently breaks the host parsing.
-
-## Step 3 — Install and generate
-
-```bash
-npm install
-```
-
-This pulls in `pg` (used by the port script) and re-runs `prisma generate` against
-the PostgreSQL provider.
+Two URLs, deliberately. Port 6543 is the transaction-mode pooler, used for runtime
+queries so serverless functions don't exhaust connections. Port 5432 is the
+session-mode pooler; Prisma Migrate and the data port script cannot run through
+pgbouncer's transaction mode, which is why `schema.prisma` declares `directUrl`.
 
 ## Step 4 — Create the schema
 

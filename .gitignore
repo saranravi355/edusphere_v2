@@ -70,6 +70,8 @@ fix-prisma.js
 seed-risk.js
 trace.js
 *.ps1
+# ...except project tooling under scripts/
+!scripts/*.ps1
 
 # generated deliverable docs (kept in the working folder, not the repo)
 EduSphere360_Presentation_Script.pdf

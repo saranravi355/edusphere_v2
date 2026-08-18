@@ -4,6 +4,7 @@ cd /d "%~dp0"
 
 echo ============================================================
 echo   EduSphere 360 - SQLite to PostgreSQL cutover
+echo   Target: Supabase project "edusphere" (org Rapdfly)
 echo ============================================================
 echo.
 
@@ -11,43 +12,51 @@ REM ---------------------------------------------------------------
 REM 0. Make sure we are on the migration branch
 REM ---------------------------------------------------------------
 for /f "delims=" %%b in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set BRANCH=%%b
-echo Current git branch: !BRANCH!
 if /i not "!BRANCH!"=="feat/postgres-migration" (
-    echo.
-    echo   WARNING: expected branch feat/postgres-migration
+    echo   WARNING: you are on branch "!BRANCH!"
     echo   Run:  git checkout feat/postgres-migration
     echo.
     pause
     exit /b 1
 )
+echo [1/6] On branch feat/postgres-migration.  OK
+echo.
 
 REM ---------------------------------------------------------------
-REM 1. Check .env points at Postgres
+REM 1. Make sure .env points at Postgres; offer to write it if not
 REM ---------------------------------------------------------------
-if not exist ".env" (
-    echo   ERROR: no .env file found.
-    goto :needenv
+set ENVOK=1
+if not exist ".env" set ENVOK=0
+if "!ENVOK!"=="1" (
+    findstr /c:"postgresql://" .env >nul 2>&1 || set ENVOK=0
 )
-findstr /c:"postgresql://" .env >nul 2>&1
-if errorlevel 1 goto :needenv
-findstr /c:"DIRECT_URL" .env >nul 2>&1
-if errorlevel 1 (
-    echo   ERROR: .env has no DIRECT_URL. Prisma Migrate cannot run through
-    echo          the pgbouncer pooler, so both URLs are required.
-    goto :needenv
+if "!ENVOK!"=="1" (
+    findstr /c:"DIRECT_URL" .env >nul 2>&1 || set ENVOK=0
 )
-findstr /c:"<PROJECT-REF>" .env >nul 2>&1
-if not errorlevel 1 (
-    echo   ERROR: .env still contains the placeholder ^<PROJECT-REF^>.
-    goto :needenv
+if "!ENVOK!"=="1" (
+    findstr /c:"YOUR-PASSWORD" .env >nul 2>&1 && set ENVOK=0
 )
-echo [1/5] .env looks like a PostgreSQL configuration.  OK
+
+if "!ENVOK!"=="0" (
+    echo [2/6] .env is not configured for PostgreSQL yet.
+    echo       Launching the setup prompt ...
+    echo.
+    powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\setup-env.ps1"
+    if errorlevel 1 (
+        echo.
+        echo   .env was not written. Nothing else has changed.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [2/6] .env already points at PostgreSQL.  OK
+)
 echo.
 
 REM ---------------------------------------------------------------
 REM 2. Dependencies (adds pg, regenerates the Prisma client)
 REM ---------------------------------------------------------------
-echo [2/5] Installing dependencies ...
+echo [3/6] Installing dependencies ...
 call npm install
 if errorlevel 1 goto :failed
 echo.
@@ -55,7 +64,7 @@ echo.
 REM ---------------------------------------------------------------
 REM 3. Create the schema
 REM ---------------------------------------------------------------
-echo [3/5] Creating the schema in PostgreSQL ...
+echo [4/6] Creating the schema in PostgreSQL ...
 if exist "prisma\migrations" (
     echo       existing migrations found - applying them
     call npx prisma migrate deploy
@@ -69,7 +78,7 @@ echo.
 REM ---------------------------------------------------------------
 REM 4. Load the data
 REM ---------------------------------------------------------------
-echo [4/5] Loading 10,660 rows from prisma\sqlite-export.json ...
+echo [5/6] Loading 10,660 rows from prisma\sqlite-export.json ...
 if not exist "prisma\sqlite-export.json" (
     echo       export file missing - regenerating from prisma\dev.db
     python scripts\export-sqlite-data.py
@@ -80,22 +89,22 @@ if errorlevel 1 goto :failed
 echo.
 
 REM ---------------------------------------------------------------
-REM 5. Verify the build still type-checks
+REM 5. Verify the app still type-checks
 REM ---------------------------------------------------------------
-echo [5/5] Type-checking ...
+echo [6/6] Type-checking ...
 call .\node_modules\.bin\tsc --noEmit
 if errorlevel 1 (
     echo       tsc reported problems - see above. The data migration itself
-    echo       succeeded; this is a code issue to fix separately.
+    echo       succeeded; this is a separate code issue.
 ) else (
     echo       clean.
 )
 echo.
 
 echo ============================================================
-echo   DONE. The database is now PostgreSQL.
+echo   DONE. The database is now PostgreSQL on Supabase.
 echo.
-echo   Start the app with:  npm run dev
+echo   Start the app:  npm run dev
 echo   Log in as aarav.p@edusphere.com / password123
 echo.
 echo   Then in Vercel - Settings - Environment Variables, add
@@ -105,32 +114,17 @@ echo.
 pause
 exit /b 0
 
-:needenv
-echo.
-echo ------------------------------------------------------------
-echo   .env is not ready yet.
-echo.
-echo   1. Create a project at https://supabase.com/dashboard
-echo      Region: ap-south-1 (Mumbai)
-echo   2. Project Settings -^> Database -^> Connection string
-echo   3. Put BOTH of these in .env in this folder:
-echo.
-echo   DATABASE_URL="postgresql://postgres.REF:PW@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
-echo   DIRECT_URL="postgresql://postgres.REF:PW@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
-echo.
-echo   See MIGRATION_POSTGRES.md for the full walkthrough.
-echo ------------------------------------------------------------
-echo.
-pause
-exit /b 1
-
 :failed
 echo.
 echo ------------------------------------------------------------
 echo   A step failed - see the error above.
-echo   Nothing is half-migrated: the data load runs in a single
+echo.
+echo   Nothing is half-migrated: the data load runs inside a single
 echo   transaction and rolls back completely on failure.
-echo   Fix the issue and just run this file again.
+echo.
+echo   If it says password authentication failed, reset the database
+echo   password in the Supabase dashboard (Database - Settings -
+echo   Reset database password), then delete .env and run this again.
 echo ------------------------------------------------------------
 echo.
 pause
