@@ -87,5 +87,6 @@ prisma/sqlite-export.json
 # local one-off helpers, not part of the app
 PUSH_TO_GITHUB.bat
 LOAD_DATA.bat
+OPEN_ENV.bat
 migration-verify.log
 data-load.log
