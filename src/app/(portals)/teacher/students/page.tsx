@@ -24,9 +24,11 @@ export default async function TeacherStudentsDirectory({
       classroom: {
         name: currentClassId
       },
+      // `mode: "insensitive"` is required on PostgreSQL: unlike SQLite's LIKE,
+      // Postgres string comparison is case-sensitive by default.
       OR: query ? [
-        { name: { contains: query } },
-        { registrationNo: { contains: query } }
+        { name: { contains: query, mode: "insensitive" as const } },
+        { registrationNo: { contains: query, mode: "insensitive" as const } }
       ] : undefined
     },
     orderBy: { name: 'asc' },

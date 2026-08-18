@@ -9,7 +9,8 @@ Paste this file (or point the assistant to `PROJECT_CONTEXT.md` in the repo) at 
 **EduSphere 360** — AI-powered school management platform for an **IB World School** (Bangalore, India). Built against `EduSphere360_PRD_V2.1.pdf` (in repo root). Originally started in Google Antigravity, continued in Claude Cowork.
 
 - **Repo**: https://github.com/saranravi355/edusphere_v2 (branch `main`)
-- **Stack**: Next.js 16 (App Router, Turbopack) · Prisma 5.22 + SQLite (`prisma/dev.db`, committed to git) · Tailwind · react-i18next · framer-motion · lucide-react
+- **Stack**: Next.js 16 (App Router, Turbopack) · Prisma 5.22 + **PostgreSQL** (Supabase project `edusphere` today, on-premises at the school later) · Tailwind · react-i18next · framer-motion · lucide-react
+- **Database migration**: moved off SQLite on 18 Aug 2026 — see `MIGRATION_POSTGRES.md`. `prisma/dev.db` remains in the repo only as the migration source and is no longer read at runtime.
 - **Deploy**: Vercel (builds `prisma generate && next build`; binaryTargets include `native`, `windows`, `rhel-openssl-3.0.x`)
 - **Curriculum rule (permanent, see AGENTS.md)**: everything is IB — grades 1–7 (never percentages), PYP/MYP/DP programmes, MYP criteria A–D (0–8), HL/SL, TOK/EE/CAS, /45 diploma points, ATL skills, IB learner profile. All demo data must be Indian (names, venues, ₹, +91 phones, Bengaluru addresses).
 
@@ -33,7 +34,7 @@ Paste this file (or point the assistant to `PROJECT_CONTEXT.md` in the repo) at 
 
 **Floating AI assistant**: role-specific persona with 5 quick actions each (all scripted PREVIEW responses).
 
-## 4. Data state (prisma/dev.db, committed)
+## 4. Data state (PostgreSQL, 10,660 rows)
 
 173 students — every one has: classroom (15 sections MYP1A–DP2B), portal login, linked parent (Indian name, +91 phone, Bengaluru address), IB subject records with current+predicted grades, assessment history (1,836 results), attendance (3,140 records). Plus: 15 teachers with PD records + 52 observations across 3 academic years, IEP plans, 60 invoices + payments, messages, notifications, 80 subject resources, 20 club activities, seeded calendar, 2 quizzes for the demo class (1 takeable, 1 graded).
 
@@ -46,7 +47,7 @@ Paste this file (or point the assistant to `PROJECT_CONTEXT.md` in the repo) at 
 ## 5. ⚠️ CRITICAL environment quirks (Claude Cowork sandbox)
 
 1. **Windows Edit-tool staleness**: files edited via the Windows-side Edit/Write tools can appear TRUNCATED in the Linux sandbox mount (git would commit corrupted files!). **Rule: modify existing files from the sandbox side** (python heredoc via `mcp__workspace__bash`); creating NEW files with the Write tool is safe. After any Windows-side edit, verify with `wc -l` / `tail` from bash before committing.
-2. **Prisma engines can't download in the sandbox** (binaries.prisma.sh blocked). To regenerate the client after schema changes, run:
+2. **Network from the Cowork sandbox is proxied and heavily restricted.** Only package registries (npm, pypi, crates, golang) and **git over HTTPS to GitHub** get through. `binaries.prisma.sh` is blocked, and so is the Postgres port on Supabase — the database can only be reached from your own machine, not from the assistant's sandbox. To regenerate the client after schema changes, run:
    ```bash
    cd /sessions/<session>/mnt/edusphere360
    export PRISMA_SCHEMA_ENGINE_BINARY=$PWD/node_modules/@prisma/engines/schema-engine-windows.exe \
@@ -54,8 +55,8 @@ Paste this file (or point the assistant to `PROJECT_CONTEXT.md` in the repo) at 
           PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
    npx prisma generate
    ```
-   `prisma db push` does NOT work in the sandbox — create tables with raw SQL via python sqlite3, matching Prisma DDL conventions (TEXT PK, DATETIME, FK constraints).
-3. **DATES MUST BE EPOCH MILLISECONDS**: when seeding via raw SQL, never insert date strings — Prisma's SQLite driver throws `Inconsistent column data: Conversion failed`. Always insert `int(datetime.timestamp()*1000)`.
+   Schema changes now go through `npx prisma migrate dev` from your own terminal (the sandbox cannot reach the database).
+3. **Dates are real `timestamp(3)` columns now.** The epoch-milliseconds rule was a SQLite constraint and no longer applies — pass `Date` objects through the Prisma client. (The legacy `prisma/dev.db` still stores epoch ms, which is why `scripts/export-sqlite-data.py` converts them.)
 4. **User must restart their dev server** after schema/client changes — `start_dev_server.bat` handles it (regenerates client, clears `.next/dev`, starts dev).
 5. Verification loop that works in the sandbox: `./node_modules/.bin/tsc --noEmit` (filter out `.next/` noise) + `npx eslint src --quiet`. `next build` exceeds the 45s command cap; background processes don't survive between calls.
 6. Stale `.git/index.lock` / `HEAD.lock` files appear when the Windows side holds git — `rm -f .git/*.lock` (file deletion for the folder has been user-approved before; re-request via `allow_cowork_file_delete` if needed).

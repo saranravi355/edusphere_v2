@@ -4,8 +4,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  // Runtime connection. On Supabase use the transaction pooler (port 6543)
+  // with ?pgbouncer=true so serverless functions do not exhaust connections.
+  url       = env("DATABASE_URL")
+  // Direct connection (port 5432). Prisma Migrate needs a non-pooled session.
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but the template must be in the repo, it is the setup instructions
+!.env.example
 
 # vercel
 .vercel
@@ -68,6 +70,8 @@ fix-prisma.js
 seed-risk.js
 trace.js
 *.ps1
+# ...except project tooling under scripts/
+!scripts/*.ps1
 
 # generated deliverable docs (kept in the working folder, not the repo)
 EduSphere360_Presentation_Script.pdf
@@ -76,3 +80,15 @@ EduSphere360_AI_RAG_Prep.docx
 EduSphere360_Technical_Documentation.pdf
 EduSphere360_Engineering_Reference.pdf
 EduSphere360_PRD_Coverage_Report.docx
+
+# one-time SQLite->Postgres migration artifact (regenerate with `npm run db:export`)
+prisma/sqlite-export.json
+
+# local one-off helpers, not part of the app
+PUSH_TO_GITHUB.bat
+LOAD_DATA.bat
+OPEN_ENV.bat
+FINISH_SETUP.bat
+MERGE_TO_MAIN.bat
+migration-verify.log
+data-load.log
