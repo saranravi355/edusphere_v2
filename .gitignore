@@ -89,5 +89,6 @@ PUSH_TO_GITHUB.bat
 LOAD_DATA.bat
 OPEN_ENV.bat
 FINISH_SETUP.bat
+MERGE_TO_MAIN.bat
 migration-verify.log
 data-load.log
