@@ -88,5 +88,6 @@ prisma/sqlite-export.json
 PUSH_TO_GITHUB.bat
 LOAD_DATA.bat
 OPEN_ENV.bat
+FINISH_SETUP.bat
 migration-verify.log
 data-load.log
