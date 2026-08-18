@@ -7,7 +7,10 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:export": "python scripts/export-sqlite-data.py",
+    "db:port": "node scripts/port-to-postgres.mjs",
+    "db:verify": "node scripts/port-to-postgres.mjs --verify"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -45,6 +48,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "pg": "^8.23.0",
     "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
