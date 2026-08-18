@@ -263,7 +263,10 @@ Example — a "Library returns" page for the teacher portal:
 ## 10. Deployment
 
 - Hosted on **Vercel**, auto-deploys from `main`.
-- Build command: `prisma generate && next build` (already the `build` script).
+- Build command: `prisma generate && prisma migrate deploy && next build` (already the `build` script).
+  Every deploy applies pending migrations, so the schema can never drift behind the code. Note that all
+  environments share one database, so a preview branch carrying a new migration applies it to that shared
+  database — worth remembering before merging schema changes.
 - Binary targets in `schema.prisma`: `native`, `windows`, `rhel-openssl-3.0.x` (Vercel's Linux runtime).
 - Set **`DATABASE_URL`** (transaction pooler, port 6543, `?pgbouncer=true&connection_limit=1`) and
   **`DIRECT_URL`** (session pooler, port 5432) in Vercel → Settings → Environment Variables, for Production,
