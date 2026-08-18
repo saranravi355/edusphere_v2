@@ -59,7 +59,7 @@ export default function AnalyticsCharts({ revenueData, demographicsData, attenda
                 <Tooltip
                   cursor={{ fill: '#f1f5f9', opacity: 0.1 }}
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value) => [`₹${Number(value ?? 0).toLocaleString()}`, 'Revenue']}
+                  formatter={(value) => [`₹${Number(value ?? 0).toLocaleString("en-IN")}`, 'Revenue']}
                 />
                 <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
               </BarChart>

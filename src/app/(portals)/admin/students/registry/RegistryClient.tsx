@@ -5,6 +5,7 @@ import {
   Search, GraduationCap, Users, HeartHandshake, Sparkles, X,
   BrainCircuit, TrendingUp, ShieldAlert, Loader2, Download, ChevronDown,
 } from "lucide-react";
+import { formatDate } from "@/lib/dates";
 
 interface Row {
   id: string;
@@ -294,7 +295,7 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
                   <p className="text-slate-700 dark:text-slate-200">{r.parentName || "—"}</p>
                   {r.parentPhone && <p className="text-[11px] text-slate-400">{r.parentPhone}</p>}
                 </td>
-                <td className="px-5 py-3 text-xs text-slate-500">{new Date(r.enrollmentDate).toLocaleDateString('en-GB')}</td>
+                <td className="px-5 py-3 text-xs text-slate-500">{formatDate(r.enrollmentDate, "ddmmyyyy")}</td>
                 <td className="px-5 py-3">
                   <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${
                     r.isActive

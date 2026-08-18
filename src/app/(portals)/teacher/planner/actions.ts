@@ -61,7 +61,7 @@ export async function generateSubPlan(planId: string) {
 
   const lines: string[] = [];
   lines.push(`SUBSTITUTE TEACHER PLAN — ${plan.subjectName}${plan.className ? ` (${plan.className})` : ""}`);
-  lines.push(`Lesson: ${plan.title} · ${new Date(plan.date).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })} · ${plan.durationMinutes} minutes`);
+  lines.push(`Lesson: ${plan.title} · ${new Date(plan.date).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "long", day: "numeric", month: "long" })} · ${plan.durationMinutes} minutes`);
   if (plan.ibUnit) lines.push(`IB unit/topic: ${plan.ibUnit}`);
   lines.push("");
   lines.push("BEFORE CLASS");

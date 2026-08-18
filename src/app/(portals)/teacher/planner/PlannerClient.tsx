@@ -6,6 +6,7 @@ import {
   Trash2, Globe2, ChevronDown, ChevronUp, Printer,
 } from "lucide-react";
 import { createLessonPlan, setLessonStatus, deleteLessonPlan, generateSubPlan } from "./actions";
+import { formatDate } from "@/lib/dates";
 
 interface Plan {
   id: string;
@@ -127,7 +128,7 @@ export default function PlannerClient({ plans, subjects }: { plans: Plan[]; subj
                       <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${meta.cls}`}>{meta.label}</span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      {p.subjectName}{p.className ? ` · ${p.className}` : ""} · {new Date(p.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · {p.durationMinutes} min
+                      {p.subjectName}{p.className ? ` · ${p.className}` : ""} · {formatDate(p.date, "weekdayDMon")} · {p.durationMinutes} min
                       {p.ibUnit ? ` · Unit: ${p.ibUnit}` : ""}
                     </p>
                     {(p.atlSkills || p.learnerProfile) && (

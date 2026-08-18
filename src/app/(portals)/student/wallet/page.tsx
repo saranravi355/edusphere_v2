@@ -69,7 +69,7 @@ export default async function StudentWalletPage() {
                   </div>
                   <div>
                     <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tx.description || (credit ? "Top-up" : "Purchase")}</p>
-                    <p className="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
+                    <p className="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" })}</p>
                   </div>
                 </div>
                 <span className={`font-semibold text-sm ${credit ? "text-green-600 dark:text-green-400" : "text-slate-800 dark:text-slate-200"}`}>

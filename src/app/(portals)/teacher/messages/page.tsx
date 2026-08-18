@@ -103,7 +103,7 @@ export default async function TeacherMessagesPage({
                       <div className="flex justify-between items-start mb-1">
                         <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">{c.name}</span>
                         {last && (
-                          <span className="text-xs text-slate-400">{last.createdAt.toLocaleDateString("en-GB")}</span>
+                          <span className="text-xs text-slate-400">{last.createdAt.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}</span>
                         )}
                       </div>
                       <p className="text-xs text-slate-500 line-clamp-1">{last ? last.content : c.subtitle}</p>
@@ -144,7 +144,7 @@ export default async function TeacherMessagesPage({
                       >
                         <p className="text-sm">{m.content}</p>
                         <span className="text-[10px] opacity-70 mt-1 block">
-                          {m.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {m.createdAt.toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     );

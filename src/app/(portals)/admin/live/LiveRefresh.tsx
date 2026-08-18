@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
+import { formatTime } from "@/lib/dates";
 
 export default function LiveRefresh({ intervalSeconds = 30 }: { intervalSeconds?: number }) {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function LiveRefresh({ intervalSeconds = 30 }: { intervalSeconds?
         className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
       >
         <RefreshCw size={12} />
-        {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Refreshing…"}
+        {lastUpdated ? `Updated ${formatTime(lastUpdated, true)}` : "Refreshing…"}
         <span className="text-slate-400">· auto every {intervalSeconds}s</span>
       </button>
     </div>

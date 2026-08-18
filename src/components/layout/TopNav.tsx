@@ -114,7 +114,7 @@ export default function TopNav({
               </div>
               <div className="max-h-[320px] overflow-y-auto">
                 {notifications.length === 0 && (
-                  <div className="p-6 text-center text-xs text-slate-400">You're all caught up.</div>
+                  <div className="p-6 text-center text-xs text-slate-400">You&apos;re all caught up.</div>
                 )}
                 {notifications.map((n) => (
                   <div key={n.id} className={`p-3 border-b border-slate-100 dark:border-zinc-800 flex gap-3 ${!n.isRead ? "bg-blue-50/40 dark:bg-blue-900/10" : ""}`}>

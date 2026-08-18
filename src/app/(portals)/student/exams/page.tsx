@@ -77,9 +77,9 @@ export default async function StudentExamsPage() {
                           {e.subjectName}{e.level ? ` ${e.level}` : ""} — {e.paper}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {new Date(e.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+                          {new Date(e.date).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" })}
                           {" · "}
-                          {new Date(e.date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                          {new Date(e.date).toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })}
                           {e.durationMinutes > 0 ? ` · ${e.durationMinutes} min` : ""}
                           {e.room ? ` · ${e.room}` : ""}
                         </p>

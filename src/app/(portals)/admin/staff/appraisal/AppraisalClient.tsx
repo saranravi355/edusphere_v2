@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { ClipboardCheck, GraduationCap, X, Eye, Award, TrendingUp } from "lucide-react";
 import { createObservation } from "./actions";
+import { formatDate } from "@/lib/dates";
 
 interface LastObservation {
   date: string;
@@ -271,7 +272,7 @@ export default function AppraisalClient({ rows, years, observerName }: { rows: R
               </button>
             </div>
             <p className="text-xs text-slate-500">
-              Observed by {viewing.lastObservation.observerName} on {new Date(viewing.lastObservation.date).toLocaleDateString('en-GB')}
+              Observed by {viewing.lastObservation.observerName} on {formatDate(viewing.lastObservation.date, "ddmmyyyy")}
               {viewing.lastObservation.focusArea ? ` · Focus: ${viewing.lastObservation.focusArea}` : ""}
             </p>
             <div className="grid grid-cols-2 gap-3">

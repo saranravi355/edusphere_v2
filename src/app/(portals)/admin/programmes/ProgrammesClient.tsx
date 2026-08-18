@@ -6,6 +6,7 @@ import {
   GraduationCap, Globe2, BookOpen, Trophy, AlertTriangle, HeartHandshake,
   CalendarClock, ArrowRight, Lightbulb, Target,
 } from "lucide-react";
+import { formatDate } from "@/lib/dates";
 
 interface DPData {
   cohort: number;
@@ -123,7 +124,7 @@ export default function ProgrammesClient({ data }: { data: Data }) {
                   {data.dp.upcoming.map((e, i) => (
                     <div key={i} className="flex justify-between items-center text-sm">
                       <span className="text-slate-600 dark:text-slate-300 truncate">{e.subject} — {e.paper}</span>
-                      <span className="text-xs text-slate-400 whitespace-nowrap ml-2">{new Date(e.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                      <span className="text-xs text-slate-400 whitespace-nowrap ml-2">{formatDate(e.date, "dMon")}</span>
                     </div>
                   ))}
                 </div>

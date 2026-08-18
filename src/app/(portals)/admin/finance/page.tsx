@@ -58,12 +58,12 @@ export default async function FinanceHubPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
           <p className="text-xs uppercase font-bold text-slate-400 mb-1">Outstanding Fees</p>
-          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">₹{pendingTotal.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">₹{pendingTotal.toLocaleString("en-IN")}</p>
           <p className="text-xs text-slate-500 mt-1">{pendingInvoices.length} pending invoice(s)</p>
         </div>
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
           <p className="text-xs uppercase font-bold text-slate-400 mb-1">Collected This Term</p>
-          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">₹{collectedTotal.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">₹{collectedTotal.toLocaleString("en-IN")}</p>
           <p className="text-xs text-slate-500 mt-1">{paidInvoices.length} paid invoice(s)</p>
         </div>
       </div>

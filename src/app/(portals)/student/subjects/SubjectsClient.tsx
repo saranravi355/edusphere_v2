@@ -5,6 +5,7 @@ import {
   BookOpen, FileText, Video, Link2, FileSpreadsheet, GraduationCap,
   TrendingUp, TrendingDown, Minus, Download, ClipboardCheck,
 } from "lucide-react";
+import { formatDate } from "@/lib/dates";
 
 interface SubjectRow {
   subjectName: string;
@@ -193,7 +194,7 @@ export default function SubjectsClient({
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{r.title}</p>
                             <p className="text-[11px] text-slate-400">
-                              {TYPE_LABEL[r.type] || r.type} · {new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" })} · {r.term}
+                              {TYPE_LABEL[r.type] || r.type} · {formatDate(r.date, "dMonYy")} · {r.term}
                             </p>
                             {r.comment && <p className="text-[11px] text-slate-500 italic mt-0.5">{r.comment}</p>}
                           </div>
