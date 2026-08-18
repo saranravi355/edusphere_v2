@@ -6,11 +6,12 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { LogoFull } from "@/components/ui/Logo";
-import { Suspense } from "react";
+import { Suspense, useActionState } from "react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || "student";
+  const [state, formAction, pending] = useActionState(login, undefined);
 
   let defaultEmail = "aarav.p@edusphere.com";
   let roleTitle = "Student";
@@ -65,13 +66,17 @@ function LoginForm() {
               Login to {roleTitle} Portal
             </h3>
 
-            <form action={async (formData) => { await login(formData); }} className="flex flex-col gap-5">
+            <form action={formAction} className="flex flex-col gap-5">
               <div>
                 <input
                   type="email"
                   name="email"
                   defaultValue={defaultEmail}
                   placeholder="Email Address"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
                   required
                 />
@@ -83,16 +88,27 @@ function LoginForm() {
                   name="password"
                   defaultValue="password123"
                   placeholder="Password"
+                  autoComplete="current-password"
                   className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
                   required
                 />
               </div>
 
+              {state?.error && (
+                <p
+                  role="alert"
+                  className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-md px-3 py-2"
+                >
+                  {state.error}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="w-full py-2.5 mt-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-md transition-colors text-sm shadow-sm tracking-wide"
+                disabled={pending}
+                className="w-full py-2.5 mt-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-md transition-colors text-sm shadow-sm tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Login
+                {pending ? "Signing in…" : "Login"}
               </button>
 
               <div className="flex justify-start mt-1">
