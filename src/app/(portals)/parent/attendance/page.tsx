@@ -83,7 +83,7 @@ export default async function ParentAttendancePage() {
               <div className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${record.status === 'PRESENT' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 <span className="font-medium text-slate-700 dark:text-slate-300">
-                  {new Date(record.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  {new Date(record.date).toLocaleDateString('en-US', { timeZone: "Asia/Kolkata", weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </span>
               </div>
               <div>

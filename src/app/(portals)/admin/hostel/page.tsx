@@ -9,7 +9,7 @@ import { Bed, UserPlus, X, Plane, Check, Ban } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 const genderOfStudent = (g: string | null) => (g === "Female" ? "GIRLS" : g === "Male" ? "BOYS" : null);
-const fmt = (d: Date) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+const fmt = (d: Date) => new Date(d).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" });
 
 async function allocateStudent(formData: FormData) {
   "use server";
@@ -204,7 +204,7 @@ export default async function HostelPage() {
           </div>
           <button type="submit" className="px-4 py-2 rounded-md bg-primary hover:opacity-90 text-primary-foreground text-sm font-medium">Allocate room</button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-2">Gender is enforced automatically — boys can only be placed in the boys' hostel and girls in the girls' hostel.</p>
+        <p className="text-[11px] text-muted-foreground mt-2">Gender is enforced automatically — boys can only be placed in the boys&apos; hostel and girls in the girls&apos; hostel.</p>
       </form>
 
       {genderBlock("BOYS", "Boys' Hostel — Aravali Block", boysWarden, "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400")}

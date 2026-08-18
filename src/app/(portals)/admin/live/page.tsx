@@ -115,7 +115,7 @@ export default async function LiveDashboardPage() {
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{e.subjectName}{e.level ? ` ${e.level}` : ""} — {e.paper}</p>
                     <p className="text-[11px] text-slate-400">{e.session}</p>
                   </div>
-                  <span className="text-xs text-slate-500 whitespace-nowrap">{e.date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</span>
+                  <span className="text-xs text-slate-500 whitespace-nowrap">{e.date.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" })}</span>
                 </div>
               ))}
             </div>
@@ -134,7 +134,7 @@ export default async function LiveDashboardPage() {
                 <MessageSquare size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm text-slate-700 dark:text-slate-200 truncate"><b>{m.sender.name}</b>: {m.subject}</p>
-                  <p className="text-[11px] text-slate-400">{m.createdAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · message</p>
+                  <p className="text-[11px] text-slate-400">{m.createdAt.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })} · message</p>
                 </div>
               </div>
             ))}
@@ -143,7 +143,7 @@ export default async function LiveDashboardPage() {
                 <ShieldAlert size={14} className={`mt-0.5 flex-shrink-0 ${i.type === "MERIT" ? "text-emerald-500" : "text-rose-500"}`} />
                 <div className="min-w-0">
                   <p className="text-sm text-slate-700 dark:text-slate-200 truncate"><b>{i.student.name}</b>: {i.category} ({i.points > 0 ? "+" : ""}{i.points} pts)</p>
-                  <p className="text-[11px] text-slate-400">{i.date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · behaviour</p>
+                  <p className="text-[11px] text-slate-400">{i.date.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })} · behaviour</p>
                 </div>
               </div>
             ))}

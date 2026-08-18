@@ -73,7 +73,7 @@ export default async function FeeInvoicesPage() {
                   <option value="">Choose a plan...</option>
                   {feeStructures.map(fee => (
                     <option key={fee.id} value={fee.id}>
-                      {fee.name} - ${fee.amount} ({fee.gradeLevel || 'Global'})
+                      {fee.name} - ₹{fee.amount.toLocaleString("en-IN")} ({fee.gradeLevel || 'Global'})
                     </option>
                   ))}
                 </select>
@@ -139,7 +139,7 @@ export default async function FeeInvoicesPage() {
                       {inv.title || "Standard Fee"}
                     </td>
                     <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-200">
-                      ${inv.amount.toLocaleString()}
+                      ₹{inv.amount.toLocaleString("en-IN")}
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium ${

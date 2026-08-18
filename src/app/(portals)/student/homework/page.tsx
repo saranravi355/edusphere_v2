@@ -72,7 +72,7 @@ export default async function StudentHomeworkPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800 dark:text-slate-200">{hw.title}</p>
-                    <p className="text-sm text-slate-500">{hw.subject.name} • Due {new Date(hw.dueDate).toLocaleDateString('en-GB')}</p>
+                    <p className="text-sm text-slate-500">{hw.subject.name} • Due {new Date(hw.dueDate).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}</p>
                   </div>
                 </div>
                 <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 group-hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
@@ -117,7 +117,7 @@ export default async function StudentHomeworkPage() {
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-800 dark:text-slate-200">{hw.title}</p>
                   <p className="text-sm text-slate-500">
-                    {hw.subject.name} • Submitted{hw.submissions[0]?.submittedAt ? ` ${new Date(hw.submissions[0].submittedAt).toLocaleDateString('en-GB')}` : ''}
+                    {hw.subject.name} • Submitted{hw.submissions[0]?.submittedAt ? ` ${new Date(hw.submissions[0].submittedAt).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}` : ''}
                   </p>
                   {hw.submissions[0]?.content && (
                     <p className="text-xs text-slate-400 mt-1 line-clamp-1 italic">&ldquo;{hw.submissions[0].content}&rdquo;</p>

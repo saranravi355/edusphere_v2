@@ -7,7 +7,7 @@ import { Tent, Trophy, CalendarDays, MapPin, CheckCircle2, Users, Sparkles } fro
 export const dynamic = "force-dynamic";
 
 function fmt(d: Date) {
-  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  return d.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" });
 }
 
 export default async function StudentClubsPage() {

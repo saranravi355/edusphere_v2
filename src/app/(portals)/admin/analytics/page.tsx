@@ -6,7 +6,7 @@ import AnalyticsCharts from "@/components/admin/AnalyticsCharts";
 import { Users, IndianRupee, Clock, TrendingUp, GraduationCap } from "lucide-react";
 
 function formatCurrency(amount: number) {
-  return amount >= 100000 ? `₹${(amount / 100000).toFixed(1)}L` : `₹${amount.toLocaleString()}`;
+  return amount >= 100000 ? `₹${(amount / 100000).toFixed(1)}L` : `₹${amount.toLocaleString("en-IN")}`;
 }
 
 export default async function AdminAnalyticsPage() {

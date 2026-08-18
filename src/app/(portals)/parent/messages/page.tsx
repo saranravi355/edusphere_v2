@@ -112,7 +112,7 @@ export default async function ParentMessagesPage({
                         <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">{c.name}</span>
                         {last && (
                           <span className="text-xs text-slate-400">
-                            {last.createdAt.toLocaleDateString("en-GB")}
+                            {last.createdAt.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}
                           </span>
                         )}
                       </div>
@@ -156,7 +156,7 @@ export default async function ParentMessagesPage({
                       >
                         <p className="text-sm">{m.content}</p>
                         <span className="text-[10px] opacity-70 mt-1 block">
-                          {m.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {m.createdAt.toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     );

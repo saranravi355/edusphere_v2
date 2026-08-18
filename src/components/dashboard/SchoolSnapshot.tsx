@@ -56,7 +56,7 @@ export default async function SchoolSnapshot() {
         _sum: { amount: true }
       });
       const revenue = revenueResult._sum.amount || 0;
-      const formattedRevenue = revenue >= 100000 ? `₹${(revenue/100000).toFixed(1)}L` : `₹${revenue.toLocaleString()}`;
+      const formattedRevenue = revenue >= 100000 ? `₹${(revenue/100000).toFixed(1)}L` : `₹${revenue.toLocaleString("en-IN")}`;
 
       metrics = [
         { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/users" },
@@ -123,7 +123,7 @@ export default async function SchoolSnapshot() {
 
     metrics = [
       { label: "Children Attending", value: `${presentCount}/${children.length}`, icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/parent/attendance" },
-      { label: "Upcoming Fees", value: `₹${upcomingFees.toLocaleString()}`, icon: IndianRupee, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/parent/fees" },
+      { label: "Upcoming Fees", value: `₹${upcomingFees.toLocaleString("en-IN")}`, icon: IndianRupee, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/parent/fees" },
       { label: "New Messages", value: unreadMessages.toString(), icon: MessageSquare, color: "text-indigo-500", bg: "bg-indigo-100 dark:bg-indigo-900/30", href: "/parent/messages" },
     ];
   }
@@ -158,7 +158,7 @@ export default async function SchoolSnapshot() {
         <div className="p-5 lg:w-64 lg:shrink-0 lg:border-r border-border">
           <h2 className="font-heading text-xl text-foreground">Today&apos;s Snapshot</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            {new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric" })}
+            {new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", month: "long", day: "numeric" })}
           </p>
         </div>
         <div className="flex-1 flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-border">

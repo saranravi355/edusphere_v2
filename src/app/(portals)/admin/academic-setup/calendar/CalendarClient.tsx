@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { CalendarDays, Flag, Landmark, Plus, RefreshCw, Trash2, X, Loader2, CheckCircle2 } from "lucide-react";
 import { syncNationalCalendar, syncIBExamWindows, addCalendarEvent, deleteCalendarEvent } from "./actions";
+import { formatDate } from "@/lib/dates";
 
 interface Ev {
   id: string;
@@ -23,7 +24,7 @@ const TYPE_META: Record<string, { label: string; cls: string }> = {
 };
 
 function fmt(d: string) {
-  return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  return formatDate(d, "dMonYyyy");
 }
 
 export default function CalendarClient({ events }: { events: Ev[] }) {
@@ -33,7 +34,7 @@ export default function CalendarClient({ events }: { events: Ev[] }) {
   const [isPending, startTransition] = useTransition();
 
   const byMonth = events.reduce<Record<string, Ev[]>>((acc, e) => {
-    const key = new Date(e.startDate).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+    const key = formatDate(e.startDate, "monthYear");
     (acc[key] = acc[key] || []).push(e);
     return acc;
   }, {});
@@ -105,7 +106,7 @@ export default function CalendarClient({ events }: { events: Ev[] }) {
                   <div key={e.id} className="px-5 py-3 flex items-center gap-4">
                     <div className="w-12 text-center flex-shrink-0">
                       <p className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-none">{new Date(e.startDate).getDate()}</p>
-                      <p className="text-[10px] text-slate-400 uppercase">{new Date(e.startDate).toLocaleDateString("en-GB", { weekday: "short" })}</p>
+                      <p className="text-[10px] text-slate-400 uppercase">{formatDate(e.startDate, "ddmmyyyy")}</p>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{e.title}</p>

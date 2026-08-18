@@ -6,6 +6,7 @@ import {
   AlertTriangle, Archive, RefreshCw, UserCheck,
 } from "lucide-react";
 import { createIEPPlan, addIEPGoal, updateGoalProgress, updatePlanStatus } from "./actions";
+import { formatDate } from "@/lib/dates";
 
 interface Goal {
   id: string;
@@ -145,7 +146,7 @@ export default function LearningNeedsClient({
                 {plan.reviewDate && (
                   <span className="flex items-center gap-1">
                     <CalendarClock size={13} />
-                    Review {new Date(plan.reviewDate).toLocaleDateString('en-GB')}
+                    Review {formatDate(plan.reviewDate, "ddmmyyyy")}
                   </span>
                 )}
               </div>

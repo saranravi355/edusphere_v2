@@ -187,7 +187,7 @@ export default async function StudentReportCard() {
         )}
 
         <div className="border-t border-slate-200 dark:border-zinc-800 mt-8 pt-6 flex justify-between text-xs text-slate-400">
-          <span>Issued {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</span>
+          <span>Issued {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric" })}</span>
           <span>Grades 1–7 · criterion-referenced · IB World School</span>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { GraduationCap, Plus, X, Award, BookOpen, Users, Presentation, Eye } from "lucide-react";
 import { logPDRecord } from "./actions";
+import { formatDate } from "@/lib/dates";
 
 interface PDRecordRow {
   id: string;
@@ -111,7 +112,7 @@ export default function PDClient({
                       <p className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{r.title}</p>
                       <p className="text-xs text-slate-500">
                         {r.type.charAt(0) + r.type.slice(1).toLowerCase()}
-                        {r.provider ? ` · ${r.provider}` : ""} · {new Date(r.dateCompleted).toLocaleDateString('en-GB')}
+                        {r.provider ? ` · ${r.provider}` : ""} · {formatDate(r.dateCompleted, "ddmmyyyy")}
                       </p>
                     </div>
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">{r.hours}h</span>
@@ -138,7 +139,7 @@ export default function PDClient({
                 <div key={o.id} className="px-6 py-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-slate-500">
-                      {new Date(o.date).toLocaleDateString('en-GB')} · {o.observerName}
+                      {formatDate(o.date, "ddmmyyyy")} · {o.observerName}
                       {o.className ? ` · ${o.className}` : ""}
                     </p>
                     <span

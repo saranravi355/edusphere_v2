@@ -5,6 +5,7 @@ import {
   Users, Trophy, Wrench, Bus, HeartHandshake, CalendarDays, ChevronDown,
   ChevronUp, MapPin, CheckCircle2, Tent, Sparkles,
 } from "lucide-react";
+import { formatDate } from "@/lib/dates";
 
 interface Member {
   name: string;
@@ -42,7 +43,7 @@ const TYPE_META: Record<string, { icon: typeof Trophy; cls: string }> = {
 };
 
 function fmt(d: string) {
-  return new Date(d).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  return formatDate(d, "weekdayDMon");
 }
 
 export default function ClubsClient({ clubs }: { clubs: ClubRow[] }) {
