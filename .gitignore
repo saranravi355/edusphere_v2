@@ -83,3 +83,7 @@ EduSphere360_PRD_Coverage_Report.docx
 
 # one-time SQLite->Postgres migration artifact (regenerate with `npm run db:export`)
 prisma/sqlite-export.json
+
+# local one-off helpers, not part of the app
+PUSH_TO_GITHUB.bat
+migration-verify.log
