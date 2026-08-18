@@ -25,7 +25,7 @@ Two rules are permanent (see `AGENTS.md`):
 |---|---|
 | Framework | **Next.js 16** (App Router, Server Components, Server Actions, Turbopack) |
 | Language | **TypeScript 5**, **React 19** |
-| Database | **SQLite** via **Prisma 5.22** (`prisma/dev.db`, committed to git) |
+| Database | **PostgreSQL** via **Prisma 5.22** — Supabase-hosted today, on-premises at the school later |
 | Auth | Custom JWT cookie sessions with **`jose`** (`src/lib/session.ts`) |
 | Styling | **Tailwind CSS 4**, shadcn/ui patterns, `next-themes` (dark mode), **lucide-react** icons |
 | Charts / tables | **recharts**, **@tanstack/react-table** |
@@ -42,12 +42,16 @@ Two rules are permanent (see `AGENTS.md`):
 git clone https://github.com/saranravi355/edusphere_v2.git
 cd edusphere_v2
 npm install                 # runs `prisma generate` automatically (postinstall)
-cp .env.example .env        # DATABASE_URL="file:./dev.db"
+cp .env.example .env        # then fill in DATABASE_URL + DIRECT_URL
 npm run dev                 # http://localhost:3000
 ```
 
-The seeded database (`prisma/dev.db`) is committed, so you get a fully populated school on first run —
-**173 students** with grades, attendance, fees, timetables, etc. No separate seed step is needed.
+The database is **PostgreSQL** and lives outside the repo, so you need `DATABASE_URL` and `DIRECT_URL`
+in `.env` before anything runs (see `.env.example`). It is already populated with **173 students** and their
+grades, attendance, fees and timetables — 10,660 rows in total.
+
+The legacy SQLite file (`prisma/dev.db`) is still in the repo purely as the migration source; the app no
+longer reads it. See `MIGRATION_POSTGRES.md`.
 
 **Scripts** (`package.json`):
 
@@ -96,7 +100,8 @@ src/
   i18n/locales/        en.json, hi.json, ta.json, kn.json
 prisma/
   schema.prisma        # data model
-  dev.db               # committed SQLite database (the seed data lives here)
+  migrations/          # Prisma migration history (start here for schema changes)
+  dev.db               # legacy SQLite source for the Postgres migration; not used at runtime
 public/                # static assets (logo.png, images)
 ```
 
@@ -188,23 +193,24 @@ Wire it directly into a form in a server component: `<form action={doThing}>…<
 
 - Schema: `prisma/schema.prisma`. ~47 models (User, Student, Teacher, Parent, Classroom, Attendance, Grade,
   FeeInvoice, FeeItem, MenuItem, Notification, IBSubjectRecord, …).
-- The database is **committed SQLite** (`prisma/dev.db`) — the seed data *is* the file. Changes you make locally
-  (and commit) become the data everyone (and Vercel) gets.
+- The database is **PostgreSQL**, shared and outside the repo. Schema changes are versioned as
+  **migrations** under `prisma/migrations/` — do not use `db push`, it bypasses that history.
 
 **To add or change a model:**
 
 ```bash
 # 1. edit prisma/schema.prisma
-npx prisma db push        # applies schema to dev.db (dev workflow; no migration files)
-npx prisma generate       # regenerates the typed client
+npx prisma migrate dev --name describe_your_change   # writes a migration + applies it
+npx prisma generate                                  # regenerates the typed client
 # 2. restart `npm run dev`
-# 3. commit BOTH prisma/schema.prisma AND prisma/dev.db
+# 3. commit prisma/schema.prisma AND the new prisma/migrations/ folder
 ```
 
-**Seeding data:** there's no single `seed.ts`; data lives in the committed `dev.db`. To add records, either use the
-app UI, or write a small script. When inserting **dates via raw SQL**, store **epoch milliseconds**
-(`Date.now()`), not date strings — Prisma's SQLite driver expects integer timestamps. (When you insert via the
-Prisma client with `new Date(...)`, this is handled for you.)
+Deploying applies pending migrations with `npx prisma migrate deploy`.
+
+**Seeding data:** the data already lives in the database. To add records, use the app UI or write a script
+against the Prisma client. Note that dates are real `timestamp(3)` columns now — pass `Date` objects, not the
+epoch-millisecond integers the old SQLite database required.
 
 ---
 
@@ -230,9 +236,9 @@ Example — a "Library returns" page for the teacher portal:
 2. **Interactivity (if any):** add a `LibraryReturnsClient.tsx` (`"use client"`) and pass it **serializable props only**.
 3. **Mutations:** add `actions.ts` with `"use server"` functions that write via Prisma + `revalidatePath`.
 4. **Nav:** add a link in `src/components/layout/SideNav.tsx` under the right role's section (import a lucide icon).
-5. **New data?** add a model in `schema.prisma`, run `db push` + `generate`, commit `dev.db`.
+5. **New data?** add a model in `schema.prisma`, run `migrate dev` + `generate`, commit the migration.
 6. **Verify:** `npx tsc --noEmit` and `npm run lint` must be clean.
-7. Commit `prisma/schema.prisma`, `prisma/dev.db` (if changed), and your source files.
+7. Commit `prisma/schema.prisma`, any new `prisma/migrations/` folder, and your source files.
 
 ---
 
@@ -241,10 +247,13 @@ Example — a "Library returns" page for the teacher portal:
 - **Never pass a function from a Server Component to a Client Component.** React throws
   "Server Functions cannot be passed…". Pass a **string/data** and build behaviour inside the client component,
   or pass a proper `"use server"` action. (This is why `TimetableGrid` takes `subjectLinkBase: string`, not a callback.)
-- **Prisma on Vercel:** the SQLite file is bundled via `outputFileTracingIncludes` in `next.config.ts` and copied to
-  `/tmp` at runtime (`src/lib/prisma.ts`) because Vercel's filesystem is read-only except `/tmp`. Do **not** add the
-  whole Prisma engine folder to file tracing — it blows past the 250 MB function limit. Keep `next.config.ts` minimal.
-- **`DATABASE_URL`** must exist as a Vercel env var (`.env` is git-ignored and does not ship).
+- **Prisma on Vercel:** the query engine is traced automatically when `@prisma/client` is imported. Do **not**
+  add the whole Prisma engine folder to file tracing — it blows past the 250 MB function limit. Keep
+  `next.config.ts` minimal.
+- **Case sensitivity:** SQLite's `LIKE` was case-insensitive; PostgreSQL's is not. Every Prisma `contains` /
+  `startsWith` / `endsWith` filter needs `mode: "insensitive"` or search silently stops matching.
+- **`DATABASE_URL` and `DIRECT_URL`** must both exist as Vercel env vars (`.env` is git-ignored and does not
+  ship). Missing them fails the build, not just runtime.
 - **Currency = ₹** everywhere (`IndianRupee` icon, `en-IN`). No `$`.
 - **IB only, Indian demo data** — see section 1.
 - Keep the DB scoped per user on every query (privacy; minors are involved).
@@ -256,7 +265,10 @@ Example — a "Library returns" page for the teacher portal:
 - Hosted on **Vercel**, auto-deploys from `main`.
 - Build command: `prisma generate && next build` (already the `build` script).
 - Binary targets in `schema.prisma`: `native`, `windows`, `rhel-openssl-3.0.x` (Vercel's Linux runtime).
-- Set `DATABASE_URL="file:./dev.db"` in Vercel → Settings → Environment Variables.
+- Set **`DATABASE_URL`** (transaction pooler, port 6543, `?pgbouncer=true&connection_limit=1`) and
+  **`DIRECT_URL`** (session pooler, port 5432) in Vercel → Settings → Environment Variables, for Production,
+  Preview and Development.
+- Apply pending migrations with `npx prisma migrate deploy` before or during release.
 
 ---
 
