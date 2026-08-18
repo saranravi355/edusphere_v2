@@ -27,18 +27,43 @@ export default async function FeeInvoicesPage() {
     
     if (!feeStructureId || !dueDate) return;
 
-    // Simulate batch generating invoices
-    // In real life, we would fetch all students in the corresponding grade and create an invoice for each
-    const dummyStudent = await prisma.student.findFirst();
-    if (dummyStudent) {
-      await prisma.feeInvoice.create({
-        data: {
-          studentId: dummyStudent.id,
-          title: "Semester Fee Invoice",
-          amount: 5000, // Normally fetched from feeStructure
+    const structure = await prisma.feeStructure.findUnique({ where: { id: feeStructureId } });
+    if (!structure) return;
+
+    // Which students does this plan cover? Prefer an explicit gradeLevel; the
+    // seeded plans instead name the IB programme ("MYP Annual Tuition"), so fall
+    // back to that. With neither, the plan is school-wide.
+    const programme =
+      structure.gradeLevel?.trim() ||
+      ["PYP", "MYP", "DP"].find((p) => structure.name.toUpperCase().includes(p)) ||
+      null;
+
+    const students = await prisma.student.findMany({
+      where: programme ? { curriculum: programme } : {},
+      select: { id: true },
+    });
+    if (students.length === 0) return;
+
+    const due = new Date(dueDate);
+    const title = `${structure.name} (${structure.academicYear})`;
+
+    // Idempotent: clicking twice must not bill a family twice.
+    const already = await prisma.feeInvoice.findMany({
+      where: { title, dueDate: due, studentId: { in: students.map((s) => s.id) } },
+      select: { studentId: true },
+    });
+    const billed = new Set(already.map((a) => a.studentId));
+    const toCreate = students.filter((s) => !billed.has(s.id));
+
+    if (toCreate.length > 0) {
+      await prisma.feeInvoice.createMany({
+        data: toCreate.map((s) => ({
+          studentId: s.id,
+          title,
+          amount: structure.amount,
           status: "PENDING",
-          dueDate: new Date(dueDate),
-        }
+          dueDate: due,
+        })),
       });
     }
     revalidatePath("/admin/finance/invoices");

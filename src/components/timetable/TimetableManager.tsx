@@ -19,7 +19,8 @@ export default function TimetableManager({
   const [timetable, setTimetable] = useState<Awaited<ReturnType<typeof getTimetable>>>([]);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const [mockErrors, setMockErrors] = useState(0);
+  // Real result of the last generation run, straight from the solver.
+  const [genStats, setGenStats] = useState<{ filled: number; total: number; conflictsAvoided: number; teachersUsed: number } | null>(null);
 
   const [allocationModal, setAllocationModal] = useState<{ day: number, period: number } | null>(null);
 
@@ -42,7 +43,7 @@ export default function TimetableManager({
       if (res?.error) setError(res.error);
       else {
         loadTimetable(selectedClassroomId);
-        setMockErrors(Math.floor(Math.random() * 3) + 1); // Mock 1-3 errors
+        setGenStats(res?.stats ?? null);
       }
     });
   };
@@ -108,13 +109,15 @@ export default function TimetableManager({
                 )}
               </button>
 
-              {mockErrors > 0 && (
-                <button
-                  onClick={() => setMockErrors(0)}
-                  className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2 animate-pulse"
-                >
-                  <AlertTriangle size={18} /> Auto-Resolve {mockErrors} Conflicts
-                </button>
+              {genStats && (
+                <div className="px-5 py-3 bg-white/10 border border-white/20 rounded-xl text-sm text-white flex items-center gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-300" />
+                  <span>
+                    Placed <strong>{genStats.filled}</strong> of <strong>{genStats.total}</strong> periods
+                    {" · "}<strong>{genStats.teachersUsed}</strong> teachers
+                    {genStats.conflictsAvoided > 0 && <> · avoided <strong>{genStats.conflictsAvoided}</strong> clashes</>}
+                  </span>
+                </div>
               )}
             </div>
           </div>
