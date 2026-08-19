@@ -1,7 +1,17 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const secretKey = 'edusphere-super-secret-key-do-not-use-in-prod';
+/**
+ * Signing key for session cookies. This used to be a string literal committed
+ * to the repository, which meant anyone with the source could mint a valid
+ * session for any user, including an administrator. It now comes from the
+ * environment; production refuses to start without it.
+ */
+const secretKey = process.env.SESSION_SECRET ?? (
+  process.env.NODE_ENV === "production"
+    ? (() => { throw new Error("SESSION_SECRET is not set. Refusing to sign sessions with a default key."); })()
+    : "dev-only-insecure-key-not-used-in-production"
+);
 const key = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: Record<string, unknown>) {

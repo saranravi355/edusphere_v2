@@ -45,9 +45,11 @@ export default function CalendarClient({ events }: { events: Ev[] }) {
     setSyncMsg(null);
     startTransition(async () => {
       const res = which === "national" ? await syncNationalCalendar() : await syncIBExamWindows();
+      if ("error" in res && res.error) { setSyncMsg(res.error); setPending(null); return; }
+      const added = "added" in res ? res.added ?? 0 : 0;
       setSyncMsg(
-        res.added > 0
-          ? `${res.added} new ${which === "national" ? "national holidays / term dates" : "IB exam windows"} imported.`
+        added > 0
+          ? `${added} new ${which === "national" ? "national holidays / term dates" : "IB exam windows"} imported.`
           : "Already up to date — nothing new to import."
       );
       setPending(null);

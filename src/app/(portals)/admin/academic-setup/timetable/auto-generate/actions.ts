@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { guard, ADMIN_ROLES } from "@/lib/authz";
 
 const DAYS = [1, 2, 3, 4, 5];
 const PERIOD_TIMES: Record<number, { start: string; end: string }> = {
@@ -41,6 +42,9 @@ export interface GenerateResult {
  *  - never double-books a teacher across any classroom, including existing timetables
  */
 export async function autoGenerateTimetable(classroomId: string): Promise<GenerateResult> {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   if (!classroomId) return { error: "Pick a class first." };
 
   const [classroom, subjects, teachers, otherEntries] = await Promise.all([

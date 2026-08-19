@@ -2,9 +2,13 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { guard, STAFF_ROLES } from "@/lib/authz";
 
 // CAS coordinator nudges a student — creates a real in-app notification
 export async function sendCASNudge(studentId: string, message: string) {
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const student = await prisma.student.findUnique({
     where: { id: studentId },
     select: { userId: true, name: true },

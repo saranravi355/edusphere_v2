@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { UserPlus } from "lucide-react";
+import { hashPassword } from "@/lib/password";
 
 async function registerStudent(formData: FormData) {
   "use server";
@@ -23,7 +24,7 @@ async function registerStudent(formData: FormData) {
         data: {
           name,
           email,
-          password: "changeme123",
+          password: await hashPassword("changeme123"),
           role: "STUDENT",
         }
       })

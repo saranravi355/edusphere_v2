@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { guard, ADMIN_ROLES } from "@/lib/authz";
 
 // Indian national + Karnataka holidays, AY 2026-27 (gazetted list)
 const NATIONAL_HOLIDAYS_2026_27: { title: string; date: string }[] = [
@@ -28,6 +29,9 @@ const TERM_STRUCTURE: { title: string; start: string; end: string }[] = [
 ];
 
 export async function syncNationalCalendar() {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   let added = 0;
   for (const h of NATIONAL_HOLIDAYS_2026_27) {
     const exists = await prisma.academicEvent.findFirst({
@@ -55,6 +59,9 @@ export async function syncNationalCalendar() {
 
 // Pulls IB exam sessions into the calendar as blocked exam windows
 export async function syncIBExamWindows() {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const sessions = await prisma.iBExamSession.findMany();
   const byName = new Map<string, { min: Date; max: Date; programme: string }>();
   for (const s of sessions) {
@@ -87,6 +94,9 @@ export async function syncIBExamWindows() {
 }
 
 export async function addCalendarEvent(formData: FormData) {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const title = formData.get("title") as string;
   const type = formData.get("type") as string;
   const startDate = formData.get("startDate") as string;
@@ -110,6 +120,9 @@ export async function addCalendarEvent(formData: FormData) {
 }
 
 export async function deleteCalendarEvent(id: string) {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   await prisma.academicEvent.delete({ where: { id } });
   revalidatePath("/admin/academic-setup/calendar");
   return { success: true };
