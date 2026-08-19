@@ -4,6 +4,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { FileText, CheckCircle2, Clock, Upload } from "lucide-react";
+import { SubmitButton } from "@/components/ui/form";
+import { formatDate } from "@/lib/dates";
 
 export default async function StudentHomeworkPage() {
   const session = await getSession();
@@ -38,15 +40,29 @@ export default async function StudentHomeworkPage() {
     const student = await prisma.student.findUnique({ where: { userId: session.user.id } });
     if (!student) return;
 
-    await prisma.homeworkSubmission.create({
-      data: {
-        homeworkId,
-        studentId: student.id,
-        submittedAt: new Date(),
-        content,
-        attachmentUrl: attachmentUrl || null,
-      },
+    // The homework must exist and be set for this student's own class — the
+    // id arrives from the client and must not be trusted.
+    const hw = await prisma.homework.findUnique({ where: { id: homeworkId }, select: { classroomId: true } });
+    if (!hw || hw.classroomId !== student.classroomId) return;
+
+    // One submission per student per assignment. Nothing prevented a repeat
+    // before, so a double click or a replayed request created duplicates.
+    const existing = await prisma.homeworkSubmission.findFirst({
+      where: { homeworkId, studentId: student.id },
+      select: { id: true },
     });
+
+    if (existing) {
+      // Treat a resubmission as an edit of the original rather than a new row.
+      await prisma.homeworkSubmission.update({
+        where: { id: existing.id },
+        data: { content, attachmentUrl: attachmentUrl || null, submittedAt: new Date() },
+      });
+    } else {
+      await prisma.homeworkSubmission.create({
+        data: { homeworkId, studentId: student.id, submittedAt: new Date(), content, attachmentUrl: attachmentUrl || null },
+      });
+    }
 
     revalidatePath("/student/homework");
   }
@@ -72,7 +88,7 @@ export default async function StudentHomeworkPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800 dark:text-slate-200">{hw.title}</p>
-                    <p className="text-sm text-slate-500">{hw.subject.name} • Due {new Date(hw.dueDate).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}</p>
+                    <p className="text-sm text-slate-500">{hw.subject.name} • Due {formatDate(hw.dueDate, "dMonYyyy")}</p>
                   </div>
                 </div>
                 <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 group-hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
@@ -82,8 +98,8 @@ export default async function StudentHomeworkPage() {
               <form action={submitHomework} className="px-5 pb-5 pt-1 space-y-3 border-t border-slate-100 dark:border-slate-800">
                 <input type="hidden" name="homeworkId" value={hw.id} />
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300 block mb-1">Your submission</label>
-                  <textarea name="content" required rows={4} placeholder="Type your answer, or paste your working / reflection here..." className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <label htmlFor={`content-${hw.id}`} className="text-xs font-medium text-slate-600 dark:text-slate-300 block mb-1">Your submission</label>
+                  <textarea id={`content-${hw.id}`} name="content" required rows={4} maxLength={5000} placeholder="Type your answer, or paste your working / reflection here..." className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-600 dark:text-slate-300 block mb-1">
@@ -91,9 +107,9 @@ export default async function StudentHomeworkPage() {
                   </label>
                   <input type="url" name="attachmentUrl" placeholder="https://..." className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
-                <button type="submit" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
-                  <Upload size={14} /> Submit homework
-                </button>
+                <SubmitButton pendingText="Submitting…" className="bg-blue-600 hover:bg-blue-700 text-white font-bold">
+                  <Upload size={14} aria-hidden /> Submit homework
+                </SubmitButton>
               </form>
             </details>
           ))}
@@ -117,7 +133,7 @@ export default async function StudentHomeworkPage() {
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-800 dark:text-slate-200">{hw.title}</p>
                   <p className="text-sm text-slate-500">
-                    {hw.subject.name} • Submitted{hw.submissions[0]?.submittedAt ? ` ${new Date(hw.submissions[0].submittedAt).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}` : ''}
+                    {hw.subject.name} • Submitted{hw.submissions[0]?.submittedAt ? ` ${formatDate(hw.submissions[0].submittedAt, "dMonYyyy")}` : ''}{hw.submissions[0]?.grade != null ? ` • Graded ${hw.submissions[0].grade}/7` : ' • Awaiting grade'}
                   </p>
                   {hw.submissions[0]?.content && (
                     <p className="text-xs text-slate-400 mt-1 line-clamp-1 italic">&ldquo;{hw.submissions[0].content}&rdquo;</p>

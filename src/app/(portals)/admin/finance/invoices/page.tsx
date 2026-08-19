@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { guard, ADMIN_ROLES } from "@/lib/authz";
 
 export default async function FeeInvoicesPage() {
   const session = await getSession();
@@ -22,6 +23,9 @@ export default async function FeeInvoicesPage() {
 
   async function generateInvoices(formData: FormData) {
     "use server";
+    // Bills every family in a cohort — strictly an admin action.
+    const auth = await guard(ADMIN_ROLES);
+    if (!auth.ok) redirect("/");
     const feeStructureId = formData.get("feeStructureId") as string;
     const dueDate = formData.get("dueDate") as string;
     

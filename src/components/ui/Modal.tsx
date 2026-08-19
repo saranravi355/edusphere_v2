@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 
 interface ModalProps {
@@ -12,10 +12,49 @@ interface ModalProps {
 
 export default function Modal({ buttonText, buttonIcon, title, children }: ModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLButtonElement>(null);
+
+  /**
+   * This dialog previously had no Escape handler, no outside-click close, no
+   * focus management and no dialog semantics — once open, a keyboard user could
+   * tab straight out of it into the page behind, and screen readers announced
+   * nothing.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const panel = panelRef.current;
+    panel?.querySelector<HTMLElement>(
+      'input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])',
+    )?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsOpen(false); return; }
+      if (e.key !== "Tab" || !panel) return;
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      openerRef.current?.focus();
+    };
+  }, [isOpen]);
 
   return (
     <>
       <button 
+        ref={openerRef}
         onClick={() => setIsOpen(true)}
         className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
       >
@@ -24,8 +63,11 @@ export default function Modal({ buttonText, buttonIcon, title, children }: Modal
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+          onMouseDown={(e) => { if (!panelRef.current?.contains(e.target as Node)) setIsOpen(false); }}
+        >
+          <div ref={panelRef} role="dialog" aria-modal="true" aria-label={title} className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
               <h3 className="font-bold text-lg text-navy-900 dark:text-slate-100">{title}</h3>
               <button 

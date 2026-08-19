@@ -1,5 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
-import Modal from "@/components/ui/Modal";
+import AssignmentFormModal from "./AssignmentFormModal";
+import DeleteAssignmentButton from "./DeleteAssignmentButton";
+import { formatDate } from "@/lib/dates";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -34,31 +36,25 @@ export default async function TeacherAssignmentsPage() {
 
   if (!teacher) return null;
 
+  const subjects = await prisma.subject.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
+  const classOptions = teacher.classes.map((c) => ({ id: c.id, name: c.name }));
+  const toDraft = (hw: (typeof teacher.homeworks)[number]) => ({
+    id: hw.id,
+    title: hw.title,
+    description: hw.description,
+    subjectId: hw.subjectId,
+    classroomId: hw.classroomId,
+    // <input type="date"> wants yyyy-mm-dd in the school's own timezone.
+    dueDate: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(hw.dueDate),
+  });
+
   return (
     <div className="space-y-6 pb-12 max-w-6xl">
       <PageHeader 
         title="Assignment Library" 
         description="Manage homework and track submissions across your classes."
         action={
-          <Modal title="Create Assignment" buttonText="Create Assignment" buttonIcon={<Plus size={16} />}>
-            <div className="space-y-4 text-left">
-              <input type="text" placeholder="Assignment Title" className="w-full p-2 border rounded-md dark:bg-slate-900 dark:border-slate-700 text-sm" />
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Class</label>
-                  <select className="w-full p-2 border rounded-md dark:bg-slate-900 dark:border-slate-700 text-sm">
-                    <option>10A</option>
-                    <option>10B</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Due Date</label>
-                  <input type="date" className="w-full p-2 border rounded-md dark:bg-slate-900 dark:border-slate-700 text-sm" />
-                </div>
-              </div>
-              <textarea placeholder="Description..." className="w-full p-2 border rounded-md dark:bg-slate-900 dark:border-slate-700 text-sm h-20 resize-none"></textarea>
-            </div>
-          </Modal>
+          <AssignmentFormModal classes={classOptions} subjects={subjects} />
         }
       />
 
@@ -83,7 +79,7 @@ export default async function TeacherAssignmentsPage() {
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 text-xs font-semibold text-orange-500">
-                      <Clock size={12} /> Due {new Date(hw.dueDate).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}
+                      <Clock size={12} /> Due {formatDate(hw.dueDate, "dMonYyyy")}
                     </span>
                   )}
                 </div>
@@ -108,12 +104,19 @@ export default async function TeacherAssignmentsPage() {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-2">
-                  <button className="flex-1 text-center py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
-                    Edit
-                  </button>
-                  <button className="flex-1 text-center py-1.5 text-sm font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-400 rounded-md transition-colors">
-                    Grade
-                  </button>
+                  <AssignmentFormModal
+                    classes={classOptions}
+                    subjects={subjects}
+                    assignment={toDraft(hw)}
+                    trigger="Edit"
+                  />
+                  <Link
+                    href={`/teacher/assignments/${hw.id}`}
+                    className="flex-1 text-center py-1.5 text-sm font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-400 rounded-md transition-colors"
+                  >
+                    {submittedCount > 0 ? `Grade (${submittedCount})` : "Submissions"}
+                  </Link>
+                  <DeleteAssignmentButton id={hw.id} title={hw.title} submissionCount={submittedCount} />
                 </div>
               </CardContent>
             </Card>

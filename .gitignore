@@ -92,3 +92,5 @@ FINISH_SETUP.bat
 MERGE_TO_MAIN.bat
 migration-verify.log
 data-load.log
+
+_to_delete/

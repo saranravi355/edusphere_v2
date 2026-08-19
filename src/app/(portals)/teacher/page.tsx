@@ -7,11 +7,29 @@ import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, GraduationCap } from "lucide-react";
 import { SubmitButton } from "@/components/ui/form";
+import { guard, TEACHER_ROLES } from "@/lib/authz";
 
-async function markAttendance(studentId: string, status: string, recordedBy: string) {
+async function markAttendance(studentId: string, status: string, _recordedBy?: string) {
   "use server";
+  // `recordedBy` used to arrive from the client, so a caller could mark any
+  // student and attribute it to any teacher. It is derived from the session
+  // now, and the student must be in one of the caller's own classes.
+  const auth = await guard(TEACHER_ROLES);
+  if (!auth.ok) return;
+
+  const teacher = await prisma.teacher.findUnique({
+    where: { userId: auth.user.id },
+    select: { id: true, classes: { select: { id: true } } },
+  });
+  if (!teacher) return;
+
+  const student = await prisma.student.findUnique({ where: { id: studentId }, select: { classroomId: true } });
+  if (!student || !teacher.classes.some((c) => c.id === student.classroomId)) return;
+
+  if (!["PRESENT", "ABSENT", "LATE", "EXCUSED"].includes(status)) return;
+
   await prisma.attendance.create({
-    data: { studentId, status, date: new Date(), recordedBy }
+    data: { studentId, status, date: new Date(), recordedBy: auth.user.id }
   });
   revalidatePath("/teacher");
 }
@@ -22,10 +40,27 @@ async function assignGrade(studentId: string, formData: FormData) {
   revalidatePath("/teacher");
 }
 
-async function bulkMarkPresent(studentIds: string[], recordedBy: string) {
+async function bulkMarkPresent(studentIds: string[], _recordedBy?: string) {
   "use server";
+  const auth = await guard(TEACHER_ROLES);
+  if (!auth.ok) return;
+
+  const teacher = await prisma.teacher.findUnique({
+    where: { userId: auth.user.id },
+    select: { classes: { select: { id: true } } },
+  });
+  if (!teacher) return;
+
+  const classIds = teacher.classes.map((c) => c.id);
+  // Restrict to students the caller actually teaches, rather than trusting the list.
+  const mine = await prisma.student.findMany({
+    where: { id: { in: studentIds }, classroomId: { in: classIds } },
+    select: { id: true },
+  });
+  if (mine.length === 0) return;
+
   await prisma.attendance.createMany({
-    data: studentIds.map(id => ({ studentId: id, status: 'PRESENT', date: new Date(), recordedBy }))
+    data: mine.map(({ id }) => ({ studentId: id, status: 'PRESENT', date: new Date(), recordedBy: auth.user.id }))
   });
   revalidatePath("/teacher");
 }

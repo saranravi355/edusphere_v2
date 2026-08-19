@@ -5,9 +5,13 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { UserPlus } from "lucide-react";
 import { hashPassword } from "@/lib/password";
+import { guard, ADMIN_ROLES } from "@/lib/authz";
 
 async function registerStudent(formData: FormData) {
   "use server";
+  // Creates a Student AND a login. Must be an authorised office action.
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) redirect("/");
 
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;

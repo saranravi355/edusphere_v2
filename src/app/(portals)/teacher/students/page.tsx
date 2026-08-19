@@ -15,11 +15,33 @@ export default async function TeacherStudentsDirectory({
   if (!session || !['CLASS_TEACHER', 'SUBJECT_TEACHER', 'PRINCIPAL'].includes(session.user.role)) redirect('/');
 
   const resolvedParams = await searchParams;
-  const query = resolvedParams.q || "";
-  const currentClassId = resolvedParams.classId || "8A";
-  const isClassTeacher = currentClassId === "8A";
+  const query = (resolvedParams.q || "").trim();
 
-  const displayStudents = await prisma.student.findMany({
+  // Which classes may this person view? A teacher sees their own; a principal
+  // sees all. Defaulting to a hardcoded "8A" previously produced an empty list,
+  // because no classroom is named that.
+  const teacher = await prisma.teacher.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true, classes: { select: { id: true, name: true }, orderBy: { name: "asc" } } },
+  });
+  const allClasses = session.user.role === "PRINCIPAL"
+    ? await prisma.classroom.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } })
+    : (teacher?.classes ?? []);
+
+  const switchable = allClasses.map((c) => ({
+    id: c.id,
+    name: c.name,
+    role: session.user.role === "PRINCIPAL" ? "Principal view" : "Class Teacher",
+  }));
+
+  const requested = resolvedParams.classId;
+  // Never trust the query string: fall back unless it is a class they may see.
+  const currentClassId = requested && allClasses.some((c) => c.name === requested)
+    ? requested
+    : allClasses[0]?.name ?? "";
+  const isClassTeacher = session.user.role !== "PRINCIPAL";
+
+  const displayStudents = currentClassId === "" ? [] : await prisma.student.findMany({
     where: {
       classroom: {
         name: currentClassId
@@ -37,10 +59,10 @@ export default async function TeacherStudentsDirectory({
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
-      <ClassSwitcher isClassTeacher={isClassTeacher} />
+      <ClassSwitcher isClassTeacher={isClassTeacher} classes={switchable} />
 
       <PageHeader
-        title={`Student Directory - Class ${currentClassId}`}
+        title={currentClassId ? `Student Directory — Class ${currentClassId}` : "Student Directory"}
         description="Search your students to view profiles, grades, and AI insights."
       />
 

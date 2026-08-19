@@ -8,12 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, MessageSquare, IndianRupee } from "lucide-react";
 import Link from "next/link";
 
-async function payFee(invoiceId: string) {
-  "use server";
-  await prisma.feeInvoice.update({ where: { id: invoiceId }, data: { status: 'PAID', paidAt: new Date() } });
-  revalidatePath("/parent");
-}
-
 async function sendMessage(formData: FormData) {
   "use server";
   const session = await getSession();
