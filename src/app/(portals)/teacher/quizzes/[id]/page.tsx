@@ -5,6 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { Plus, Send, ArrowLeft, FileText, BarChart3 } from "lucide-react";
+import { guard, STAFF_ROLES } from "@/lib/authz";
 
 async function addQuestion(quizId: string, formData: FormData) {
   "use server";
@@ -56,12 +57,16 @@ async function addQuestion(quizId: string, formData: FormData) {
 
 async function publishExam(quizId: string) {
   "use server";
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) redirect("/");
   await prisma.quiz.update({ where: { id: quizId }, data: { status: "PUBLISHED" } });
   revalidatePath(`/teacher/quizzes/${quizId}`);
 }
 
 async function submitForModeration(quizId: string) {
   "use server";
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) redirect("/");
   await prisma.quiz.update({ where: { id: quizId }, data: { status: "PENDING_MODERATION" } });
   revalidatePath(`/teacher/quizzes/${quizId}`);
 }

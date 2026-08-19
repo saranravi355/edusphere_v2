@@ -1,137 +1,85 @@
-"use client";
-
 import PageHeader from "@/components/ui/PageHeader";
-import { Book, ScanLine, Clock, Search, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { Book, Info, ArrowRight, Boxes } from "lucide-react";
 
-export default function LibraryManagement() {
-  const [scanning, setScanning] = useState(false);
-  const [scannedBook, setScannedBook] = useState<string | null>(null);
+export const dynamic = "force-dynamic";
 
-  const handleScan = () => {
-    setScanning(true);
-    setTimeout(() => {
-      setScanning(false);
-      setScannedBook("The Principia Mathematica (ID: LIB-1049)");
-    }, 1500);
-  };
+/**
+ * The library module has no data model behind it.
+ *
+ * This page previously presented a complete, working-looking library: a barcode
+ * scanner that was a 1.5s setTimeout resolving to a hardcoded
+ * "The Principia Mathematica (ID: LIB-1049)", three invented checkout rows
+ * (LIB-8021, LIB-3055) and an invented ₹15 overdue fine. None of it touched the
+ * database, and there is no Book or Loan model in the schema for it to touch.
+ *
+ * Rather than keep a convincing fake in front of school staff, the page now says
+ * what is true. Equipment lending IS implemented — Asset / AssetCheckout — so it
+ * points there, which is the closest real capability.
+ *
+ * To build this properly: add Book and BookLoan models (ISBN, copies, borrower,
+ * due date, fine accrual), migrate, then reuse the Assets checkout flow.
+ */
+export default async function LibraryManagement() {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) redirect("/");
+
+  // Equipment lending is real, so show its actual numbers rather than inventing any.
+  const [assetCount, activeCheckouts] = await Promise.all([
+    prisma.asset.count(),
+    prisma.assetCheckout.count({ where: { status: "ACTIVE" } }),
+  ]);
 
   return (
-    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
-      <PageHeader 
-        title="Library System" 
-        description="Checkout books, process returns, and manage late fees."
+    <div className="space-y-6 pb-12 max-w-4xl mx-auto">
+      <PageHeader
+        title="Library System"
+        description="Book cataloguing and lending is not yet implemented."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Checkout / Scan Module */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <ScanLine size={18} className="text-blue-500" />
-              Quick Checkout
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student ID / Registration No.</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
-                  <input type="text" className="w-full pl-10 p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-900 dark:text-slate-100" placeholder="e.g. STU-26-101" />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Book Barcode / ID</label>
-                <div className="relative flex gap-2">
-                  <input type="text" value={scannedBook || ""} readOnly className="flex-1 p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-slate-50 dark:bg-zinc-900 text-slate-900 dark:text-slate-100" placeholder="Scan barcode..." />
-                  <button onClick={handleScan} className="px-4 bg-slate-200 hover:bg-slate-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 rounded-lg flex items-center justify-center transition-colors">
-                    <ScanLine size={20} className={scanning ? "animate-pulse text-blue-500" : ""} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button disabled={!scannedBook} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">
-                  Checkout Book
-                </button>
-              </div>
-            </div>
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+            <Book className="w-5 h-5 text-slate-400" aria-hidden />
           </div>
-
-          <div className="bg-primary rounded-2xl p-6 text-white shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl">
-              <AlertCircle size={32} />
-            </div>
-            <div>
-              <p className="text-orange-100 font-medium text-sm">Active Late Fees</p>
-              <h3 className="text-3xl font-bold">₹125.00</h3>
-              <p className="text-xs text-orange-200 mt-1">Across 8 students. Auto-added to invoices.</p>
-            </div>
+          <div className="space-y-3">
+            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">
+              Not built yet
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              There is no book catalogue in the database — no titles, copies, borrowers or
+              fines. Building it needs <code className="text-xs bg-slate-100 dark:bg-zinc-800 px-1 py-0.5 rounded">Book</code> and{" "}
+              <code className="text-xs bg-slate-100 dark:bg-zinc-800 px-1 py-0.5 rounded">BookLoan</code> models
+              and a migration, after which the existing checkout flow can be reused.
+            </p>
+            <p className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
+              This screen used to show a working-looking scanner and checkout list. All of it
+              was invented in the browser and saved nothing, so it has been removed rather
+              than left to mislead.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Current Checkouts */}
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex justify-between items-center">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <Book size={18} className="text-purple-500" />
-              Current Checkouts
-            </h3>
-            <div className="relative">
-              <Search className="absolute left-3 top-2 text-slate-400" size={14} />
-              <input type="text" className="pl-8 p-1.5 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black w-48" placeholder="Search books/students..." />
-            </div>
-          </div>
-          <div className="flex-1 overflow-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-zinc-800 text-xs uppercase text-slate-500 bg-slate-50 dark:bg-zinc-900/30">
-                  <th className="p-4 font-medium">Book</th>
-                  <th className="p-4 font-medium">Student</th>
-                  <th className="p-4 font-medium">Due Date</th>
-                  <th className="p-4 font-medium">Status</th>
-                  <th className="p-4 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                  <td className="p-4">
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Harry Potter (Vol 1)</p>
-                    <p className="text-xs text-slate-500">LIB-8021</p>
-                  </td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Aarav Patel (STU-26-101)</td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Nov 12, 2026</td>
-                  <td className="p-4">
-                    <span className="px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-medium">
-                      Active
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <button className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Return</button>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 bg-red-50/50 dark:bg-red-900/10">
-                  <td className="p-4">
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Advanced Calculus</p>
-                    <p className="text-xs text-slate-500">LIB-3055</p>
-                  </td>
-                  <td className="p-4 text-sm text-slate-600 dark:text-slate-400">Ananya Iyer (STU-26-102)</td>
-                  <td className="p-4 text-sm font-bold text-red-600 dark:text-red-400">Oct 28, 2026</td>
-                  <td className="p-4">
-                    <span className="px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md text-xs font-medium flex items-center gap-1 w-max">
-                      <AlertCircle size={12}/> Overdue (₹15)
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <button className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Return</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
+        <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
+          <Boxes size={18} className="text-emerald-500" aria-hidden />
+          Equipment lending does work
+        </h3>
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          {assetCount} tracked {assetCount === 1 ? "asset" : "assets"}, {activeCheckouts} currently
+          checked out. Laptops, projectors and lab equipment are handled there today.
+        </p>
+        <Link
+          href="/admin/assets"
+          className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-800"
+        >
+          Go to Assets <ArrowRight size={14} aria-hidden />
+        </Link>
       </div>
     </div>
   );

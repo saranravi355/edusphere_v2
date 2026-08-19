@@ -3,16 +3,24 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Users } from "lucide-react";
 
-export default function ClassSwitcher({ isClassTeacher }: { isClassTeacher: boolean }) {
+export type SwitchableClass = { id: string; name: string; role: string };
+
+/**
+ * The class list used to be hardcoded to 8A/8B/8C, which are not classes this
+ * school has — the school runs DP1C, MYP5A and so on. The teacher directory
+ * defaulted to "8A", so its first render matched no classroom and showed an
+ * empty list. Classes are now passed in from the database.
+ */
+export default function ClassSwitcher({
+  isClassTeacher,
+  classes,
+}: {
+  isClassTeacher: boolean;
+  classes: SwitchableClass[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentClass = searchParams.get("classId") || "8A";
-
-  const classes = [
-    { id: "8A", name: "Class 8A", role: "Class Teacher" },
-    { id: "8B", name: "Class 8B", role: "Subject Teacher (Math)" },
-    { id: "8C", name: "Class 8C", role: "Subject Teacher (Math)" },
-  ];
+  const currentClass = searchParams.get("classId") || classes[0]?.name || "";
 
   return (
     <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 p-3 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm">
@@ -22,13 +30,15 @@ export default function ClassSwitcher({ isClassTeacher }: { isClassTeacher: bool
       <div>
         <p className="text-xs text-slate-500 font-medium">Viewing Context</p>
         <select
+          aria-label="Viewing context: class"
           value={currentClass}
-          onChange={(e) => router.push(`?classId=${e.target.value}`)}
+          onChange={(e) => router.push(`?classId=${encodeURIComponent(e.target.value)}`)}
           className="text-sm font-bold bg-transparent border-none outline-none cursor-pointer text-slate-800 dark:text-slate-100"
         >
+          {classes.length === 0 && <option value="">No classes assigned</option>}
           {classes.map(c => (
-            <option key={c.id} value={c.id} className="text-slate-800">
-              {c.name} - {c.role}
+            <option key={c.id} value={c.name} className="text-slate-800">
+              {c.name} — {c.role}
             </option>
           ))}
         </select>

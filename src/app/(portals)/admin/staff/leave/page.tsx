@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { SubmitButton } from "@/components/ui/form";
+import { guard, ADMIN_ROLES } from "@/lib/authz";
 
 export default async function StaffLeavePage() {
   const session = await getSession();
@@ -19,6 +20,9 @@ export default async function StaffLeavePage() {
 
   async function updateStatus(id: string, status: 'APPROVED' | 'REJECTED') {
     "use server";
+    // Directly invocable endpoint: approving leave must be an admin action.
+    const auth = await guard(ADMIN_ROLES);
+    if (!auth.ok) redirect("/");
     await prisma.leaveRequest.update({ where: { id }, data: { status } });
     revalidatePath("/admin/staff/leave");
   }

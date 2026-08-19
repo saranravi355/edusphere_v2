@@ -4,12 +4,6 @@ import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
-export async function payFee(formData: FormData) {
-  // Mock payment processing delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  revalidatePath("/parent");
-}
-
 export async function sendMessage(formData: FormData) {
   const session = await getSession();
   if (!session) return;

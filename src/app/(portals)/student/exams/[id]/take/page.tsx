@@ -4,11 +4,25 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import ExamTakingClient from "@/components/exam/ExamTakingClient";
 
-async function submitExam(examId: string, studentId: string, formData: FormData) {
+async function submitExam(examId: string, _studentId: string, formData: FormData) {
   "use server";
+
+  // studentId used to come from the client, which would have let one student
+  // submit an exam in another student's name. It is resolved from the session.
+  const session = await getSession();
+  if (!session?.user || session.user.role !== "STUDENT") return;
+  const me = await prisma.student.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true, classroomId: true },
+  });
+  if (!me) return;
+  const studentId = me.id;
 
   const quiz = await prisma.quiz.findUnique({ where: { id: examId }, include: { questions: true } });
   if (!quiz) return;
+  // The exam must be set for this student's own class, and be open.
+  if (quiz.classroomId !== me.classroomId) return;
+  if (!["PUBLISHED", "GRADES_RELEASED"].includes(quiz.status) && quiz.status !== "PUBLISHED") return;
 
   const existing = await prisma.quizAttempt.findFirst({ where: { quizId: examId, studentId } });
   if (existing) return; // already attempted
