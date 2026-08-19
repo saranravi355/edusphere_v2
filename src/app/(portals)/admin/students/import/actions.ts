@@ -3,6 +3,10 @@
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { hashPassword } from "@/lib/password";
+
+/** Imported accounts get this until the holder signs in and it is re-hashed. */
+const DEFAULT_IMPORT_PASSWORD = "password123";
 
 export type ImportStudentRow = {
   name?: string;
@@ -128,7 +132,7 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
         let studentUserId: string | undefined;
         if (email) {
           const u = await tx.user.create({
-            data: { name, email, password: "password123", role: "STUDENT" },
+            data: { name, email, password: await hashPassword(DEFAULT_IMPORT_PASSWORD), role: "STUDENT" },
           });
           studentUserId = u.id;
         }
@@ -148,7 +152,7 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
           } else {
             const pEmail = parentEmailRaw ?? `parent.${registrationNo!.toLowerCase()}@edusphere.com`;
             parentUser = await tx.user.create({
-              data: { name: parentName ?? `${name}'s Parent`, email: pEmail, password: "password123", role: "PARENT", parentProfile: { create: { phone: parentPhone } } },
+              data: { name: parentName ?? `${name}'s Parent`, email: pEmail, password: await hashPassword(DEFAULT_IMPORT_PASSWORD), role: "PARENT", parentProfile: { create: { phone: parentPhone } } },
               include: { parentProfile: true },
             });
             parentId = parentUser.parentProfile!.id;

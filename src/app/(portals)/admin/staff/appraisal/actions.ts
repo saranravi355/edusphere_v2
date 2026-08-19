@@ -2,8 +2,12 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { guard, ADMIN_ROLES } from "@/lib/authz";
 
 export async function createObservation(formData: FormData) {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const teacherId = formData.get("teacherId") as string;
   const observerName = formData.get("observerName") as string;
   const className = (formData.get("className") as string) || null;

@@ -2,8 +2,12 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { guard, STAFF_ROLES } from "@/lib/authz";
 
 export async function createIEPPlan(formData: FormData) {
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const studentId = formData.get("studentId") as string;
   const caseManagerId = (formData.get("caseManagerId") as string) || null;
   const needType = formData.get("needType") as string;
@@ -37,6 +41,9 @@ export async function createIEPPlan(formData: FormData) {
 }
 
 export async function addIEPGoal(formData: FormData) {
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const planId = formData.get("planId") as string;
   const title = formData.get("title") as string;
   const targetDate = formData.get("targetDate") as string;
@@ -57,6 +64,9 @@ export async function addIEPGoal(formData: FormData) {
 }
 
 export async function updateGoalProgress(goalId: string, progress: number) {
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const clamped = Math.max(0, Math.min(100, progress));
   await prisma.iEPGoal.update({
     where: { id: goalId },
@@ -71,6 +81,9 @@ export async function updateGoalProgress(goalId: string, progress: number) {
 }
 
 export async function updatePlanStatus(planId: string, status: string) {
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   await prisma.iEPPlan.update({
     where: { id: planId },
     data: { status },

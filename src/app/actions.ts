@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { encrypt } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
@@ -40,8 +41,23 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     return { error: "Cannot reach the database right now. Please try again in a moment." };
   }
 
-  if (!user || user.password !== password) {
+  // Always run the verify, even when the user does not exist, so a missing
+  // account and a wrong password take a similar amount of time.
+  const { valid, needsUpgrade } = await verifyPassword(
+    password,
+    user?.password ?? "$never$matches$",
+  );
+  if (!user || !valid) {
     return { error: "Invalid email or password." };
+  }
+
+  if (needsUpgrade) {
+    // Seeded plaintext: replace it with a hash now that we know it is correct.
+    try {
+      await prisma.user.update({ where: { id: user.id }, data: { password: await hashPassword(password) } });
+    } catch (e) {
+      console.error("[login] could not upgrade stored password:", e);
+    }
   }
 
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);

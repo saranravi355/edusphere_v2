@@ -2,8 +2,14 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { guard, ADMIN_ROLES, STAFF_ROLES } from "@/lib/authz";
 
 export async function getTimetable(classroomId: string) {
+  // A read that fills a grid: refuse by returning nothing rather than an error
+  // object, so every caller keeps one shape. Writes below stay admin-only.
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return [];
+
   if (!classroomId) return [];
   return prisma.timetableEntry.findMany({
     where: { classroomId },
@@ -17,6 +23,9 @@ export async function getTimetable(classroomId: string) {
 }
 
 export async function allocateSlot(formData: FormData) {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   const classroomId = formData.get("classroomId") as string;
   const subjectId = formData.get("subjectId") as string;
   const teacherId = formData.get("teacherId") as string;
@@ -111,6 +120,9 @@ export async function allocateSlot(formData: FormData) {
 }
 
 export async function removeSlot(id: string) {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   await prisma.timetableEntry.delete({
     where: { id }
   });
@@ -128,6 +140,9 @@ const PERIOD_TIMES: Record<number, { start: string; end: string }> = {
 };
 
 export async function autoGenerateSchedule(classroomId: string) {
+  const auth = await guard(ADMIN_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
   // Validate BEFORE destroying anything. The previous version deleted the
   // existing timetable first, so a class with no subjects or teachers lost the
   // schedule it already had and got nothing back.

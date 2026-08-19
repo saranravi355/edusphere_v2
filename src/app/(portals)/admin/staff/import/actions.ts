@@ -5,6 +5,10 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import type { ImportRow, ImportResult } from "@/lib/bulkImport";
 import { cleanValue } from "@/lib/bulkImport";
+import { hashPassword } from "@/lib/password";
+
+/** Imported accounts get this until the holder signs in and it is re-hashed. */
+const DEFAULT_STAFF_PASSWORD = "password123";
 
 const VALID_ROLES = ["CLASS_TEACHER", "SUBJECT_TEACHER"];
 
@@ -53,7 +57,7 @@ export async function importStaff(rows: ImportRow[]): Promise<ImportResult> {
         data: {
           name,
           email,
-          password: "password123",
+          password: await hashPassword(DEFAULT_STAFF_PASSWORD),
           role,
           teacherProfile: {
             create: {
