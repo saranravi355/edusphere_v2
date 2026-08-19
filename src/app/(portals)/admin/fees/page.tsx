@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Plus, Trash2, IndianRupee } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ui/form";
 
 export const dynamic = "force-dynamic";
 
@@ -223,7 +224,15 @@ export default async function FeesPage() {
                       <td className="px-4 py-2 text-right">
                         <form action={deleteFeeItem}>
                           <input type="hidden" name="id" value={it.id} />
-                          <button type="submit" title="Remove" className="text-slate-400 hover:text-red-600 transition-colors"><Trash2 size={15} /></button>
+                          <ConfirmSubmitButton
+                            question="Remove this fee item?"
+                            confirmLabel="Remove"
+                            pendingText="Removing…"
+                            triggerLabel={`Remove ${it.category} fee item`}
+                            triggerClassName="text-slate-400 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 size={15} aria-hidden />
+                          </ConfirmSubmitButton>
                         </form>
                       </td>
                     </tr>

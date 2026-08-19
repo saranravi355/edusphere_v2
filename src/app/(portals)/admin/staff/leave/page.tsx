@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { SubmitButton } from "@/components/ui/form";
 
 export default async function StaffLeavePage() {
   const session = await getSession();
@@ -56,14 +57,14 @@ export default async function StaffLeavePage() {
               {req.status === 'PENDING' && (
                 <div className="flex gap-3">
                   <form action={async () => { "use server"; await updateStatus(req.id, 'APPROVED'); }}>
-                    <button type="submit" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition-colors">
-                      <CheckCircle2 size={12} /> Approve
-                    </button>
+                    <SubmitButton size="sm" pendingText="Approving…" className="bg-green-600 hover:bg-green-700 text-white font-bold">
+                      <CheckCircle2 size={12} aria-hidden /> Approve
+                    </SubmitButton>
                   </form>
                   <form action={async () => { "use server"; await updateStatus(req.id, 'REJECTED'); }}>
-                    <button type="submit" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
-                      <XCircle size={12} /> Reject
-                    </button>
+                    <SubmitButton size="sm" pendingText="Rejecting…" className="bg-red-600 hover:bg-red-700 text-white font-bold">
+                      <XCircle size={12} aria-hidden /> Reject
+                    </SubmitButton>
                   </form>
                 </div>
               )}
