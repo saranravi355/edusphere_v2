@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { CalendarDays, Flag, Landmark, Plus, RefreshCw, Trash2, X, Loader2, CheckCircle2 } from "lucide-react";
 import { syncNationalCalendar, syncIBExamWindows, addCalendarEvent, deleteCalendarEvent } from "./actions";
 import { formatDate } from "@/lib/dates";
+import { ConfirmIconButton } from "@/components/ui/form";
 
 interface Ev {
   id: string;
@@ -121,12 +122,14 @@ export default function CalendarClient({ events }: { events: Ev[] }) {
                         <RefreshCw size={9} /> {e.source}
                       </span>
                     )}
-                    <button
-                      onClick={() => startTransition(() => deleteCalendarEvent(e.id).then(() => {}))}
-                      className="p-1.5 text-slate-300 hover:text-red-500"
+                    <ConfirmIconButton
+                      onConfirm={() => deleteCalendarEvent(e.id)}
+                      question="Delete this event?"
+                      triggerLabel={`Delete calendar event ${e.title}`}
+                      triggerClassName="p-1.5 text-slate-300 hover:text-red-500"
                     >
-                      <Trash2 size={13} />
-                    </button>
+                      <Trash2 size={13} aria-hidden />
+                    </ConfirmIconButton>
                   </div>
                 );
               })}

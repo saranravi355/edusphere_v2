@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, GraduationCap } from "lucide-react";
+import { SubmitButton } from "@/components/ui/form";
 
 async function markAttendance(studentId: string, status: string, recordedBy: string) {
   "use server";
@@ -72,15 +73,19 @@ export default async function TeacherDashboard() {
                     <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">{student.name}</td>
                     <td className="py-3 px-4 text-center">
                       <form action={async () => { "use server"; await markAttendance(student.id, 'PRESENT', session.user.id); }}>
-                        <button type="submit" className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-md">
-                          <CheckCircle2 size={12} /> Present
-                        </button>
+                        <SubmitButton size="sm" pendingText="Saving…" variant="subtle"
+                          className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold">
+                          <CheckCircle2 size={12} aria-hidden /> Present
+                        </SubmitButton>
                       </form>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <form action={async (fd) => { "use server"; await assignGrade(student.id, fd); }} className="flex items-center justify-center gap-2">
-                        <input name="score" type="number" placeholder="Score" className="w-16 border border-slate-200 dark:border-slate-700 rounded p-1 text-xs dark:bg-slate-800" />
-                        <button type="submit" className="text-xs font-bold text-blue-600 hover:underline">Save</button>
+                        <label className="sr-only" htmlFor={`score-${student.id}`}>Score for {student.name}</label>
+                        <input id={`score-${student.id}`} name="score" type="number" min={1} max={7} step={1} required
+                          placeholder="1-7" title="IB grade, 1 to 7"
+                          className="w-16 border border-slate-200 dark:border-slate-700 rounded p-1 text-xs dark:bg-slate-800" />
+                        <SubmitButton size="sm" variant="subtle" pendingText="Saving…" className="text-blue-600 font-bold bg-transparent hover:bg-blue-50 dark:hover:bg-slate-800">Save</SubmitButton>
                       </form>
                     </td>
                   </tr>

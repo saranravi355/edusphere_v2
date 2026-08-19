@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { CreditCard, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { CreditCard, CheckCircle2, Clock, AlertCircle, Info } from "lucide-react";
 
 export default async function ParentFeesPage() {
   const session = await getSession();
@@ -114,20 +114,21 @@ export default async function ParentFeesPage() {
                   </td>
                   <td className="py-4 px-6 text-right">
                     {invoice.status !== 'PAID' && (
-                      <form action={async () => {
-                        "use server";
-                        await prisma.feeInvoice.update({
-                          where: { id: invoice.id },
-                          data: { status: 'PAID', paidAt: new Date() }
-                        });
-                        revalidatePath("/parent/fees");
-                      }}>
-                        <button type="submit" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors">
-                          <CreditCard size={12} /> Pay Now
-                        </button>
-                      </form>
+                      /*
+                       * Online payment is not implemented — there is no gateway
+                       * integrated (see MIGRATION/PRD gap list). This previously
+                       * rendered a "Pay Now" button whose server action simply set
+                       * status = PAID, so a parent could clear their own fees
+                       * without paying anything. That is removed: recording a
+                       * payment is an authorised office action, not a self-service
+                       * one. Until a gateway exists, tell the parent how to pay.
+                       */
+                      <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <Info size={12} aria-hidden />
+                        Pay at the school office
+                      </span>
                     )}
-                  </td>
+                    </td>
                 </tr>
               );
             })}

@@ -112,9 +112,11 @@ function LoginForm() {
               </button>
 
               <div className="flex justify-start mt-1">
-                <a href="#" className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline font-medium">
-                  Forgot Password?
-                </a>
+                {/* Password reset needs an email provider, which is not wired up.
+                    A dead href="#" link is worse than saying so plainly. */}
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Forgotten your password? Contact the school office.
+                </p>
               </div>
             </form>
           </div>

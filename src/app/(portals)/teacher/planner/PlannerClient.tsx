@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { createLessonPlan, setLessonStatus, deleteLessonPlan, generateSubPlan } from "./actions";
 import { formatDate } from "@/lib/dates";
+import { ConfirmIconButton } from "@/components/ui/form";
 
 interface Plan {
   id: string;
@@ -162,12 +163,14 @@ export default function PlannerClient({ plans, subjects }: { plans: Plan[]; subj
                     <button onClick={() => setExpanded(open ? null : p.id)} className="p-1.5 text-slate-400 hover:text-slate-600">
                       {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
-                    <button
-                      onClick={() => startTransition(() => deleteLessonPlan(p.id).then(() => {}))}
-                      className="p-1.5 text-slate-300 hover:text-red-500"
+                    <ConfirmIconButton
+                      onConfirm={() => deleteLessonPlan(p.id)}
+                      question="Delete this lesson plan?"
+                      triggerLabel={`Delete lesson plan ${p.title}`}
+                      triggerClassName="p-1.5 text-slate-300 hover:text-red-500"
                     >
-                      <Trash2 size={14} />
-                    </button>
+                      <Trash2 size={14} aria-hidden />
+                    </ConfirmIconButton>
                   </div>
                 </div>
 

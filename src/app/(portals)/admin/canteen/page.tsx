@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Plus, Trash2, Leaf, Drumstick, AlertTriangle } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ui/form";
 
 export const dynamic = "force-dynamic";
 
@@ -152,7 +153,15 @@ export default async function CanteenPage() {
                           </div>
                           <form action={deleteMenuItem}>
                             <input type="hidden" name="id" value={it.id} />
-                            <button type="submit" title="Remove" className="text-slate-400 hover:text-red-600 transition-colors mt-0.5"><Trash2 size={14} /></button>
+                            <ConfirmSubmitButton
+                              question="Remove this menu item?"
+                              confirmLabel="Remove"
+                              pendingText="Removing…"
+                              triggerLabel={`Remove menu item ${it.name}`}
+                              triggerClassName="text-slate-400 hover:text-red-600 transition-colors mt-0.5"
+                            >
+                              <Trash2 size={14} aria-hidden />
+                            </ConfirmSubmitButton>
                           </form>
                         </div>
                       ))}

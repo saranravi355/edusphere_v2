@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Bed, UserPlus, X, Plane, Check, Ban } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ui/form";
 
 export const dynamic = "force-dynamic";
 
@@ -135,7 +136,15 @@ export default async function HostelPage() {
                             {o.student.name}
                             <form action={removeOccupant} className="inline">
                               <input type="hidden" name="id" value={o.id} />
-                              <button type="submit" title="Remove" className="text-slate-400 hover:text-red-600"><X size={11} /></button>
+                              <ConfirmSubmitButton
+                                question={`Remove ${o.student.name} from this room?`}
+                                confirmLabel="Remove"
+                                pendingText="Removing…"
+                                triggerLabel={`Remove ${o.student.name} from room`}
+                                triggerClassName="text-slate-400 hover:text-red-600"
+                              >
+                                <X size={11} aria-hidden />
+                              </ConfirmSubmitButton>
                             </form>
                           </span>
                         ))}
