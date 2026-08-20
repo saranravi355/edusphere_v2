@@ -104,6 +104,8 @@ export default function AutoGenerateClient({
                 Fine-tune in Timetable Manager <ArrowRight size={13} />
               </Link>
             </div>
+            {/* A narrow screen scrolls the table, not the whole page. */}
+            <div className="overflow-x-auto">
             <table className="w-full text-xs min-w-[700px]">
               <thead>
                 <tr className="bg-slate-50 dark:bg-zinc-900/50">
@@ -138,6 +140,7 @@ export default function AutoGenerateClient({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       )}

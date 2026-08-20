@@ -8,8 +8,40 @@ export type FieldDef = {
   email?: boolean;
   numeric?: boolean;
   enumValues?: string[]; // value must be one of these (case-insensitive)
+  /**
+   * Like enumValues, but for a list resolved at runtime — the classrooms that
+   * actually exist, say. Kept separate because the message differs: an enum is
+   * "must be PYP/MYP/DP", this is "there is no class called 8Z here".
+   */
+  oneOf?: string[];
+  /**
+   * A soft format check. Held as a string rather than a RegExp because these
+   * definitions are built in Server Components and handed to a Client
+   * Component, and a RegExp is not serialisable across that boundary.
+   */
+  pattern?: { source: string; flags?: string; message: string; level?: "warn" | "error" };
+  /** Warn when the value does not look like a date a human or Date() can read. */
+  date?: boolean;
   uniqueInFile?: boolean; // flag duplicates within the uploaded file
 };
+
+/** Limits shared by every importer. See BulkImportWizard for why each exists. */
+export const IMPORT_LIMITS = {
+  /** Above this the browser tab, not the server, is what falls over. */
+  maxFileBytes: 15 * 1024 * 1024,
+  /** Rows are sent to a Server Action in one payload; see next.config.ts. */
+  maxRows: 5000,
+  /** Rows rendered in the review step. The rest are still imported. */
+  previewRows: 200,
+} as const;
+
+export const IMPORT_EXTENSIONS = [".xlsx", ".xls", ".csv", ".tsv"] as const;
+
+/** True when the string parses as a date, including dd/mm/yyyy which Date() rejects. */
+export function looksLikeDate(v: string): boolean {
+  if (/^\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4}$/.test(v.trim())) return true;
+  return !isNaN(new Date(v).getTime());
+}
 
 export type ImportRow = Record<string, string | undefined>;
 

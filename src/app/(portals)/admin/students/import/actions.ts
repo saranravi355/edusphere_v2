@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { hashPassword } from "@/lib/password";
+import type { ImportResult } from "@/lib/bulkImport";
 
 /** Imported accounts get this until the holder signs in and it is re-hashed. */
 const DEFAULT_IMPORT_PASSWORD = "password123";
@@ -28,12 +29,6 @@ export type ImportStudentRow = {
   parentPhone?: string;
 };
 
-export type ImportResult = {
-  created: number;
-  skipped: number;
-  failed: number;
-  messages: { row: number; status: "created" | "skipped" | "failed"; detail: string }[];
-};
 
 const VALID_CURRICULA = ["PYP", "MYP", "DP"];
 

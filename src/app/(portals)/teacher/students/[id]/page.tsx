@@ -2,6 +2,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { presenceByStudent } from "@/lib/attendance";
 import { ArrowLeft, User as UserIcon, BrainCircuit } from "lucide-react";
 import Link from "next/link";
 
@@ -18,14 +19,14 @@ export default async function TeacherStudentProfilePage({ params }: { params: Pr
     include: {
       classroom: true,
       grades: { include: { subject: true }, orderBy: { date: 'desc' }, take: 10 },
-      attendances: true,
     }
   });
 
   if (!student) notFound();
 
-  const totalDays = student.attendances.length;
-  const presentDays = student.attendances.filter(a => a.status === 'PRESENT').length;
+  const presence = (await presenceByStudent([student.id])).get(student.id);
+  const totalDays = presence?.total ?? 0;
+  const presentDays = presence?.present ?? 0;
   const attendanceRate = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : "—";
 
   return (
