@@ -20,16 +20,19 @@ export default async function TeacherAssignmentsPage() {
   const teacher = await prisma.teacher.findUnique({
     where: { userId: session.user.id },
     include: {
+      // Only the counts are rendered, so count in the database. Loading the
+      // rows meant every submission and every student in every class came back
+      // over the wire to have .length taken of them.
       homeworks: {
         include: {
-          classroom: true,
-          subject: true,
-          submissions: true
+          classroom: { select: { name: true } },
+          subject: { select: { name: true } },
+          _count: { select: { submissions: true } }
         },
         orderBy: { dueDate: 'asc' }
       },
       classes: {
-        include: { students: true }
+        select: { id: true, name: true, _count: { select: { students: true } } }
       }
     }
   });
@@ -62,8 +65,8 @@ export default async function TeacherAssignmentsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {teacher.homeworks.length > 0 ? teacher.homeworks.map(hw => {
           // Find total students in this class
-          const totalStudents = teacher.classes.find(c => c.id === hw.classroomId)?.students.length || 0;
-          const submittedCount = hw.submissions.length;
+          const totalStudents = teacher.classes.find(c => c.id === hw.classroomId)?._count.students || 0;
+          const submittedCount = hw._count.submissions;
           const isOverdue = new Date(hw.dueDate) < new Date();
 
           return (

@@ -108,6 +108,8 @@ export default function AppraisalClient({ rows, years, observerName }: { rows: R
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Year-on-year observation trends</h3>
             <span className="text-xs text-slate-400 ml-2">Average score per academic year (IB 1–7 scale)</span>
           </div>
+          {/* A narrow screen scrolls the table, not the whole page. */}
+          <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 text-left">
@@ -143,10 +145,13 @@ export default function AppraisalClient({ rows, years, observerName }: { rows: R
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+        {/* A narrow screen scrolls the table, not the whole page. */}
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 text-left">
@@ -191,6 +196,7 @@ export default function AppraisalClient({ rows, years, observerName }: { rows: R
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Observation form modal */}

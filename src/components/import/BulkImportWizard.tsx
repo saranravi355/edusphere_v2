@@ -7,7 +7,7 @@ import {
   XCircle, ArrowRight, ArrowLeft, Loader2, Sparkles,
 } from "lucide-react";
 import type { FieldDef, ImportRow, ImportResult } from "@/lib/bulkImport";
-import { normalizeHeader } from "@/lib/bulkImport";
+import { normalizeHeader, looksLikeDate, IMPORT_LIMITS, IMPORT_EXTENSIONS } from "@/lib/bulkImport";
 
 type RowStatus = "ok" | "warn" | "error";
 type ValidatedRow = { index: number; values: ImportRow; status: RowStatus; notes: string[] };
@@ -34,29 +34,74 @@ export default function BulkImportWizard({
   const [mapping, setMapping] = useState<Record<string, number>>({});
   const [parseError, setParseError] = useState<string | null>(null);
   const [committing, setCommitting] = useState(false);
+  const [commitError, setCommitError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [truncatedFrom, setTruncatedFrom] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const requiredKeys = fields.filter((f) => f.required).map((f) => f.key);
 
   function autoMap(hdrs: string[]) {
     const map: Record<string, number> = {};
-    for (const f of fields) map[f.key] = hdrs.findIndex((h) => f.aliases.includes(normalizeHeader(h)));
+    for (const f of fields) {
+      // The field's own label counts as an alias. Without this, downloading the
+      // template and uploading it back failed to map any field whose label was
+      // not also listed by hand — "Class / Section" normalises to
+      // "classsection", which was in no alias list, so the class column was
+      // silently dropped on a round trip of the app's own template.
+      const names = new Set([...f.aliases, normalizeHeader(f.label)]);
+      map[f.key] = hdrs.findIndex((h) => names.has(normalizeHeader(h)));
+    }
     setMapping(map);
   }
 
   function handleFile(file: File) {
     setParseError(null);
     setResult(null);
+    setCommitError(null);
+    setTruncatedFrom(null);
+
+    // Drag-and-drop bypasses the input's accept attribute entirely, so the
+    // check has to happen here rather than being left to the file picker.
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!(IMPORT_EXTENSIONS as readonly string[]).includes(ext)) {
+      setParseError(`${file.name} is not a spreadsheet. Use ${IMPORT_EXTENSIONS.join(", ")}.`);
+      return;
+    }
+
+    // The whole file is read into memory and parsed synchronously on the main
+    // thread. Past roughly this size the tab stops responding, which reads as
+    // "the app crashed" rather than "that file is too big".
+    if (file.size > IMPORT_LIMITS.maxFileBytes) {
+      const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;
+      setParseError(`${file.name} is ${mb(file.size)}. The limit is ${mb(IMPORT_LIMITS.maxFileBytes)} — split it into smaller files.`);
+      return;
+    }
+
     const reader = new FileReader();
+    reader.onerror = () => setParseError(`Could not read ${file.name}. If it is open in Excel, close it and try again.`);
     reader.onload = (e) => {
       try {
         const wb = XLSX.read(e.target?.result, { type: "array" });
         const sheet = wb.Sheets[wb.SheetNames[0]];
+        if (!sheet) { setParseError("That workbook has no sheets in it."); return; }
         const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, blankrows: false, raw: false, defval: "" });
         if (!rows.length) { setParseError("The file appears to be empty."); return; }
         const hdrs = rows[0].map((h) => String(h ?? "").trim());
-        const body = rows.slice(1).filter((r) => r.some((c) => String(c ?? "").trim().length));
+        if (!hdrs.some((h) => h.length)) { setParseError("The first row must contain column headers."); return; }
+        let body = rows.slice(1).filter((r) => r.some((c) => String(c ?? "").trim().length));
+        if (!body.length) { setParseError("The file has headers but no data rows."); return; }
+
+        // Every importable row travels to the Server Action in a single
+        // payload. Beyond this the request is rejected by the body size limit
+        // and the failure surfaces as an unexplained error at the last step,
+        // after the person has already done the mapping work.
+        if (body.length > IMPORT_LIMITS.maxRows) {
+          setTruncatedFrom(body.length);
+          body = body.slice(0, IMPORT_LIMITS.maxRows);
+        }
+
         setHeaders(hdrs);
         setDataRows(body.map((r) => hdrs.map((_, i) => String(r[i] ?? "").trim())));
         setFileName(file.name);
@@ -104,6 +149,15 @@ export default function BulkImportWizard({
         if (f.enumValues && !f.enumValues.map((x) => x.toLowerCase()).includes(v.toLowerCase())) {
           status = "error"; notes.push(`${f.label} must be one of ${f.enumValues.join("/")}`);
         }
+        if (f.oneOf && !f.oneOf.map((x) => x.trim().toLowerCase()).includes(v.toLowerCase())) {
+          status = "error"; notes.push(`Unknown ${f.label} "${v}"`);
+        }
+        if (f.date && !looksLikeDate(v)) { if (status === "ok") status = "warn"; notes.push(`Unreadable ${f.label}`); }
+        if (f.pattern && !new RegExp(f.pattern.source, f.pattern.flags).test(v)) {
+          if (f.pattern.level === "error") status = "error";
+          else if (status === "ok") status = "warn";
+          notes.push(f.pattern.message);
+        }
         if (f.uniqueInFile) {
           const set = (seen[f.key] ??= new Set());
           if (set.has(v.toLowerCase())) { status = "error"; notes.push(`Duplicate ${f.label} in file`); }
@@ -125,10 +179,20 @@ export default function BulkImportWizard({
 
   async function commit() {
     setCommitting(true);
+    setCommitError(null);
     try {
       const res = await importAction(importable.map((r) => r.values));
       setResult(res);
       setStep(4);
+    } catch (e) {
+      // Without this the button simply stopped spinning and stayed on the
+      // review step, which is indistinguishable from the import having
+      // silently done nothing. Nothing was written, so say so.
+      setCommitError(
+        e instanceof Error && e.message
+          ? `The import did not run: ${e.message}. Nothing was saved — you can try again.`
+          : "The import did not run and nothing was saved. Check your connection and try again."
+      );
     } finally {
       setCommitting(false);
     }
@@ -137,6 +201,7 @@ export default function BulkImportWizard({
   function reset() {
     setStep(1); setFileName(null); setHeaders([]); setDataRows([]);
     setMapping({}); setParseError(null); setResult(null);
+    setCommitError(null); setTruncatedFrom(null); setDragging(false);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -150,9 +215,10 @@ export default function BulkImportWizard({
       {step === 1 && (
         <div className={`${card} p-8`}>
           <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
-            className="border-2 border-dashed border-border rounded-lg p-10 flex flex-col items-center text-center gap-3"
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
+            className={`border-2 border-dashed rounded-lg p-10 flex flex-col items-center text-center gap-3 transition-colors ${dragging ? "border-primary bg-primary/5" : "border-border"}`}
           >
             <div className="w-14 h-14 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
               <UploadCloud size={26} />
@@ -169,10 +235,11 @@ export default function BulkImportWizard({
                 <Download size={16} /> Download template
               </button>
             </div>
-            <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv,.tsv" className="hidden"
+            <input ref={inputRef} type="file" aria-label={`Choose a spreadsheet of ${entityLabel}`}
+              accept={IMPORT_EXTENSIONS.join(",")} className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           </div>
-          {parseError && <p className="mt-4 text-sm text-red-600 dark:text-red-400 flex items-center gap-2"><XCircle size={16} /> {parseError}</p>}
+          {parseError && <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400 flex items-center gap-2"><XCircle size={16} aria-hidden /> {parseError}</p>}
           <p className="mt-4 text-xs text-muted-foreground">
             Tip: download the template for the exact columns. Fields marked <span className="text-red-500">*</span> are required.
           </p>
@@ -185,7 +252,12 @@ export default function BulkImportWizard({
             <div>
               <h3 className="font-semibold text-foreground">Map your columns</h3>
               <p className="text-sm text-muted-foreground">
-                <FileSpreadsheet size={13} className="inline mb-0.5" /> {fileName} &middot; {dataRows.length} rows &middot; {headers.length} columns.
+                <FileSpreadsheet size={13} className="inline mb-0.5" aria-hidden /> {fileName} &middot; {dataRows.length} rows &middot; {headers.length} columns.
+                {truncatedFrom !== null && (
+                  <span className="block text-amber-600 dark:text-amber-400 mt-1">
+                    That file had {truncatedFrom} rows. Only the first {dataRows.length} are loaded — import these, then upload the rest.
+                  </span>
+                )}
               </p>
             </div>
             <span className="text-xs px-2.5 py-1 rounded-full bg-muted text-foreground flex items-center gap-1">
@@ -239,7 +311,7 @@ export default function BulkImportWizard({
                   </tr>
                 </thead>
                 <tbody>
-                  {validated.map((r) => (
+                  {validated.slice(0, IMPORT_LIMITS.previewRows).map((r) => (
                     <tr key={r.index} className="border-t border-border">
                       <td className="px-3 py-2 text-muted-foreground">{r.index + 1}</td>
                       {primaryKeys.map((k) => (
@@ -252,6 +324,17 @@ export default function BulkImportWizard({
               </table>
             </div>
           </div>
+          {validated.length > IMPORT_LIMITS.previewRows && (
+            <p className="text-xs text-muted-foreground">
+              Showing the first {IMPORT_LIMITS.previewRows} of {validated.length} rows. The counts above cover all of them,
+              and every row without an error is imported.
+            </p>
+          )}
+          {commitError && (
+            <p role="alert" className="text-sm text-red-600 dark:text-red-400 flex items-start gap-2">
+              <XCircle size={16} className="mt-0.5 shrink-0" aria-hidden /> {commitError}
+            </p>
+          )}
           <div className="flex justify-between pt-1">
             <button onClick={() => setStep(2)} className="px-4 py-2 rounded-md border border-border text-sm flex items-center gap-2 hover:bg-muted"><ArrowLeft size={15} /> Back to mapping</button>
             <button disabled={importable.length === 0 || committing} onClick={commit}

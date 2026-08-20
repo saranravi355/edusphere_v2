@@ -2,6 +2,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { presenceByStudent } from "@/lib/attendance";
 import { BookOpen, TrendingUp, TrendingDown, Minus, HeartHandshake } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +29,12 @@ export default async function ReportsPage() {
     where: { classroomId: classroom.id, isActive: true },
     include: {
       assessmentResults: { orderBy: { date: "asc" } },
-      attendances: true,
       iepPlans: { where: { status: { not: "ARCHIVED" } }, select: { id: true } },
     },
     orderBy: { name: "asc" },
   });
+
+  const presence = await presenceByStudent(students.map((s) => s.id));
 
   const rows = students.map((s) => {
     const res = s.assessmentResults;
@@ -44,8 +46,8 @@ export default async function ReportsPage() {
       early.length && late.length
         ? late.reduce((n, r) => n + r.grade, 0) / late.length - early.reduce((n, r) => n + r.grade, 0) / early.length
         : 0;
-    const present = s.attendances.filter((a) => a.status === "PRESENT").length;
-    const attPct = s.attendances.length ? Math.round((present / s.attendances.length) * 100) : null;
+    const ratio = presence.get(s.id)?.ratio ?? null;
+    const attPct = ratio === null ? null : Math.round(ratio * 100);
     return {
       id: s.id,
       name: s.name,

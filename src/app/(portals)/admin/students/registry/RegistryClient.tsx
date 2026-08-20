@@ -6,6 +6,7 @@ import {
   BrainCircuit, TrendingUp, ShieldAlert, Loader2, Download, ChevronDown,
 } from "lucide-react";
 import { formatDate } from "@/lib/dates";
+import { toCsv, downloadCsv } from "@/lib/csv";
 
 interface Row {
   id: string;
@@ -99,21 +100,27 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
     }, 1400);
   }
 
+  // Serialisation lives in @/lib/csv so this file cannot drift from the rest
+  // of the app's exports — in particular the formula-injection guard, which
+  // matters here because every one of these values arrives from an uploaded
+  // spreadsheet.
   function exportCSV() {
-    const head = "Name,Registration No,Programme,Class,Parent,Parent Phone,IEP,Status";
-    const body = filtered
-      .map((r) =>
-        [r.name, r.registrationNo, r.curriculum, r.classroom || "", r.parentName || "", r.parentPhone || "", r.hasIEP ? "Yes" : "No", r.isActive ? "Active" : "Inactive"]
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-          .join(",")
+    if (!filtered.length) return;
+    downloadCsv(
+      "student-registry.csv",
+      toCsv(
+        filtered.map((r) => ({
+          Name: r.name,
+          "Registration No": r.registrationNo,
+          Programme: r.curriculum,
+          Class: r.classroom || "",
+          Parent: r.parentName || "",
+          "Parent Phone": r.parentPhone || "",
+          IEP: r.hasIEP ? "Yes" : "No",
+          Status: r.isActive ? "Active" : "Inactive",
+        }))
       )
-      .join("\n");
-    const blob = new Blob([head + "\n" + body], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "student-registry.csv";
-    a.click();
-    URL.revokeObjectURL(a.href);
+    );
   }
 
   return (
@@ -178,8 +185,11 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={exportCSV}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 rounded-xl transition-colors"
+            disabled={!filtered.length}
+            title={filtered.length ? `Export ${filtered.length} rows to CSV` : "Nothing to export"}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 rounded-xl transition-colors"
           >
             <Download size={14} /> CSV
           </button>
