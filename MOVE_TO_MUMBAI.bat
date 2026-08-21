@@ -28,22 +28,24 @@ echo   BEFORE YOU RUN THIS, add two lines to .env
 echo ------------------------------------------------------------
 echo.
 echo   1. supabase.com/dashboard - open the edusphere-mumbai
-echo      project - press Connect (top of the page).
-echo   2. If it asks you to set a database password, set one.
+echo      project - press Connect at the top of the page.
+echo   2. Choose the ORM tab, then Prisma. NOT the Framework
+echo      tab - that one is for the supabase-js client library,
+echo      which this app does not use.
+echo   3. If it asks you to set a database password, set one.
 echo      Avoid @ : / ? # ^& in it - those need URL-escaping.
-echo   3. The dialog lists three connection strings. Copy the
-echo      one called "Transaction pooler" (port 6543) and the
-echo      one called "Session pooler" (port 5432).
-echo   4. Paste them into .env, replacing [YOUR-PASSWORD] in each
-echo      with the password you just set:
+echo   4. It shows two lines, DATABASE_URL and DIRECT_URL. Copy
+echo      both into .env with a TARGET_ prefix, so they do not
+echo      clash with the live Tokyo ones already there:
 echo.
-echo        TARGET_DATABASE_URL="THE TRANSACTION POOLER STRING"
-echo        TARGET_DIRECT_URL="THE SESSION POOLER STRING"
+echo        TARGET_DATABASE_URL="...:6543/postgres?pgbouncer=true"
+echo        TARGET_DIRECT_URL="...:5432/postgres"
 echo.
-echo   5. On the end of the TARGET_DATABASE_URL one only, inside
-echo      the quotes, append this:
+echo   5. Replace [YOUR-PASSWORD] in both with your password,
+echo      and on the TARGET_DATABASE_URL line only, inside the
+echo      quotes, append this to the end:
 echo.
-echo        ?pgbouncer=true^&connection_limit=1
+echo        ^&connection_limit=1
 echo.
 echo   Same shape as the two lines already in .env, with
 echo   ap-south-1 in the host instead of ap-northeast-1.
