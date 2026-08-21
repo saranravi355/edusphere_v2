@@ -42,40 +42,12 @@ export async function markAttendance(formData: FormData) {
   revalidatePath("/teacher");
 }
 
-export async function assignGrade(formData: FormData) {
-  const session = await getSession();
-  if (!session) return;
-
-  const studentId = formData.get("studentId") as string;
-  const score = parseFloat(formData.get("score") as string);
-
-  // For this demo, let's just find the first Biology grade and update it
-  const bioSubject = await prisma.subject.findFirst({ where: { name: 'Biology' } });
-  if (!bioSubject) return;
-
-  const existing = await prisma.grade.findFirst({
-    where: { studentId, subjectId: bioSubject.id }
-  });
-
-  if (existing) {
-    await prisma.grade.update({
-      where: { id: existing.id },
-      data: { score }
-    });
-  } else {
-    await prisma.grade.create({
-      data: {
-        studentId,
-        subjectId: bioSubject.id,
-        examName: "Midterm Update",
-        score,
-        maxScore: 100
-      }
-    });
-  }
-
-  revalidatePath("/teacher");
-}
+/**
+ * assignGrade used to live here. It was dead — teacher/page.tsx defines its own
+ * inline server action of the same name — and it was demo-shaped: it ignored the
+ * subject entirely, looked up "Biology", and wrote a grade called "Midterm
+ * Update". The live path writes an AssessmentResult against the real assessment.
+ */
 
 export async function bulkMarkPresent(classId: string) {
   const session = await getSession();
