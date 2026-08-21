@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ClubsClient from "./ClubsClient";
+import ActivityModal from "./ActivityModal";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,7 @@ export default async function AdminClubsPage() {
       <PageHeader
         title="Clubs & Activities"
         description="Extracurricular clubs with full member rosters, past activity records and upcoming events."
+        action={<ActivityModal clubs={clubs.map((c) => ({ id: c.id, name: c.name }))} />}
       />
       <ClubsClient clubs={rows} />
     </div>

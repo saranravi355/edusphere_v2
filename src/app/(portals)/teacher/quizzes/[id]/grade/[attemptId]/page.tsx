@@ -106,22 +106,36 @@ export default async function GradeAttemptPage({ params }: { params: Promise<{ i
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
                   {r.textAnswer || <span className="text-slate-400 italic">No answer submitted</span>}
                 </div>
-                {(r.question.rubricCriteria ? JSON.parse(r.question.rubricCriteria) : []).map((c: { criterion: string; maxPoints: number }, ci: number) => (
-                  <div key={ci} className="flex items-center gap-3">
-                    <label className="text-sm text-slate-600 dark:text-slate-400 flex-1">{c.criterion} (max {c.maxPoints})</label>
-                    <input
-                      type="number"
-                      name={`rubric_${r.id}_${ci}`}
-                      min={0}
-                      max={c.maxPoints}
-                      defaultValue={0}
-                      className="w-24 p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm"
-                    />
-                  </div>
-                ))}
+                {/*
+                  These inputs used to be defaultValue={0} and the textarea had
+                  no defaultValue at all, so reopening a script that had already
+                  been marked showed zeros and an empty comment — and pressing
+                  Save again wiped the marking that was there.
+                */}
+                {(r.question.rubricCriteria ? JSON.parse(r.question.rubricCriteria) : []).map((c: { criterion: string; maxPoints: number }, ci: number) => {
+                  const awarded = (r.rubricScores ? JSON.parse(r.rubricScores) : []) as { criterion: string; points: number }[];
+                  const prior = awarded[ci]?.points ?? "";
+                  return (
+                    <div key={ci} className="flex items-center gap-3">
+                      <label className="text-sm text-slate-600 dark:text-slate-400 flex-1" htmlFor={`rubric_${r.id}_${ci}`}>
+                        {c.criterion} (max {c.maxPoints})
+                      </label>
+                      <input
+                        id={`rubric_${r.id}_${ci}`}
+                        type="number"
+                        name={`rubric_${r.id}_${ci}`}
+                        min={0}
+                        max={c.maxPoints}
+                        step="0.5"
+                        defaultValue={prior}
+                        className="w-24 p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm"
+                      />
+                    </div>
+                  );
+                })}
                 <div>
-                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Feedback for student</label>
-                  <textarea name={`feedback_${r.id}`} rows={2} className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm" placeholder="Written feedback..." />
+                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1" htmlFor={`feedback_${r.id}`}>Feedback for student</label>
+                  <textarea id={`feedback_${r.id}`} name={`feedback_${r.id}`} rows={2} defaultValue={r.feedback ?? ""} className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm" placeholder="Written feedback..." />
                 </div>
               </div>
             )}

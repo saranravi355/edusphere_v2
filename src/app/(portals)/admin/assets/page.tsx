@@ -3,7 +3,11 @@ import PageHeader from "@/components/ui/PageHeader";
 import ExportButton from "@/components/data/ExportButton";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { Monitor, CheckCircle2, Wrench, PackageOpen } from "lucide-react";
+import { Monitor, CheckCircle2, Wrench, PackageOpen, Undo2 } from "lucide-react";
+import AssetControls from "./AssetControls";
+import { returnAsset } from "./actions";
+import { ConfirmIconButton } from "@/components/ui/form";
+import { formatDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +21,28 @@ export default async function AssetsPage() {
   const session = await getSession();
   if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) redirect("/");
 
-  const assets = await prisma.asset.findMany({ orderBy: [{ category: "asc" }, { serialNo: "asc" }] });
+  /*
+   * Asset and AssetCheckout have been in the schema from the beginning and this
+   * page rendered them faithfully — but there was no way to add an asset, no
+   * way to lend one out and no way to take one back, so the only rows that
+   * could ever exist were the ones the seed script created.
+   */
+  const [assets, people, loans] = await Promise.all([
+    prisma.asset.findMany({
+      orderBy: [{ category: "asc" }, { serialNo: "asc" }],
+      include: { checkouts: { where: { status: "ACTIVE" }, include: { user: { select: { name: true } } }, take: 1 } },
+    }),
+    prisma.user.findMany({
+      where: { role: { in: ["SUPER_ADMIN", "PRINCIPAL", "CLASS_TEACHER", "SUBJECT_TEACHER"] } },
+      select: { id: true, name: true, role: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.assetCheckout.findMany({
+      where: { status: "ACTIVE" },
+      include: { asset: { select: { name: true } }, user: { select: { name: true } } },
+      orderBy: { checkoutDate: "desc" },
+    }),
+  ]);
   const total = assets.length;
   const available = assets.filter((a) => a.status === "AVAILABLE").length;
   const checkedOut = assets.filter((a) => a.status === "CHECKED_OUT").length;
@@ -37,7 +62,15 @@ export default async function AssetsPage() {
       <PageHeader
         title="IT & Asset Management"
         description="Track school devices, lab equipment, sports gear and instruments."
-        action={<ExportButton rows={exportRows} filename="asset-inventory" label="Export inventory" />}
+        action={
+          <div className="flex flex-wrap gap-2 items-center">
+            <AssetControls
+              available={assets.filter((a) => a.status === "AVAILABLE").map((a) => ({ id: a.id, name: a.name, serialNo: a.serialNo }))}
+              people={people}
+            />
+            <ExportButton rows={exportRows} filename="asset-inventory" label="Export inventory" />
+          </div>
+        }
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -60,6 +93,7 @@ export default async function AssetsPage() {
                 <th className="text-left font-medium px-5 py-2.5">Category</th>
                 <th className="text-left font-medium px-5 py-2.5">Serial no.</th>
                 <th className="text-left font-medium px-5 py-2.5">Status</th>
+                <th className="text-left font-medium px-5 py-2.5">With</th>
               </tr>
             </thead>
             <tbody>
@@ -73,9 +107,53 @@ export default async function AssetsPage() {
                       {a.status.replace("_", " ")}
                     </span>
                   </td>
+                  <td className="px-5 py-2.5 text-muted-foreground text-xs">
+                    {a.checkouts[0] ? a.checkouts[0].user.name : "—"}
+                  </td>
                 </tr>
               ))}
-              {assets.length === 0 && <tr><td colSpan={4} className="px-5 py-8 text-center text-muted-foreground">No assets recorded.</td></tr>}
+              {assets.length === 0 && <tr><td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">No assets recorded. Use “New asset” to add the first one.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h3 className="font-heading text-base text-foreground">Currently out ({loans.length})</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-muted-foreground">
+              <tr>
+                <th className="text-left font-medium px-5 py-2.5">Asset</th>
+                <th className="text-left font-medium px-5 py-2.5">Issued to</th>
+                <th className="text-left font-medium px-5 py-2.5">Since</th>
+                <th className="text-right font-medium px-5 py-2.5">Return</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loans.map((l) => (
+                <tr key={l.id} className="border-t border-border">
+                  <td className="px-5 py-2.5 text-foreground">{l.asset.name}</td>
+                  <td className="px-5 py-2.5 text-muted-foreground">{l.user.name}</td>
+                  <td className="px-5 py-2.5 text-muted-foreground">{formatDate(l.checkoutDate, "dMonYy")}</td>
+                  <td className="px-5 py-2.5 text-right">
+                    <ConfirmIconButton
+                      onConfirm={async () => { "use server"; return returnAsset(l.id); }}
+                      question="Mark as returned?"
+                      confirmLabel="Returned"
+                      triggerLabel={`Mark ${l.asset.name} returned`}
+                      triggerClassName="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-xs font-medium text-foreground hover:bg-muted"
+                    >
+                      <Undo2 size={13} aria-hidden /> Return
+                    </ConfirmIconButton>
+                  </td>
+                </tr>
+              ))}
+              {loans.length === 0 && (
+                <tr><td colSpan={4} className="px-5 py-8 text-center text-muted-foreground">Nothing is out at the moment.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -53,7 +53,10 @@ async function addLeave(formData: FormData) {
       studentId, fromDate: new Date(fromDate), toDate: new Date(toDate), reason,
       destination: String(formData.get("destination") || "").trim() || null,
       contactPhone: String(formData.get("contactPhone") || "").trim() || null,
-      status: "APPROVED",
+      // Recorded as PENDING. It used to be created APPROVED, which meant the
+      // Approve and Reject buttons below — which only render for PENDING —
+      // could never appear for anything this screen created.
+      status: "PENDING",
     },
   });
   revalidatePath("/admin/hostel");

@@ -1,146 +1,191 @@
-"use client";
-
 import PageHeader from "@/components/ui/PageHeader";
-import { IndianRupee, FileDown, CheckCircle2, AlertCircle, PlayCircle, Plane } from "lucide-react";
-import { useState } from "react";
+import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import ExportButton from "@/components/data/ExportButton";
+import PayrollControls from "./PayrollControls";
+import { IndianRupee, CheckCircle2, Plane, Users } from "lucide-react";
+import { formatDate } from "@/lib/dates";
 
-export default function AutomatedPayroll() {
-  const [running, setRunning] = useState(false);
-  const [complete, setComplete] = useState(false);
+export const dynamic = "force-dynamic";
 
-  const runPayroll = () => {
-    setRunning(true);
-    setTimeout(() => {
-      setRunning(false);
-      setComplete(true);
-    }, 2500);
-  };
+/** Last twelve months, newest first, as yyyy-mm. */
+function recentPeriods(count = 12): string[] {
+  const out: string[] = [];
+  const now = new Date();
+  for (let i = 0; i < count; i++) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    out.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
+  }
+  return out;
+}
+
+const monthLabel = (period: string) => {
+  const [y, m] = period.split("-").map(Number);
+  return `${["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][m - 1]} ${y}`;
+};
+
+/**
+ * Payroll.
+ *
+ * The cycle dropdown had no name, no value and no handler, and the ledger below
+ * it was headed "Jun 2026" whatever it said. "Run Payroll Batch" was a
+ * 2.5-second setTimeout, after which three hardcoded staff rows appeared and a
+ * hardcoded "₹2,45,600 across 85 Staff Members" — at a school with 15 teachers.
+ * "Disburse Funds" and "Export CSV" had no onClick at all, so money was never
+ * moved or recorded, and a banner claimed the page was "Syncing with Leave
+ * Module to calculate UTO deductions" while never reading it.
+ *
+ * Runs and lines are stored, the month selector works, unpaid leave is read
+ * from the leave module for real, and disbursement is recorded.
+ */
+export default async function PayrollPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string }>;
+}) {
+  const session = await getSession();
+  if (!session || session.user.role !== "SUPER_ADMIN") redirect("/");
+
+  const periods = recentPeriods();
+  const sp = await searchParams;
+  const period = periods.includes(sp.period ?? "") ? sp.period! : periods[0];
+
+  const [run, teachers] = await Promise.all([
+    prisma.payrollRun.findUnique({
+      where: { period },
+      include: {
+        lines: {
+          include: { teacher: { select: { user: { select: { name: true } }, subjects: true } } },
+          orderBy: { netPay: "desc" },
+        },
+      },
+    }),
+    prisma.teacher.findMany({
+      select: { id: true, baseSalary: true, user: { select: { name: true } } },
+      orderBy: { user: { name: "asc" } },
+    }),
+  ]);
+
+  const status: "NONE" | "DRAFT" | "DISBURSED" = !run ? "NONE" : run.status === "DISBURSED" ? "DISBURSED" : "DRAFT";
+  const lines = run?.lines ?? [];
+  const totalDeductions = lines.reduce((n, l) => n + l.deductions, 0);
+
+  const exportRows = lines.map((l) => ({
+    Period: period,
+    Staff: l.teacher.user.name,
+    Subjects: l.teacher.subjects,
+    BaseSalary: l.baseSalary,
+    UnpaidDays: l.unpaidDays,
+    Deductions: l.deductions,
+    NetPay: l.netPay,
+  }));
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
-      <PageHeader 
-        title="Automated Staff Payroll" 
-        description="Run monthly payroll batches. Automatically syncs with Leave Management."
+      <PageHeader
+        title="Payroll"
+        description="Monthly salary runs, with unpaid leave read from the leave module."
+        action={<ExportButton rows={exportRows} filename={`payroll-${period}`} label="Export run" />}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
-        {/* Control Panel */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <PlayCircle size={18} className="text-emerald-500" />
-              Batch Execution
-            </h3>
-            
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payroll Cycle</label>
-                <select className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-700 dark:text-slate-300 font-medium">
-                  <option>June 2026</option>
-                  <option>May 2026</option>
-                </select>
-              </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl flex gap-3">
-                <Plane className="text-blue-600 shrink-0 mt-0.5" size={16} />
-                <p className="text-xs text-blue-800 dark:text-blue-300">Syncing with Leave Module to calculate Unpaid Time Off (UTO) deductions.</p>
-              </div>
-            </div>
+      {/* The cycle selector, as a real GET form. */}
+      <form className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-end gap-3">
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="pr-period">Payroll cycle</label>
+          <select
+            id="pr-period"
+            name="period"
+            defaultValue={period}
+            className="p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black font-medium text-slate-700 dark:text-slate-300 text-sm"
+          >
+            {periods.map((p) => <option key={p} value={p}>{monthLabel(p)}</option>)}
+          </select>
+        </div>
+        <button type="submit" className="px-4 py-2.5 rounded-lg bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-sm font-bold">
+          Open
+        </button>
+        <Link href="/admin/staff/leave" className="text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline py-2.5">
+          Leave approvals
+        </Link>
+      </form>
 
-            {!complete ? (
-              <button 
-                onClick={runPayroll}
-                disabled={running}
-                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 disabled:opacity-50 text-white dark:text-slate-900 font-bold rounded-xl transition-colors flex justify-center items-center gap-2 shadow-md"
-              >
-                {running ? <><div className="w-4 h-4 border-2 border-white dark:border-slate-900 border-t-transparent rounded-full animate-spin"/> Processing...</> : "Run Payroll Batch"}
-              </button>
-            ) : (
-              <button className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors flex justify-center items-center gap-2 shadow-md">
-                <CheckCircle2 size={18} /> Disburse Funds
-              </button>
-            )}
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100">{monthLabel(period)}</h3>
+            <p className="text-sm text-slate-500">
+              {status === "NONE" && "Not calculated yet."}
+              {status === "DRAFT" && `Draft · ${lines.length} staff · recalculating replaces it.`}
+              {status === "DISBURSED" && run?.disbursedAt && (
+                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 size={14} aria-hidden /> Disbursed {formatDate(run.disbursedAt, "dMonYyyy")}
+                </span>
+              )}
+            </p>
           </div>
-
-          {complete && (
-            <div className="bg-primary rounded-2xl p-6 text-white shadow-sm flex flex-col justify-center animate-in fade-in slide-in-from-bottom-4">
-              <p className="text-emerald-100 font-medium text-sm">Total Disbursable</p>
-              <h3 className="text-4xl font-bold mt-1">₹2,45,600</h3>
-              <p className="text-xs text-emerald-200 mt-2">Across 85 Staff Members</p>
-            </div>
-          )}
         </div>
 
-        {/* Ledger */}
-        <div className="lg:col-span-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex justify-between items-center">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <IndianRupee size={18} className="text-slate-500" />
-              Salary Ledger (Jun 2026)
-            </h3>
-            {complete && (
-              <button className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                <FileDown size={16}/> Export CSV
-              </button>
-            )}
+        <PayrollControls
+          period={period}
+          status={status}
+          hasLines={lines.length > 0}
+          teachers={teachers.map((t) => ({ id: t.id, name: t.user.name, baseSalary: t.baseSalary }))}
+        />
+      </div>
+
+      {lines.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: "Net payable", value: `₹${(run?.totalNet ?? 0).toLocaleString("en-IN")}`, icon: IndianRupee },
+              { label: "Staff in this run", value: lines.length, icon: Users },
+              { label: "Unpaid-leave deductions", value: `₹${totalDeductions.toLocaleString("en-IN")}`, icon: Plane },
+            ].map((s) => (
+              <div key={s.label} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+                <div className="w-10 h-10 rounded-md flex items-center justify-center mb-3 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300">
+                  <s.icon size={20} aria-hidden />
+                </div>
+                <p className="text-2xl font-semibold text-slate-800 dark:text-slate-100">{s.value}</p>
+                <p className="text-xs text-slate-500">{s.label}</p>
+              </div>
+            ))}
           </div>
-          
-          <div className="flex-1 overflow-auto">
-            {complete ? (
-              <table className="w-full text-left animate-in fade-in duration-500">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-zinc-800 text-xs uppercase text-slate-500 bg-slate-50 dark:bg-zinc-900/30">
-                    <th className="p-4 font-medium">Staff Member</th>
-                    <th className="p-4 font-medium">Base Salary</th>
-                    <th className="p-4 font-medium">Deductions (Leaves)</th>
-                    <th className="p-4 font-medium">Net Pay</th>
-                    <th className="p-4 font-medium">Status</th>
+
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-200 dark:border-zinc-800">
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">Salary ledger — {monthLabel(period)}</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 dark:bg-zinc-900/50 text-slate-500">
+                  <tr>
+                    <th className="text-left font-medium px-5 py-2.5">Staff</th>
+                    <th className="text-right font-medium px-5 py-2.5">Base</th>
+                    <th className="text-right font-medium px-5 py-2.5">Unpaid days</th>
+                    <th className="text-right font-medium px-5 py-2.5">Deductions</th>
+                    <th className="text-right font-medium px-5 py-2.5">Net pay</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                  <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                    <td className="p-4">
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Meena Krishnan</p>
-                      <p className="text-xs text-slate-500">Principal</p>
-                    </td>
-                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">₹8,500.00</td>
-                    <td className="p-4 text-sm text-slate-500">₹0.00 <span className="text-xs ml-1">(0 Unpaid Days)</span></td>
-                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">₹8,500.00</td>
-                    <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-bold w-max inline-block">Drafted</span></td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 bg-red-50/50 dark:bg-red-900/10">
-                    <td className="p-4">
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Rajesh Kumar</p>
-                      <p className="text-xs text-slate-500">Teacher</p>
-                    </td>
-                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">₹4,200.00</td>
-                    <td className="p-4 text-sm font-bold text-red-600 dark:text-red-500">-₹280.00 <span className="text-xs font-normal text-slate-500 ml-1">(2 Unpaid Days)</span></td>
-                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">₹3,920.00</td>
-                    <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-bold w-max inline-block">Drafted</span></td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                    <td className="p-4">
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100">Sindhu Sharma</p>
-                      <p className="text-xs text-slate-500">Teacher</p>
-                    </td>
-                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">₹4,500.00</td>
-                    <td className="p-4 text-sm text-slate-500">₹0.00 <span className="text-xs ml-1">(Earned Leave Used)</span></td>
-                    <td className="p-4 text-sm font-bold text-slate-800 dark:text-slate-100">₹4,500.00</td>
-                    <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-bold w-max inline-block">Drafted</span></td>
-                  </tr>
+                  {lines.map((l) => (
+                    <tr key={l.id}>
+                      <td className="px-5 py-2.5 text-slate-800 dark:text-slate-200">{l.teacher.user.name}</td>
+                      <td className="px-5 py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-400">₹{l.baseSalary.toLocaleString("en-IN")}</td>
+                      <td className="px-5 py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-400">{l.unpaidDays || "—"}</td>
+                      <td className={`px-5 py-2.5 text-right tabular-nums ${l.deductions > 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-400"}`}>
+                        {l.deductions > 0 ? `−₹${l.deductions.toLocaleString("en-IN")}` : "—"}
+                      </td>
+                      <td className="px-5 py-2.5 text-right tabular-nums font-semibold text-slate-800 dark:text-slate-100">₹{l.netPay.toLocaleString("en-IN")}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            ) : (
-              <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-slate-400">
-                <IndianRupee size={64} className="mb-4 opacity-20" />
-                <p className="font-medium text-slate-600 dark:text-slate-300">Ledger Empty</p>
-                <p className="text-sm max-w-xs text-center mt-2">Run the Payroll Batch to generate the monthly salary ledger.</p>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
-
-      </div>
+        </>
+      )}
     </div>
   );
 }

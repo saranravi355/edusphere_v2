@@ -1,9 +1,10 @@
 import prisma from "@/lib/prisma";
+import { SubmitButton } from "@/components/ui/form";
 import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { Leaf, Drumstick, AlertTriangle, ShieldAlert, ShieldCheck, Flag, Sparkles, Check } from "lucide-react";
+import { Leaf, Drumstick, AlertTriangle, ShieldAlert, ShieldCheck, Flag, Sparkles, Check, Wallet as WalletIcon } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,53 @@ async function toggleFlag(formData: FormData) {
   revalidatePath("/parent/canteen");
 }
 
+
+/**
+ * Top up a child's canteen wallet.
+ *
+ * The student portal used to carry this form: a student could type any figure
+ * and credit their own balance, and the resulting row was labelled
+ * "Parent Top-up" as though somebody had paid it. It belongs here.
+ */
+async function topUpWallet(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.user.role !== "PARENT") return;
+
+  const parent = await prisma.parent.findUnique({
+    where: { userId: session.user.id },
+    select: { students: { select: { id: true } } },
+  });
+  if (!parent) return;
+
+  const studentId = String(formData.get("studentId") || "");
+  if (!parent.students.some((s) => s.id === studentId)) return;
+
+  const amount = Math.round(Number(formData.get("amount")) * 100) / 100;
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 20000) return;
+
+  const student = await prisma.student.findUnique({ where: { id: studentId }, select: { name: true, userId: true } });
+  if (!student) return;
+
+  await prisma.walletTransaction.create({
+    data: { studentId, type: "TOP_UP", amount, description: `Top-up from ${session.user.name}`, date: new Date() },
+  });
+
+  if (student.userId) {
+    await prisma.notification.create({
+      data: {
+        userId: student.userId,
+        title: "Canteen wallet topped up",
+        message: `₹${amount.toLocaleString("en-IN")} was added to your canteen wallet.`,
+        type: "SUCCESS",
+      },
+    });
+  }
+
+  revalidatePath("/parent/canteen");
+  revalidatePath("/student/wallet");
+}
+
 export default async function ParentCanteenPage() {
   const session = await getSession();
   if (!session || session.user.role !== "PARENT") redirect("/");
@@ -96,6 +144,11 @@ export default async function ParentCanteenPage() {
 
   const detectedFor = (allergens: string | null) =>
     (allergens || "").split(",").map((a) => a.trim()).filter((a) => childAllergiesLower.includes(a.toLowerCase()));
+
+  const walletRows = student
+    ? await prisma.walletTransaction.findMany({ where: { studentId: student.id }, select: { type: true, amount: true } })
+    : [];
+  const walletBalance = walletRows.reduce((b, t) => (t.type === "TOP_UP" ? b + t.amount : b - t.amount), 0);
 
   const alertCount = items.filter((it) => detectedFor(it.allergens).length > 0).length;
   const flaggedCount = items.filter((it) => flaggedIds.has(it.id)).length;
@@ -133,6 +186,36 @@ export default async function ParentCanteenPage() {
           <span className="flex items-center gap-1.5"><ShieldAlert size={16} className="text-red-400" /> {alertCount} allergy {alertCount === 1 ? "alert" : "alerts"}</span>
           <span className="flex items-center gap-1.5"><Flag size={16} className="text-amber-400" /> {flaggedCount} flagged</span>
         </div>
+      </div>
+
+      {/* Canteen wallet */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-wrap items-end gap-4 justify-between">
+        <div>
+          <h3 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <WalletIcon size={16} className="text-emerald-600" aria-hidden /> Canteen wallet
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">
+            {student.name}&apos;s balance: <span className="font-bold text-slate-800 dark:text-slate-100">₹{walletBalance.toLocaleString("en-IN")}</span>
+          </p>
+        </div>
+        <form action={topUpWallet} className="flex items-end gap-2">
+          <input type="hidden" name="studentId" value={student.id} />
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="topup-amount">Add money</label>
+            <input
+              id="topup-amount"
+              name="amount"
+              type="number"
+              min="1"
+              max="20000"
+              step="1"
+              required
+              placeholder="₹"
+              className="w-32 px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm"
+            />
+          </div>
+          <SubmitButton size="sm" pendingText="Adding…">Top up</SubmitButton>
+        </form>
       </div>
 
       {/* Allergy setup */}

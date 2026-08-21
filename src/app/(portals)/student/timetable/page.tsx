@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import TimetableGrid from "@/components/timetable/TimetableGrid";
-import { buildWeeklyTimetable } from "@/lib/buildTimetable";
+import { timetableForClassroom } from "@/lib/timetable";
 import { CalendarX2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -22,21 +22,10 @@ export default async function StudentTimetablePage() {
     },
   });
 
-  const teachers = await prisma.teacher.findMany({
-    include: { user: { select: { name: true } } },
-  });
-  const teacherNames = teachers
-    .map((t) => t.user?.name)
-    .filter((n): n is string => Boolean(n));
-
-  const entries = buildWeeklyTimetable(
-    (student?.ibSubjects ?? []).map((s) => ({
-      subjectName: s.subjectName,
-      level: s.level,
-      subjectGroup: s.subjectGroup,
-    })),
-    teacherNames
-  );
+  // The schedule the school has actually published for this class, rather than
+  // one synthesised from the student's subject list with invented periods,
+  // rooms and teachers.
+  const entries = await timetableForClassroom(student?.classroomId);
 
   const programme = student?.curriculum ? `${student.curriculum} programme` : "";
   const cls = student?.classroom?.name;

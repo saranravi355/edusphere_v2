@@ -69,9 +69,41 @@ export default async function FeeInvoicesPage() {
           dueDate: due,
         })),
       });
+
+      // The caption under this button has always promised that generating
+      // invoices "will instantly notify all linked Parent accounts". Nothing
+      // notified anybody. Now it does.
+      const parents = await prisma.student.findMany({
+        where: { id: { in: toCreate.map((s) => s.id) }, parentId: { not: null } },
+        select: { name: true, parent: { select: { userId: true } } },
+      });
+      const notifications = parents
+        .filter((p) => p.parent?.userId)
+        .map((p) => ({
+          userId: p.parent!.userId,
+          title: "New fee invoice",
+          message: `${title} for ${p.name}: ₹${structure.amount.toLocaleString("en-IN")}, due ${due.toISOString().slice(0, 10)}.`,
+          type: "INFO",
+        }));
+      if (notifications.length) await prisma.notification.createMany({ data: notifications });
     }
     revalidatePath("/admin/finance/invoices");
+    revalidatePath("/parent/fees");
   }
+
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const [collected, pending, overdue] = await Promise.all([
+    prisma.feeInvoice.aggregate({ _sum: { amount: true }, where: { status: "PAID", paidAt: { gte: monthStart } } }),
+    prisma.feeInvoice.aggregate({ _sum: { amount: true }, where: { status: "PENDING", dueDate: { gte: now } } }),
+    prisma.feeInvoice.aggregate({
+      _sum: { amount: true },
+      where: { OR: [{ status: "OVERDUE" }, { status: "PENDING", dueDate: { lt: now } }] },
+    }),
+  ]);
+  const collectedThisMonth = collected._sum.amount ?? 0;
+  const pendingTotal = pending._sum.amount ?? 0;
+  const overdueTotal = overdue._sum.amount ?? 0;
 
   const exportRows = recentInvoices.map((inv) => ({ Student: inv.student.name, Title: inv.title, Amount: inv.amount, Status: inv.status, DueDate: inv.dueDate.toISOString().slice(0, 10), PaidAt: inv.paidAt ? inv.paidAt.toISOString().slice(0, 10) : "" }));
 
@@ -122,12 +154,17 @@ export default async function FeeInvoicesPage() {
             </form>
           </div>
           
+          {/*
+            These three figures were literals — ₹1,42,500 collected, ₹45,000
+            pending, ₹8,200 overdue — sitting next to a ledger of the real
+            invoices. They are sums over FeeInvoice now.
+          */}
           <div className="bg-primary rounded-2xl p-6 text-white shadow-sm">
-            <h3 className="font-medium text-green-100 mb-1">Revenue Collected (MTD)</h3>
-            <p className="text-4xl font-extrabold">₹1,42,500</p>
+            <h3 className="font-medium text-green-100 mb-1">Collected this month</h3>
+            <p className="text-4xl font-extrabold">₹{collectedThisMonth.toLocaleString("en-IN")}</p>
             <div className="mt-4 pt-4 border-t border-white/20 flex justify-between text-sm">
-              <span>Pending: ₹45,000</span>
-              <span className="text-red-200">Overdue: ₹8,200</span>
+              <span>Pending: ₹{pendingTotal.toLocaleString("en-IN")}</span>
+              <span className="text-red-200">Overdue: ₹{overdueTotal.toLocaleString("en-IN")}</span>
             </div>
           </div>
         </div>

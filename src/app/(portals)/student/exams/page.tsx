@@ -45,8 +45,16 @@ export default async function StudentExamsPage() {
     orderBy: { dueDate: "asc" },
   }) : [];
 
-  const available = exams.filter((e) => e.attempts.length === 0);
-  const attempted = exams.filter((e) => e.attempts.length > 0);
+  /*
+   * "Start" used to be offered for four statuses while the submit handler
+   * accepted two, so a student could sit a paper awaiting moderation and have
+   * the whole thing discarded on submit without a word. Only a PUBLISHED exam
+   * can be started — and an unfinished sitting is offered as Resume, which is
+   * what the draft-saving on the exam page makes possible.
+   */
+  const inProgress = exams.filter((e) => e.attempts[0]?.status === "IN_PROGRESS");
+  const available = exams.filter((e) => e.attempts.length === 0 && e.status === "PUBLISHED");
+  const attempted = exams.filter((e) => e.attempts.length > 0 && e.attempts[0].status !== "IN_PROGRESS");
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -95,6 +103,35 @@ export default async function StudentExamsPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {inProgress.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <PlayCircle size={18} className="text-blue-500" /> In progress ({inProgress.length})
+          </h3>
+          <div className="space-y-3">
+            {inProgress.map((exam) => (
+              <div key={exam.id} className="bg-white dark:bg-slate-900 border border-blue-300 dark:border-blue-900/60 rounded-xl p-5 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <PlayCircle size={18} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{exam.title}</p>
+                    <p className="text-sm text-slate-500">
+                      Started but not submitted. Your answers were saved
+                      {exam.timeLimitMinutes ? " — the clock has kept running." : "."}
+                    </p>
+                  </div>
+                </div>
+                <Link href={`/student/exams/${exam.id}/take`} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
+                  <PlayCircle size={14} /> Resume
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

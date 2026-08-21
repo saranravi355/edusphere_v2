@@ -32,20 +32,30 @@ interface Data {
   counts: { PYP: number; MYP: number; DP: number; OTHER: number };
   dp: DPData;
   myp: MYPData;
-  pyp: { cohort: number };
+  pyp: {
+    cohort: number;
+    /** One entry per theme that has units recorded. */
+    themes: { theme: string; units: number; done: number }[];
+  };
 }
 
 const GROUP_SHORT: Record<number, string> = {
   1: "Lang & Lit", 2: "Lang Acq", 3: "Ind & Soc", 4: "Sciences", 5: "Maths", 6: "Arts",
 };
 
-const PYP_THEMES = [
-  { theme: "Who We Are", units: 3, done: 2 },
-  { theme: "Where We Are in Place & Time", units: 3, done: 2 },
-  { theme: "How We Express Ourselves", units: 3, done: 1 },
-  { theme: "How the World Works", units: 3, done: 2 },
-  { theme: "How We Organize Ourselves", units: 3, done: 1 },
-  { theme: "Sharing the Planet", units: 3, done: 1 },
+/**
+ * The six PYP transdisciplinary themes. This list is the IB's, not the
+ * school's — but the done/total counts beside each one used to be part of the
+ * same literal (3 units each, 2 done here, 1 there), presented next to real DP
+ * and MYP figures read from the database. They come from PYPUnit now.
+ */
+const PYP_THEME_NAMES = [
+  "Who We Are",
+  "Where We Are in Place & Time",
+  "How We Express Ourselves",
+  "How the World Works",
+  "How We Organize Ourselves",
+  "Sharing the Planet",
 ];
 
 function Stat({ icon: Icon, color, value, label }: { icon: typeof Trophy; color: string; value: string | number; label: string }) {
@@ -196,24 +206,32 @@ export default function ProgrammesClient({ data }: { data: Data }) {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Stat icon={GraduationCap} color="text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400" value={data.pyp.cohort} label="PYP learners" />
             <Stat icon={Globe2} color="text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400" value={6} label="Transdisciplinary themes" />
-            <Stat icon={Lightbulb} color="text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400" value={`${PYP_THEMES.reduce((n, t) => n + t.done, 0)}/${PYP_THEMES.reduce((n, t) => n + t.units, 0)}`} label="Units of inquiry completed" />
+            <Stat icon={Lightbulb} color="text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400" value={`${data.pyp.themes.reduce((n, t) => n + t.done, 0)}/${data.pyp.themes.reduce((n, t) => n + t.units, 0)}`} label="Units of inquiry completed" />
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Programme of Inquiry — unit progress</h3>
             <p className="text-xs text-slate-400 mb-4">PYP is transdisciplinary: learning is organised under six themes rather than subjects. No formal grades — progress is documented via portfolios and student-led conferences.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PYP_THEMES.map((t) => (
-                <div key={t.theme}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-medium text-slate-600 dark:text-slate-300">{t.theme}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{t.done}/{t.units} units</span>
+              {PYP_THEME_NAMES.map((name) => {
+                const t = data.pyp.themes.find((x) => x.theme === name) ?? { theme: name, units: 0, done: 0 };
+                return (
+                  <div key={t.theme}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="font-medium text-slate-600 dark:text-slate-300">{t.theme}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-100">
+                        {t.units === 0 ? "none planned" : `${t.done}/${t.units} units`}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-blue-500"
+                        style={{ width: t.units > 0 ? `${(t.done / t.units) * 100}%` : "0%" }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-blue-500" style={{ width: `${(t.done / t.units) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
