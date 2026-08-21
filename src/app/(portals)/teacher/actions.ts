@@ -110,12 +110,12 @@ export async function bulkMarkPresent(classId: string) {
   revalidatePath("/teacher");
 }
 
-export async function uploadAssignment(formData: FormData) {
-  // Mock upload delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  revalidatePath("/teacher");
-  return { success: true };
-}
+/*
+ * `uploadAssignment` used to live here: a 1.5-second sleep that returned
+ * { success: true } and wrote nothing. Its only consumer, TeacherAssignmentModal,
+ * was never rendered anywhere. Both are gone — assignments are created through
+ * /teacher/assignments, which writes.
+ */
 
 export async function sendMessage(formData: FormData) {
   const session = await getSession();
