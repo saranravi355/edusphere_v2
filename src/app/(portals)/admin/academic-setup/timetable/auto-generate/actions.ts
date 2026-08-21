@@ -32,6 +32,8 @@ export interface GenerateResult {
     conflictsAvoided: number;
     teachersUsed: number;
   };
+  /** How long the solve actually took. The UI used to print "< 60s". */
+  elapsedMs?: number;
 }
 
 /**
@@ -42,6 +44,7 @@ export interface GenerateResult {
  *  - never double-books a teacher across any classroom, including existing timetables
  */
 export async function autoGenerateTimetable(classroomId: string): Promise<GenerateResult> {
+  const startedAt = Date.now();
   const auth = await guard(ADMIN_ROLES);
   if (!auth.ok) return { error: auth.error };
 
@@ -172,5 +175,6 @@ export async function autoGenerateTimetable(classroomId: string): Promise<Genera
       conflictsAvoided,
       teachersUsed: teacherLoad.size,
     },
+    elapsedMs: Date.now() - startedAt,
   };
 }

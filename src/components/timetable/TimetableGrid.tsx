@@ -100,7 +100,13 @@ export default function TimetableGrid({
                 <div key={`${day.id}-${period.id}`} className="p-2 border-r border-slate-100 dark:border-zinc-800/50 last:border-0 h-28 flex">
                   {entry ? (
                     (() => {
-                      const cellClass = `w-full h-full rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-colors cursor-pointer hover:shadow-sm ${getColors(entry.subject)}`;
+                      // The pointer cursor and hover shadow are only honest
+                      // when the cell actually does something: the planner and
+                      // the parent timetable passed neither a link base nor an
+                      // onEdit, so every cell invited a click that resolved to
+                      // `undefined`.
+                      const interactive = Boolean(subjectLinkBase) || Boolean(onEdit);
+                      const cellClass = `w-full h-full rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-colors ${interactive ? "cursor-pointer hover:shadow-sm" : ""} ${getColors(entry.subject)}`;
                       const inner = (
                         <>
                           <span className="font-bold text-sm leading-tight mb-1">{entry.subject}</span>
@@ -118,10 +124,12 @@ export default function TimetableGrid({
                         <Link href={href} className={cellClass} title={`Open ${entry.subject}`}>
                           {inner}
                         </Link>
-                      ) : (
-                        <div onClick={() => onEdit?.(day.id, period.id)} className={cellClass}>
+                      ) : onEdit ? (
+                        <button type="button" onClick={() => onEdit(day.id, period.id)} className={cellClass}>
                           {inner}
-                        </div>
+                        </button>
+                      ) : (
+                        <div className={cellClass}>{inner}</div>
                       );
                     })()
                   ) : (

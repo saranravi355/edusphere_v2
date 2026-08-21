@@ -1,113 +1,179 @@
 import PageHeader from "@/components/ui/PageHeader";
+import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { Bus, MapPin, UserCheck, AlertTriangle } from "lucide-react";
+import ExportButton from "@/components/data/ExportButton";
+import TransportControls from "./TransportControls";
+import { removeRider, setRouteActive } from "./actions";
+import { ConfirmIconButton, SubmitButton } from "@/components/ui/form";
+import { Bus, Users, MapPin, UserMinus, Info } from "lucide-react";
 
-export default async function AdminTransportPage() {
+export const dynamic = "force-dynamic";
+
+/**
+ * Transport.
+ *
+ * Everything here was invented — see actions.ts. Routes, drivers, vehicles,
+ * stops and who rides on which are real records now. What this page no longer
+ * claims is live vehicle position: there is no tracker feeding the system, so
+ * nothing pretends to know where a bus is.
+ */
+export default async function TransportPage() {
   const session = await getSession();
-  if (!session || session.user.role !== 'SUPER_ADMIN') {
-    redirect("/");
-  }
+  if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) redirect("/");
 
-  const routes = [
-    { id: "R01", driver: "Rajesh Kumar", vehicle: "Bus 12 (Yellow)", status: "On Route", students: 42, delays: "None" },
-    { id: "R02", driver: "Priya Sharma", vehicle: "Bus 04 (Blue)", status: "Delayed", students: 38, delays: "15 mins (Traffic)" },
-    { id: "R03", driver: "Rohan Desai", vehicle: "Van 02 (White)", status: "Completed", students: 12, delays: "None" }
+  const [routes, students] = await Promise.all([
+    prisma.transportRoute.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        stops: { orderBy: { sequence: "asc" } },
+        riders: {
+          include: {
+            student: { select: { id: true, name: true, classroom: { select: { name: true } } } },
+            stop: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    prisma.student.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, classroom: { select: { name: true } } },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  const activeRoutes = routes.filter((r) => r.isActive);
+  const riderCount = routes.reduce((n, r) => n + r.riders.length, 0);
+  const seatCount = activeRoutes.reduce((n, r) => n + r.capacity, 0);
+
+  const exportRows = routes.flatMap((r) =>
+    r.riders.map((rd) => ({
+      Route: r.name,
+      Vehicle: r.vehicleNumber,
+      Driver: r.driverName,
+      Student: rd.student.name,
+      Class: rd.student.classroom?.name ?? "Unassigned",
+      Stop: rd.stop?.name ?? "Not set",
+    })),
+  );
+
+  const stats = [
+    { label: "Routes in service", value: `${activeRoutes.length} of ${routes.length}`, icon: Bus },
+    { label: "Students on transport", value: riderCount, icon: Users },
+    { label: "Seats free", value: Math.max(0, seatCount - riderCount), icon: MapPin },
   ];
 
   return (
-    <div className="space-y-6 pb-12 max-w-6xl">
-      <PageHeader 
-        title="Fleet & Transport Management" 
-        description="Monitor school bus routes, driver assignments, and vehicle status."
+    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
+      <PageHeader
+        title="Transport"
+        description="Bus routes, stops, drivers and who rides on which."
+        action={
+          <div className="flex flex-wrap gap-2 items-center">
+            <TransportControls
+              routes={routes.map((r) => ({ id: r.id, name: r.name, stops: r.stops.map((s) => ({ id: s.id, name: s.name })) }))}
+              students={students.map((s) => ({ id: s.id, name: s.name, classroom: s.classroom?.name ?? "Unassigned" }))}
+            />
+            <ExportButton rows={exportRows} filename="transport-riders" label="Export riders" />
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="glass-card">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Bus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center mb-3 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300">
+              <s.icon size={20} aria-hidden />
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Active Vehicles</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">24 / 26</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <UserCheck className="w-6 h-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Drivers on Duty</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">24</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card border-red-200 dark:border-red-900/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Active Alerts</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">1</p>
-            </div>
-          </CardContent>
-        </Card>
+            <p className="text-2xl font-semibold text-slate-800 dark:text-slate-100">{s.value}</p>
+            <p className="text-xs text-slate-500">{s.label}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100">Live Routes</h3>
+      <p className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
+        No vehicle tracker is connected, so this module does not show live positions. It used to animate one.
+      </p>
+
+      {routes.length === 0 && (
+        <div className="bg-white dark:bg-zinc-900 border border-dashed border-slate-300 dark:border-zinc-700 rounded-2xl p-12 text-center text-slate-500">
+          No routes yet. Add one with &ldquo;New route&rdquo;.
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 dark:bg-slate-950/50 text-slate-500 font-medium border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="px-6 py-4">Route ID</th>
-                <th className="px-6 py-4">Vehicle</th>
-                <th className="px-6 py-4">Driver</th>
-                <th className="px-6 py-4">Students onboard</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {routes.map(r => (
-                <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">{r.id}</td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{r.vehicle}</td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{r.driver}</td>
-                  <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">{r.students}</td>
-                  <td className="px-6 py-4">
-                    {r.status === 'On Route' ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                        {r.status}
-                      </span>
-                    ) : r.status === 'Delayed' ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                        {r.status}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        {r.status}
-                      </span>
-                    )}
-                    {r.delays !== 'None' && <span className="block text-xs text-red-500 mt-1">{r.delays}</span>}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-sm flex items-center gap-1 justify-end w-full">
-                      <MapPin size={14} /> Track
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      )}
+
+      <div className="space-y-6">
+        {routes.map((r) => (
+          <div key={r.id} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-slate-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <Bus size={18} className="text-blue-500" aria-hidden /> {r.name}
+                  {!r.isActive && <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500">Out of service</span>}
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  {r.vehicleNumber} · {r.driverName}{r.driverPhone ? ` · ${r.driverPhone}` : ""} ·{" "}
+                  {r.riders.length}/{r.capacity} seats taken
+                </p>
+              </div>
+              <form action={async () => { "use server"; await setRouteActive(r.id, !r.isActive); }}>
+                <SubmitButton size="sm" variant="subtle" pendingText="Updating…">
+                  {r.isActive ? "Take out of service" : "Return to service"}
+                </SubmitButton>
+              </form>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-zinc-800">
+              <div className="p-5">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-3">Stops</h4>
+                {r.stops.length === 0 ? (
+                  <p className="text-sm text-slate-400">No stops yet.</p>
+                ) : (
+                  <ol className="space-y-2">
+                    {r.stops.map((s) => (
+                      <li key={s.id} className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                          <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] flex items-center justify-center">{s.sequence}</span>
+                          {s.name}
+                        </span>
+                        <span className="text-xs text-slate-500 tabular-nums">
+                          {s.pickupTime}{s.dropTime ? ` · ${s.dropTime}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+
+              <div className="p-5">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-3">Riders ({r.riders.length})</h4>
+                {r.riders.length === 0 ? (
+                  <p className="text-sm text-slate-400">Nobody assigned yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {r.riders.map((rd) => (
+                      <li key={rd.id} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-slate-700 dark:text-slate-300">
+                          {rd.student.name}
+                          <span className="text-xs text-slate-400"> · {rd.student.classroom?.name ?? "Unassigned"}{rd.stop ? ` · ${rd.stop.name}` : ""}</span>
+                        </span>
+                        <ConfirmIconButton
+                          onConfirm={async () => { "use server"; return removeRider(rd.student.id); }}
+                          question="Take them off this route?"
+                          confirmLabel="Remove"
+                          triggerLabel={`Remove ${rd.student.name} from ${r.name}`}
+                          triggerClassName="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                        >
+                          <UserMinus size={14} aria-hidden />
+                        </ConfirmIconButton>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

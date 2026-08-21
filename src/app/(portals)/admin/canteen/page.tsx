@@ -22,7 +22,9 @@ async function addMenuItem(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
   const description = String(formData.get("description") || "").trim() || null;
   const allergens = String(formData.get("allergens") || "").trim() || null;
-  const isVeg = formData.get("isVeg") !== "off";
+  // An unchecked box submits nothing at all, so `!== "off"` was true either
+  // way: every dish saved as vegetarian however the box was left.
+  const isVeg = formData.get("isVeg") === "on";
   if (!name) return;
   await prisma.menuItem.create({ data: { dayOfWeek, mealType, name, description, allergens, isVeg } });
   revalidatePath("/admin/canteen");
@@ -83,6 +85,14 @@ export default async function CanteenPage() {
           <div className="md:col-span-2">
             <label className="text-xs font-medium text-muted-foreground block mb-1">Allergens (comma-separated)</label>
             <input name="allergens" placeholder="e.g. Dairy, Nuts, Gluten" className={field} />
+          </div>
+          {/*
+            addMenuItem has always read `description` and always stored null,
+            because there was no field to type one into.
+          */}
+          <div className="md:col-span-2">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">Description (optional)</label>
+            <input name="description" placeholder="e.g. Steamed rice, sambar and a seasonal vegetable" className={field} />
           </div>
         </div>
         <div className="flex items-center justify-between mt-3">

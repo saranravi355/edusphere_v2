@@ -218,7 +218,21 @@ export default function SubjectsClient({
                     {data.resources.map((r) => {
                       const meta = RESOURCE_META[r.type] || RESOURCE_META.NOTES;
                       return (
-                        <div key={r.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer">
+                        /*
+                          This was a div with cursor-pointer and no handler, so
+                          shared notes and past papers looked clickable and did
+                          nothing — while r.url was loaded from the database and
+                          never used. It opens the resource now, and rows
+                          without a url no longer pretend to be clickable.
+                        */
+                        <a
+                          key={r.id}
+                          href={r.url || undefined}
+                          target={r.url ? "_blank" : undefined}
+                          rel={r.url ? "noopener noreferrer" : undefined}
+                          aria-disabled={!r.url}
+                          className={`flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 transition-colors ${r.url ? "hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer" : "cursor-default opacity-80"}`}
+                        >
                           <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${meta.color}`}>
                             <meta.icon size={16} />
                           </div>
@@ -229,7 +243,7 @@ export default function SubjectsClient({
                             </p>
                             {r.description && <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2">{r.description}</p>}
                           </div>
-                        </div>
+                        </a>
                       );
                     })}
                   </div>

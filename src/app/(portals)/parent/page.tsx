@@ -51,8 +51,17 @@ export default async function ParentDashboard() {
             <CardContent>
               <p className="text-sm text-slate-500 mb-4">Grade {child.classroom?.gradeLevel ?? "—"} • {child.classroom?.name || "Unassigned"}</p>
               <div className="flex gap-3">
-                <Link href={`/admin/users/${child.id}`} className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
-                  <Clock size={12} /> View Activity
+                {/*
+                  This linked to /admin/users/<studentId>: an admin route that
+                  bounces every parent straight back to /, and a Student id in a
+                  route that expects a User id. These go where a parent can
+                  actually go.
+                */}
+                <Link href="/parent/attendance" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                  <Clock size={12} aria-hidden /> Attendance
+                </Link>
+                <Link href="/parent/grades" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                  <Clock size={12} aria-hidden /> Grades
                 </Link>
               </div>
             </CardContent>

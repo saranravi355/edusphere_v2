@@ -2,26 +2,18 @@ import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { formatDate } from "@/lib/dates";
+import { Wallet, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
-async function topUp(formData: FormData) {
-  "use server";
-  const session = await getSession();
-  if (!session || session.user.role !== "STUDENT") return;
-  const amount = parseFloat(String(formData.get("amount") || ""));
-  if (isNaN(amount) || amount <= 0) return;
-  const student = await prisma.student.findUnique({ where: { userId: session.user.id } });
-  if (!student) return;
-  await prisma.walletTransaction.create({
-    data: { studentId: student.id, type: "TOP_UP", amount, description: "Parent Top-up", date: new Date() },
-  });
-  revalidatePath("/student/wallet");
-}
-
+/**
+ * A student could type any number into "Top Up" and credit their own canteen
+ * wallet, and the row was even labelled "Parent Top-up" as if someone had paid
+ * it. Money now comes from the parent's side of the app (or the office), and
+ * this page shows the balance and the ledger.
+ */
 export default async function StudentWalletPage() {
   const session = await getSession();
   if (!session || session.user.role !== "STUDENT") redirect("/");
@@ -43,13 +35,9 @@ export default async function StudentWalletPage() {
         <div className="relative z-10">
           <p className="text-white/80 text-sm font-medium uppercase tracking-wider mb-2">Available Balance</p>
           <h2 className="text-4xl font-bold mb-6">{inr(trueBalance)}</h2>
-          <form action={topUp} className="flex items-center gap-2">
-            <input name="amount" type="number" min="1" step="1" placeholder="Amount (₹)"
-              className="px-4 py-2.5 rounded-lg text-slate-900 text-sm w-40 outline-none" />
-            <button type="submit" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary font-bold rounded-lg shadow hover:bg-slate-50 transition-colors text-sm">
-              <Plus size={16} /> Top Up
-            </button>
-          </form>
+          <p className="text-white/80 text-sm max-w-sm">
+            Your parent can top this up from their portal, or you can pay at the school office.
+          </p>
         </div>
       </div>
 
@@ -69,7 +57,7 @@ export default async function StudentWalletPage() {
                   </div>
                   <div>
                     <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tx.description || (credit ? "Top-up" : "Purchase")}</p>
-                    <p className="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" })}</p>
+                    <p className="text-xs text-slate-500">{formatDate(tx.date, "dMonYyyy")}</p>
                   </div>
                 </div>
                 <span className={`font-semibold text-sm ${credit ? "text-green-600 dark:text-green-400" : "text-slate-800 dark:text-slate-200"}`}>

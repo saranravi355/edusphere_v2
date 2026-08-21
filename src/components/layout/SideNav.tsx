@@ -110,7 +110,10 @@ const SECTIONS: Record<string, NavSection[]> = {
     {
       label: "School",
       links: [
-        { name: "Live Tracker", href: "/parent/transport/live", icon: Navigation },
+        // Was "Live Tracker" → /parent/transport/live, a simulated bus on a CSS
+        // road. No tracker is fitted, so the link now goes to the real route,
+        // stop and pickup time.
+        { name: "Transport", href: "/parent/transport", icon: Navigation },
         { name: "Meetings", href: "/parent/meetings", icon: Video },
         { name: "Messages", href: "/parent/messages", icon: MessageSquare },
         { name: "Fees", href: "/parent/fees", icon: IndianRupee },

@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import TimetableGrid from "@/components/timetable/TimetableGrid";
-import { buildWeeklyTimetable } from "@/lib/buildTimetable";
+import { timetableForClassroom } from "@/lib/timetable";
 import { CalendarX2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -28,21 +28,7 @@ export default async function ParentTimetablePage() {
 
   const student = parent?.students[0];
 
-  const teachers = await prisma.teacher.findMany({
-    include: { user: { select: { name: true } } },
-  });
-  const teacherNames = teachers
-    .map((t) => t.user?.name)
-    .filter((n): n is string => Boolean(n));
-
-  const entries = buildWeeklyTimetable(
-    (student?.ibSubjects ?? []).map((s) => ({
-      subjectName: s.subjectName,
-      level: s.level,
-      subjectGroup: s.subjectGroup,
-    })),
-    teacherNames
-  );
+  const entries = await timetableForClassroom(student?.classroomId);
 
   const cls = student?.classroom?.name;
   const programme = student?.curriculum ? `${student.curriculum} programme` : "";
@@ -61,7 +47,7 @@ export default async function ParentTimetablePage() {
       </div>
 
       {entries.length > 0 ? (
-        <TimetableGrid entries={entries} isEditable={false} />
+        <TimetableGrid entries={entries} isEditable={false} subjectLinkBase="/parent/grades" />
       ) : (
         <div className="bg-white dark:bg-zinc-900 border border-dashed border-slate-300 dark:border-zinc-700 rounded-2xl p-12 text-center text-slate-500">
           <CalendarX2 className="mx-auto mb-3 text-slate-400" size={32} />

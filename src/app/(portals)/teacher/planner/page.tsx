@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import TimetableGrid from "@/components/timetable/TimetableGrid";
-import { teacherPlannerMockEntries } from "@/lib/mockTimetable";
+import { timetableForTeacher } from "@/lib/timetable";
 import PlannerClient from "./PlannerClient";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +18,9 @@ export default async function TeacherPlannerPage() {
     where: { userId: session.user.id },
     include: { lessonPlans: { orderBy: { date: "asc" } } },
   });
+
+  // The grid below used to render a hardcoded array from lib/mockTimetable.
+  const myWeek = await timetableForTeacher(teacher?.id);
 
   const plans = (teacher?.lessonPlans || []).map((p) => ({
     id: p.id,
@@ -47,8 +50,15 @@ export default async function TeacherPlannerPage() {
       <PlannerClient plans={plans} subjects={teacher?.subjects.split(",").map((s) => s.trim()) || []} />
 
       <div>
-        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">My Weekly Timetable</h3>
-        <TimetableGrid entries={teacherPlannerMockEntries} isEditable={false} />
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">My weekly timetable</h3>
+        {myWeek.length > 0 ? (
+          <TimetableGrid entries={myWeek} isEditable={false} />
+        ) : (
+          <div className="bg-white dark:bg-zinc-900 border border-dashed border-slate-300 dark:border-zinc-700 rounded-2xl p-10 text-center text-slate-500 text-sm">
+            You are not timetabled for any periods yet. Once the office publishes the schedule in
+            Academic Setup, your week appears here.
+          </div>
+        )}
       </div>
     </div>
   );

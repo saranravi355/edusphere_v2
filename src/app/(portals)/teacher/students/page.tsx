@@ -69,18 +69,25 @@ export default async function TeacherStudentsDirectory({
       {/* Search Bar */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex items-center gap-3">
         <Search className="text-slate-400" size={20} />
-        <form className="flex-1">
+        {/*
+          The Search button used to sit outside this form and had no onClick, so
+          only pressing Enter worked. It is a submit inside the form now.
+        */}
+        <form className="flex-1 flex items-center gap-3">
+          <label className="sr-only" htmlFor="student-search">Search by student name or registration number</label>
           <input
-            type="text"
+            id="student-search"
+            type="search"
             name="q"
             defaultValue={query}
             placeholder="Search by student name or registration number..."
             className="w-full bg-transparent border-none focus:outline-none text-slate-900 dark:text-white"
           />
+          {resolvedParams.classId && <input type="hidden" name="classId" value={resolvedParams.classId} />}
+          <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shrink-0">
+            Search
+          </button>
         </form>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-          Search
-        </button>
       </div>
 
       {/* Student List Grid */}

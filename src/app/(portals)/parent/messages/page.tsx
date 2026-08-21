@@ -71,6 +71,19 @@ export default async function ParentMessagesPage({
   const selectedId = withParam && contacts.has(withParam) ? withParam : contactList[0]?.id;
   const selected = selectedId ? contacts.get(selectedId) : undefined;
 
+  /*
+   * Opening a conversation marks its incoming messages read. Nothing did this
+   * before, so the "New Messages" badge on the dashboard counted every message
+   * ever received and never went down, however many times they were read.
+   */
+  if (selectedId) {
+    await prisma.message.updateMany({
+      where: { senderId: selectedId, receiverId: session.user.id, isRead: false },
+      data: { isRead: true },
+    });
+  }
+
+
   const thread = selectedId
     ? messages.filter(
         (m) => m.senderId === selectedId || m.receiverId === selectedId

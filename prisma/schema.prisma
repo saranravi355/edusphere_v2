@@ -30,6 +30,7 @@ model User {
   assetCheckouts   AssetCheckout[]
   resourceBookings ResourceBooking[]
   announcements    Announcement[]    @relation("AnnouncementAuthor")
+  bookLoans        BookLoan[]
 }
 
 model Teacher {
@@ -55,6 +56,8 @@ model Teacher {
   lessonPlans      LessonPlan[]
   substituteCover  LeaveRequest[] @relation("SubstituteCover")
   meetings         ParentTeacherMeeting[]
+  baseSalary       Float?         /// monthly gross, in rupees
+  payrollLines     PayrollLine[]
 }
 
 model Parent {
@@ -106,6 +109,7 @@ model Student {
   
   attendances      Attendance[]
   meetings         ParentTeacherMeeting[]
+  transport        StudentTransport?
   grades           Grade[]
   homeworkSubmits  HomeworkSubmission[]
   invoices         FeeInvoice[]
@@ -134,6 +138,8 @@ model Classroom {
   homeworks   Homework[]
   timetable   TimetableEntry[]
   quizzes     Quiz[]
+  schoolId    String?
+  school      School?  @relation(fields: [schoolId], references: [id])
 }
 
 model Subject {
@@ -767,4 +773,165 @@ model ParentTeacherMeeting {
   /// two parents taking the same fifteen minutes.
   @@unique([teacherId, scheduledAt])
   @@index([parentId])
+}
+
+/// A campus.
+///
+/// /admin/schools rendered two campuses — "1250 students", "840 students",
+/// both Active — from a hardcoded array, with an "+ Add Campus" button and a
+/// "Manage Settings" button that had no handlers. There was no School model at
+/// all. Classrooms belong to a campus now, so the enrolment figure on each card
+/// is a count rather than a number somebody typed.
+model School {
+  id            String      @id @default(cuid())
+  name          String
+  campusCode    String      @unique
+  address       String?
+  phone         String?
+  email         String?
+  principalName String?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  classrooms    Classroom[]
+}
+
+/// A school bus route.
+///
+/// /admin/transport showed "24/26 active vehicles", 24 drivers, one alert and
+/// three named routes with ETAs — all a literal array in the page, with a
+/// "Track" button that had no handler. /parent/transport/live animated a bus
+/// down a CSS road with a setInterval counting an ETA down from 12 minutes.
+/// There was no transport model of any kind.
+model TransportRoute {
+  id            String             @id @default(cuid())
+  name          String             @unique
+  vehicleNumber String
+  driverName    String
+  driverPhone   String?
+  capacity      Int                @default(40)
+  isActive      Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+
+  stops         TransportStop[]
+  riders        StudentTransport[]
+}
+
+model TransportStop {
+  id         String             @id @default(cuid())
+  routeId    String
+  route      TransportRoute     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  name       String
+  /// School-local HH:mm. Stored as text because it is a time of day, not an instant.
+  pickupTime String
+  dropTime   String?
+  sequence   Int
+
+  riders     StudentTransport[]
+
+  @@unique([routeId, sequence])
+}
+
+model StudentTransport {
+  id        String         @id @default(cuid())
+  studentId String         @unique
+  student   Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  routeId   String
+  route     TransportRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  stopId    String?
+  stop      TransportStop? @relation(fields: [stopId], references: [id])
+  createdAt DateTime       @default(now())
+
+  @@index([routeId])
+}
+
+/// The library catalogue.
+///
+/// /student/library listed four hardcoded books with a dead search box, a dead
+/// subject filter and a download button with no href. /admin/library was
+/// replaced earlier in this project with an honest "not built yet" notice
+/// precisely because there was no model behind it. This is that model.
+model LibraryBook {
+  id          String     @id @default(cuid())
+  title       String
+  author      String
+  isbn        String?    @unique
+  category    String     @default("GENERAL")
+  subjectName String?
+  copiesTotal Int        @default(1)
+  createdAt   DateTime   @default(now())
+
+  loans       BookLoan[]
+
+  @@index([title])
+}
+
+model BookLoan {
+  id         String      @id @default(cuid())
+  bookId     String
+  book       LibraryBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  borrowedAt DateTime    @default(now())
+  dueDate    DateTime
+  returnedAt DateTime?
+  status     String      @default("ACTIVE") // ACTIVE, RETURNED
+
+  @@index([bookId, status])
+  @@index([userId, status])
+}
+
+/// A month's payroll.
+///
+/// /admin/finance/payroll had a cycle dropdown with no name and no handler, a
+/// "Run Payroll Batch" button that was a 2.5-second setTimeout followed by
+/// three hardcoded staff rows and a hardcoded "₹2,45,600 across 85 Staff
+/// Members", and "Disburse Funds" and "Export CSV" buttons with no onClick. A
+/// banner claimed it was "Syncing with Leave Module to calculate UTO
+/// deductions"; nothing was read from the leave module. There was no payroll
+/// model.
+model PayrollRun {
+  id          String        @id @default(cuid())
+  /// yyyy-mm, e.g. "2026-08". One run per month.
+  period      String        @unique
+  status      String        @default("DRAFT") // DRAFT, DISBURSED
+  totalNet    Float         @default(0)
+  runById     String
+  createdAt   DateTime      @default(now())
+  disbursedAt DateTime?
+
+  lines       PayrollLine[]
+}
+
+model PayrollLine {
+  id         String     @id @default(cuid())
+  runId      String
+  run        PayrollRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  teacherId  String
+  teacher    Teacher    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  baseSalary Float
+  /// Working days of unpaid leave in the period, read from LeaveRequest.
+  unpaidDays Int        @default(0)
+  deductions Float      @default(0)
+  netPay     Float
+
+  @@unique([runId, teacherId])
+}
+
+/// A PYP unit of inquiry.
+///
+/// /admin/programmes drew six transdisciplinary theme bars with done/total
+/// counts from a PYP_THEMES literal, and a "units of inquiry completed" stat to
+/// match — sitting next to real DP and MYP figures pulled from the database.
+model PYPUnit {
+  id          String    @id @default(cuid())
+  theme       String    // Who We Are, How We Express Ourselves, ...
+  title       String
+  gradeLevel  String
+  status      String    @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETE
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([theme])
 }

@@ -91,6 +91,11 @@ export default async function ProgrammesPage() {
     }, {})
   ).map(([name, { sum, n }]) => ({ name, avg: sum / n }));
 
+  const [pypThemes, pypComplete] = await Promise.all([
+    prisma.pYPUnit.groupBy({ by: ["theme"], _count: { _all: true } }),
+    prisma.pYPUnit.groupBy({ by: ["theme"], where: { status: "COMPLETE" }, _count: { _all: true } }),
+  ]);
+
   const data = {
     counts,
     dp: {
@@ -117,7 +122,17 @@ export default async function ProgrammesPage() {
         .slice(0, 5)
         .map((e) => ({ session: e.session, subject: e.subjectName, paper: e.paper, date: e.date.toISOString() })),
     },
-    pyp: { cohort: counts.PYP },
+    // The six theme bars used to carry hardcoded done/total counts. They are
+    // grouped from PYPUnit now: a theme with nothing planned says so rather
+    // than showing an invented two-thirds.
+    pyp: {
+      cohort: counts.PYP,
+      themes: pypThemes.map((t) => ({
+        theme: t.theme,
+        units: t._count._all,
+        done: pypComplete.find((c) => c.theme === t.theme)?._count._all ?? 0,
+      })),
+    },
   };
 
   return (

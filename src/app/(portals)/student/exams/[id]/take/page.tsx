@@ -1,75 +1,27 @@
 import { getSession } from "@/lib/session";
 import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import ExamTakingClient from "@/components/exam/ExamTakingClient";
+import { beginAttempt, saveAnswer, recordViolation, submitExam } from "./actions";
 
-async function submitExam(examId: string, _studentId: string, formData: FormData) {
-  "use server";
+export const dynamic = "force-dynamic";
 
-  // studentId used to come from the client, which would have let one student
-  // submit an exam in another student's name. It is resolved from the session.
-  const session = await getSession();
-  if (!session?.user || session.user.role !== "STUDENT") return;
-  const me = await prisma.student.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true, classroomId: true },
-  });
-  if (!me) return;
-  const studentId = me.id;
-
-  const quiz = await prisma.quiz.findUnique({ where: { id: examId }, include: { questions: true } });
-  if (!quiz) return;
-  // The exam must be set for this student's own class, and be open.
-  if (quiz.classroomId !== me.classroomId) return;
-  if (!["PUBLISHED", "GRADES_RELEASED"].includes(quiz.status) && quiz.status !== "PUBLISHED") return;
-
-  const existing = await prisma.quizAttempt.findFirst({ where: { quizId: examId, studentId } });
-  if (existing) return; // already attempted
-
-  const autoSubmitted = formData.get("autoSubmitted") === "true";
-
-  let mcqScore = 0;
-  const responseData = quiz.questions.map((q) => {
-    if (q.type === "MCQ") {
-      const selectedIdx = formData.get(`q_${q.id}`) ? parseInt(formData.get(`q_${q.id}`) as string) : null;
-      const marks = selectedIdx === q.correctIdx ? q.points : 0;
-      mcqScore += marks;
-      return { questionId: q.id, selectedIdx, textAnswer: null, marksAwarded: marks };
-    } else {
-      const textAnswer = (formData.get(`q_${q.id}`) as string) || null;
-      return { questionId: q.id, selectedIdx: null, textAnswer, marksAwarded: null };
-    }
-  });
-
-  const hasOpenEnded = quiz.questions.some((q) => q.type !== "MCQ");
-
-  const attempt = await prisma.quizAttempt.create({
-    data: {
-      quizId: examId,
-      studentId,
-      score: mcqScore,
-      totalScore: quiz.totalMarks,
-      autoSubmitted,
-      status: hasOpenEnded ? "SUBMITTED" : "SUBMITTED",
-      startedAt: new Date(),
-    },
-  });
-
-  await prisma.quizResponse.createMany({
-    data: responseData.map((r) => ({ ...r, attemptId: attempt.id })),
-  });
-
-  revalidatePath("/student/exams");
-  redirect(`/student/exams/${examId}/result`);
+/**
+ * Time left on a sitting, measured from when the attempt was opened rather than
+ * from when this page rendered — refreshing must not hand back a fresh
+ * allowance. Kept out of the component body because reading the clock during
+ * render is not a pure operation.
+ */
+function remainingSeconds(limitMinutes: number | null, startedAt: Date | null): number | null {
+  if (limitMinutes === null) return null;
+  const elapsed = startedAt ? Math.floor((Date.now() - startedAt.getTime()) / 1000) : 0;
+  return Math.max(0, limitMinutes * 60 - elapsed);
 }
 
 export default async function TakeExamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getSession();
-  if (!session || session.user.role !== 'STUDENT') {
-    redirect("/");
-  }
+  if (!session || session.user.role !== "STUDENT") redirect("/");
 
   const student = await prisma.student.findUnique({ where: { userId: session.user.id } });
   if (!student) redirect("/");
@@ -80,10 +32,21 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
   });
 
   if (!quiz || quiz.classroomId !== student.classroomId) notFound();
-  if (!["PUBLISHED", "PENDING_MODERATION", "MODERATED", "GRADES_RELEASED"].includes(quiz.status)) notFound();
 
-  const existingAttempt = await prisma.quizAttempt.findFirst({ where: { quizId: id, studentId: student.id } });
-  if (existingAttempt) redirect(`/student/exams/${id}/result`);
+  /*
+   * The list offered "Start" for four statuses while the submit handler
+   * accepted only two, so sitting an exam that was awaiting moderation ran the
+   * whole paper and then discarded it without a word. A student can sit an
+   * exam that is PUBLISHED; the moderation statuses are the teacher's, after
+   * the fact.
+   */
+  const attempt = await prisma.quizAttempt.findFirst({
+    where: { quizId: id, studentId: student.id },
+    select: { id: true, status: true, startedAt: true, violations: true },
+  });
+
+  if (attempt && attempt.status !== "IN_PROGRESS") redirect(`/student/exams/${id}/result`);
+  if (!attempt && quiz.status !== "PUBLISHED") notFound();
 
   // Deterministic per-student shuffle (seeded), so the order is randomized
   // between students but stable across refreshes — and pure for React.
@@ -110,7 +73,37 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
     options: q.options ? (JSON.parse(q.options) as string[]) : null,
   }));
 
-  const action = submitExam.bind(null, quiz.id, student.id);
+  // Whatever was already answered, so a resumed paper opens where it was left.
+  const savedAnswers: Record<string, string> = {};
+  if (attempt) {
+    const rows = await prisma.quizResponse.findMany({
+      where: { attemptId: attempt.id },
+      select: { questionId: true, selectedIdx: true, textAnswer: true },
+    });
+    for (const r of rows) {
+      const value = r.selectedIdx !== null ? String(r.selectedIdx) : r.textAnswer ?? "";
+      if (value !== "") savedAnswers[r.questionId] = value;
+    }
+  }
+
+  /*
+   * Remaining time is derived from when the attempt was opened, not from when
+   * the page loaded — otherwise refreshing reset the clock to the full
+   * allowance, which is the oldest trick there is.
+   */
+  const secondsRemaining = remainingSeconds(quiz.timeLimitMinutes, attempt?.startedAt ?? null);
+
+  /*
+   * If the allowance ran out while the page was closed, the attempt is
+   * finalised here rather than waiting for the student to come back and watch
+   * a zero countdown. Closing the laptop is no longer a way to stop the clock.
+   */
+  if (attempt && secondsRemaining === 0) {
+    const expired = new FormData();
+    expired.set("autoSubmitted", "true");
+    await submitExam(quiz.id, expired);
+    redirect(`/student/exams/${quiz.id}/result`);
+  }
 
   return (
     <ExamTakingClient
@@ -118,8 +111,16 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
       examType={quiz.examType}
       subjectName={quiz.subject?.name}
       timeLimitMinutes={quiz.timeLimitMinutes}
+      secondsRemaining={secondsRemaining}
       questions={questions}
-      submitAction={action}
+      resumedAttemptId={attempt?.id ?? null}
+      savedAnswers={savedAnswers}
+      priorViolations={attempt?.violations ?? 0}
+      beginAction={beginAttempt.bind(null, quiz.id)}
+      saveAnswerAction={saveAnswer}
+      violationAction={recordViolation}
+      submitAction={submitExam.bind(null, quiz.id)}
+      resultHref={`/student/exams/${quiz.id}/result`}
     />
   );
 }

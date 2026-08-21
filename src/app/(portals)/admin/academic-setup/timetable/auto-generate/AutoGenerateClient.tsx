@@ -80,7 +80,9 @@ export default function AutoGenerateClient({
               { label: "Slots Scheduled", value: `${result.stats.filled}/${result.stats.total}`, icon: CheckCircle2, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400" },
               { label: "Conflicts Avoided", value: result.stats.conflictsAvoided, icon: ShieldCheck, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400" },
               { label: "Teachers Used", value: result.stats.teachersUsed, icon: Users, color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400" },
-              { label: "Generation Time", value: "< 60s", icon: Sparkles, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400" },
+              // Was the fixed string "< 60s" sitting beside three real solver
+              // stats. The solver reports how long it took.
+              { label: "Generation time", value: result.elapsedMs !== undefined ? `${(result.elapsedMs / 1000).toFixed(1)}s` : "—", icon: Sparkles, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400" },
             ].map((s) => (
               <div key={s.label} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div className={`w-11 h-11 rounded-lg flex items-center justify-center ${s.color}`}>
