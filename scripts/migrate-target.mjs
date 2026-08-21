@@ -52,12 +52,35 @@ if (!/ap-south-1/.test(host(targetDirect))) {
 }
 console.log();
 
-const res = spawnSync(
-  process.platform === "win32" ? "npx.cmd" : "npx",
-  ["prisma", "migrate", "deploy"],
-  {
-    stdio: "inherit",
-    env: { ...process.env, DATABASE_URL: target || targetDirect, DIRECT_URL: targetDirect },
-  },
-);
+const childEnv = { ...process.env, DATABASE_URL: target || targetDirect, DIRECT_URL: targetDirect };
+
+/*
+ * Run the Prisma CLI as a plain .js file under this same Node binary.
+ *
+ * The obvious `npx prisma migrate deploy` does not work here. On Windows npx is
+ * npx.cmd, and since the fix for CVE-2024-27980 Node refuses to spawn a .cmd or
+ * .bat without shell:true — it fails before the child starts, so Prisma prints
+ * nothing at all and the only symptom is an exit code. That is exactly how this
+ * failed the first time.
+ *
+ * node_modules/prisma/build/index.js is the same entry point npx would reach,
+ * with no shell and no platform-specific launcher in between.
+ */
+const cli = path.join(process.cwd(), "node_modules", "prisma", "build", "index.js");
+const args = ["migrate", "deploy"];
+
+const res = fs.existsSync(cli)
+  ? spawnSync(process.execPath, [cli, ...args], { stdio: "inherit", env: childEnv })
+  : spawnSync("npx", ["prisma", ...args], { stdio: "inherit", env: childEnv, shell: true });
+
+if (res.error) {
+  console.error(`\nCould not start the Prisma CLI: ${res.error.message}`);
+  if (!fs.existsSync(cli)) {
+    console.error(`Looked for ${cli} and it is not there. Run "npm install" first.`);
+  }
+  process.exit(1);
+}
+if (res.status !== 0) {
+  console.error(`\nPrisma exited with code ${res.status}. The message above says why.`);
+}
 process.exit(res.status ?? 1);
