@@ -82,5 +82,14 @@ if (res.error) {
 }
 if (res.status !== 0) {
   console.error(`\nPrisma exited with code ${res.status}. The message above says why.`);
+  console.error(
+    "\nIf it says P1000 (authentication failed), the password in TARGET_ is not the\n" +
+    "one the database actually has. A Supabase project created through the API or\n" +
+    "MCP has a generated password that is never displayed — the Connect dialog just\n" +
+    "shows [YOUR-PASSWORD] as a placeholder, so substituting a password of your own\n" +
+    "choosing there does not set it. Reset it: dashboard - project - Settings -\n" +
+    "Database - Reset database password, then put the new one in BOTH TARGET_ lines.\n" +
+    "\nIf it says P1001 (cannot reach the server), the host or port is wrong instead.",
+  );
 }
 process.exit(res.status ?? 1);
