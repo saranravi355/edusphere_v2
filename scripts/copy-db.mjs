@@ -11,6 +11,9 @@
  *   node scripts/copy-db.mjs --truncate # wipe the target first, then copy
  *   node scripts/copy-db.mjs --verify   # compare row counts only, change nothing
  *
+ * It refuses to overwrite a target that holds more rows than the source, since
+ * that is what a reversed copy looks like. --i-mean-it overrides that.
+ *
  * Source comes from DIRECT_URL (or DATABASE_URL).
  * Target comes from TARGET_DIRECT_URL (or TARGET_DATABASE_URL).
  * Both are read from the environment or from .env in the repo root.
@@ -45,6 +48,8 @@ function env() {
 }
 
 const mask = (u) => String(u).replace(/:\/\/([^:]+):[^@]+@/, "://$1:****@");
+
+const host = (u) => { try { return new URL(u).host; } catch { return "(unparseable)"; } };
 
 /** Host + database name. Same host, different database, is a legitimate copy. */
 const identity = (u) => {
@@ -164,6 +169,7 @@ async function main() {
   const args = new Set(process.argv.slice(2));
   const truncate = args.has("--truncate");
   const verifyOnly = args.has("--verify");
+  const iMeanIt = args.has("--i-mean-it");
   const e = env();
 
   const sourceUrl = e.DIRECT_URL || e.DATABASE_URL;
@@ -212,6 +218,30 @@ async function main() {
         `The target already holds ${existing} row(s): ${where}.\n` +
         `  A freshly migrated database is not empty — the campus migration seeds one School row —\n` +
         `  so this is normal on a first run. Re-run with --truncate to replace whatever is there.`,
+      );
+    }
+
+    /*
+     * Refuse a copy that looks like it is running backwards.
+     *
+     * The realistic way to lose this school's data is not a bug in the copy —
+     * it is putting the live database in TARGET_ and the empty one in
+     * DATABASE_URL, then passing --truncate. That wipes production and replaces
+     * it with nothing, and every check above would pass, because an empty
+     * source is a perfectly valid source.
+     *
+     * A real migration copies into a database that is empty or nearly so. If
+     * the target holds materially more than the source, the two are almost
+     * certainly the wrong way round.
+     */
+    if (truncate && !iMeanIt && existing > expectedTotal) {
+      throw new Error(
+        `Refusing to run: this looks reversed.\n` +
+        `  source ${host(sourceUrl)} holds ${expectedTotal} rows\n` +
+        `  target ${host(targetUrl)} holds ${existing} rows\n` +
+        `  --truncate would delete the ${existing} rows in the target and replace them with ${expectedTotal}.\n` +
+        `  Check that DATABASE_URL is the database you are copying FROM and TARGET_ is the new, empty one.\n` +
+        `  If you really do mean to overwrite the larger database, pass --i-mean-it as well.`,
       );
     }
 
