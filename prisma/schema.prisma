@@ -29,6 +29,7 @@ model User {
   notifications    Notification[]
   assetCheckouts   AssetCheckout[]
   resourceBookings ResourceBooking[]
+  announcements    Announcement[]    @relation("AnnouncementAuthor")
 }
 
 model Teacher {
@@ -52,6 +53,8 @@ model Teacher {
   pdRecords        PDRecord[]
   observations     Observation[] @relation("ObservedTeacher")
   lessonPlans      LessonPlan[]
+  substituteCover  LeaveRequest[] @relation("SubstituteCover")
+  meetings         ParentTeacherMeeting[]
 }
 
 model Parent {
@@ -62,6 +65,7 @@ model Parent {
   address          String?
   emergencyContact String?
   students         Student[]
+  meetings         ParentTeacherMeeting[]
 }
 
 model Student {
@@ -101,6 +105,7 @@ model Student {
   fatherName       String?
   
   attendances      Attendance[]
+  meetings         ParentTeacherMeeting[]
   grades           Grade[]
   homeworkSubmits  HomeworkSubmission[]
   invoices         FeeInvoice[]
@@ -281,6 +286,12 @@ model LeaveRequest {
   reason      String
   status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
   appliedAt   DateTime @default(now())
+
+  leaveType           String    @default("CASUAL") // CASUAL, SICK, EARNED, UNPAID
+  substituteTeacherId String?
+  substituteTeacher   Teacher?  @relation("SubstituteCover", fields: [substituteTeacherId], references: [id])
+  decidedAt           DateTime?
+  decidedById         String?   // userId of the approver
 }
 
 model TimetableEntry {
@@ -393,6 +404,7 @@ model QuizAttempt {
   autoSubmitted  Boolean   @default(false)
   status         String    @default("SUBMITTED") // IN_PROGRESS, SUBMITTED, GRADED, RELEASED
   questionOrder  String?   // JSON array of question ids in randomized order shown to this student
+  violations     Int       @default(0) // lockdown breaches recorded during the sitting
 
   responses      QuizResponse[]
 }
@@ -409,6 +421,8 @@ model QuizResponse {
   rubricScores  String?     // JSON array of {criterion, points} awarded
   feedback      String?
   gradedByTeacherId String?
+
+  @@unique([attemptId, questionId])
 }
 
 model Alumni {
@@ -706,4 +720,51 @@ model HostelLeave {
   contactPhone String?
   status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, RETURNED
   createdAt    DateTime @default(now())
+}
+
+/// School-wide announcements.
+///
+/// The admin dashboard has had a "School-Wide Announcement" dialog since the
+/// beginning. Its action slept for a second and returned `{ success: true }`;
+/// the title and message were discarded and the "Notify Teachers" / "Notify
+/// Parents" checkboxes had no name attribute, so they never reached the server
+/// either. This is the record that dialog should always have been writing, and
+/// the fan-out to Notification rows is what makes the checkboxes mean anything.
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  audience  String   @default("ALL") // ALL, TEACHERS, PARENTS, STUDENTS
+  authorId  String
+  author    User     @relation("AnnouncementAuthor", fields: [authorId], references: [id])
+  sentCount Int      @default(0) // how many people it actually reached
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// A booked parent-teacher consultation.
+///
+/// /parent/meetings presented a full booking flow — a teacher list, a date
+/// picker, four time slots with one struck through as "taken", and a Confirm
+/// Booking button — none of which had a handler, and an "upcoming meeting" with
+/// a named teacher and a generated Zoom link that was hardcoded JSX.
+model ParentTeacherMeeting {
+  id         String   @id @default(cuid())
+  parentId   String
+  parent     Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  teacherId  String
+  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  scheduledAt     DateTime
+  durationMinutes Int      @default(15)
+  status     String   @default("BOOKED") // BOOKED, CANCELLED, COMPLETED
+  topic      String?
+  createdAt  DateTime @default(now())
+
+  /// One booking per teacher per slot — the database, not the UI, is what stops
+  /// two parents taking the same fifteen minutes.
+  @@unique([teacherId, scheduledAt])
+  @@index([parentId])
 }

@@ -22,7 +22,15 @@ const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 const MONTH_LONG = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
 
-const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+/**
+ * The school's UTC offset in minutes. Exported so "today" can be computed in
+ * the school's own day rather than the server's — a register marked at 9am in
+ * Bengaluru is 03:30 UTC, and a naive UTC day boundary would file the first two
+ * lessons of every morning under the previous date.
+ */
+export const IST_OFFSET_MINUTES = 330;
+
+const IST_OFFSET_MS = IST_OFFSET_MINUTES * 60 * 1000;
 
 function istParts(input: Date | string | number) {
   const t = new Date(new Date(input).getTime() + IST_OFFSET_MS);
@@ -71,4 +79,18 @@ export function formatTime(input: Date | string | number | null | undefined, wit
   return withSeconds
     ? `${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}`
     : `${pad(p.hour)}:${pad(p.minute)}`;
+}
+
+/**
+ * The school's day as a pair of UTC instants: midnight to midnight in
+ * Asia/Kolkata. A register marked at 9am in Bengaluru is 03:30 UTC, so a naive
+ * UTC day boundary files the first two lessons of every morning under the
+ * previous date.
+ */
+export function schoolDay(at: Date = new Date()): { start: Date; end: Date } {
+  const local = new Date(at.getTime() + IST_OFFSET_MS);
+  const start = new Date(
+    Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()) - IST_OFFSET_MS,
+  );
+  return { start, end: new Date(start.getTime() + 86_400_000) };
 }

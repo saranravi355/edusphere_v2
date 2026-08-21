@@ -1,11 +1,9 @@
 import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
-import Modal from "@/components/ui/Modal";
-import { Plus, BookOpen, Monitor, MapPin, Search } from "lucide-react";
+import { BookOpen, Monitor, MapPin, Search } from "lucide-react";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { guard, ADMIN_ROLES } from "@/lib/authz";
+import ResourceModal from "./ResourceModal";
 
 export default async function ResourcesPage({
   searchParams,
@@ -36,22 +34,6 @@ export default async function ResourcesPage({
     orderBy: { name: 'asc' }
   });
 
-  async function createResource(formData: FormData) {
-    "use server";
-    const auth = await guard(ADMIN_ROLES);
-    if (!auth.ok) redirect("/");
-    const name = formData.get("name") as string;
-    const type = formData.get("type") as string;
-    const capacity = parseInt(formData.get("capacity") as string) || null;
-
-    if (!name || !type) return;
-
-    await prisma.resource.create({
-      data: { name, type, capacity, status: "AVAILABLE" }
-    });
-    revalidatePath("/admin/resources");
-  }
-
   const getTypeIcon = (type: string) => {
     switch(type) {
       case 'LIBRARY_BOOK': return <BookOpen className="text-blue-500" />;
@@ -66,37 +48,7 @@ export default async function ResourcesPage({
       <PageHeader 
         title="Resource Directory" 
         description="Manage facilities, library books, and equipment availability."
-        action={
-          <Modal
-            title="Add New Resource"
-            buttonText="New Resource"
-            buttonIcon={<Plus size={16} />}
-          >
-            <form action={createResource} className="space-y-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Resource Name</label>
-                <input required type="text" name="name" placeholder="e.g. Chemistry Lab 1" className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-slate-900 dark:text-white" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
-                  <select required name="type" className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">
-                    <option value="FACILITY">Facility / Room</option>
-                    <option value="EQUIPMENT">Equipment</option>
-                    <option value="LIBRARY_BOOK">Library Book</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Capacity (Optional)</label>
-                  <input type="number" name="capacity" placeholder="e.g. 30" className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-slate-900 dark:text-white" />
-                </div>
-              </div>
-              <button type="submit" className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors mt-4">
-                Add to Directory
-              </button>
-            </form>
-          </Modal>
-        }
+        action={<ResourceModal />}
       />
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">

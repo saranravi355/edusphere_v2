@@ -8,9 +8,18 @@ interface ModalProps {
   buttonIcon?: React.ReactNode;
   title: string;
   children: React.ReactNode;
+  /**
+   * Optional footer. There is deliberately no default: this component used to
+   * render its own "Save" that called alert("Data successfully submitted!")
+   * and closed, so every screen that used it got a convincing confirmation for
+   * work that was never saved. A dialog that submits something should use
+   * FormModal, which owns a real submit button, pending state and the action's
+   * own error message.
+   */
+  footer?: React.ReactNode;
 }
 
-export default function Modal({ buttonText, buttonIcon, title, children }: ModalProps) {
+export default function Modal({ buttonText, buttonIcon, title, children, footer }: ModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
@@ -80,23 +89,11 @@ export default function Modal({ buttonText, buttonIcon, title, children }: Modal
             <div className="p-6 overflow-y-auto">
               {children}
             </div>
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                  alert("Data successfully submitted!");
-                  setIsOpen(false);
-                }}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                Save
-              </button>
-            </div>
+            {footer && (
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
+                {footer}
+              </div>
+            )}
           </div>
         </div>
       )}
