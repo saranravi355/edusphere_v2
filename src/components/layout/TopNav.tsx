@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Bell, Search, LogOut, Menu } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
 import { logout, markAllNotificationsRead } from "@/app/actions";
@@ -18,6 +19,34 @@ function timeAgo(iso: string): string {
   return d === 1 ? "yesterday" : `${d} days ago`;
 }
 
+/**
+ * Both dropdowns in this header were `group-hover` only: no click handler, no
+ * keyboard path, and nothing at all on a touch screen — so on a phone the
+ * notification bell showed a red unread badge that could not be opened, and the
+ * language switcher could not be reached at all. This opens them on click and
+ * closes them on Escape or an outside click.
+ */
+function useMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onAway = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onAway);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onAway);
+    };
+  }, [open]);
+
+  return { open, setOpen, ref };
+}
+
 interface TopNavUser {
   role: string;
   name?: string | null;
@@ -34,6 +63,10 @@ export default function TopNav({
 }) {
   const { t, i18n } = useTranslation();
   const unread = notifications.filter((n) => !n.isRead).length;
+  // Destructured rather than used as `lang.ref` — reading a `.ref` property off
+  // an object during render trips the react-hooks purity rule.
+  const { open: langOpen, setOpen: setLangOpen, ref: langRef } = useMenu();
+  const { open: bellOpen, setOpen: setBellOpen, ref: bellRef } = useMenu();
 
   return (
     <header className="h-16 flex items-center justify-between px-4 lg:px-8 bg-white dark:bg-black border-b border-ui-border dark:border-zinc-800 sticky top-0 z-30 shadow-sm flex-shrink-0">
@@ -63,12 +96,19 @@ export default function TopNav({
 
       <div className="flex items-center gap-4 lg:gap-6">
         {/* Language Switcher */}
-        <div className="relative group">
-          <button className="flex items-center gap-1 p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors dark:text-slate-400 dark:hover:bg-zinc-800">
+        <div className="relative" ref={langRef}>
+          <button
+            type="button"
+            onClick={() => setLangOpen((v) => !v)}
+            aria-haspopup="menu"
+            aria-expanded={langOpen}
+            aria-label="Change language"
+            className="flex items-center gap-1 p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors dark:text-slate-400 dark:hover:bg-zinc-800"
+          >
             <span className="text-sm font-bold" suppressHydrationWarning>{t('nav.language_label', 'A/अ')}</span>
             <span className="text-xs uppercase font-medium" suppressHydrationWarning>{(i18n.language || 'en').slice(0, 2).toUpperCase()}</span>
           </button>
-          <div className="absolute right-0 top-full pt-2 hidden group-hover:block z-50 w-40">
+          <div role="menu" className={`absolute right-0 top-full pt-2 z-50 w-40 ${langOpen ? "block" : "hidden"}`}>
             <div className="bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 shadow-lg rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="p-1">
                 {[
@@ -76,13 +116,15 @@ export default function TopNav({
                   { code: 'hi', key: 'nav.hindi', fallback: 'Hindi', flag: '🇮🇳' },
                   { code: 'ta', key: 'nav.tamil', fallback: 'Tamil', flag: '🇮🇳' },
                   { code: 'kn', key: 'nav.kannada', fallback: 'Kannada', flag: '🇮🇳' },
-                ].map((lang) => (
+                ].map((l) => (
                   <button
-                    key={lang.code}
-                    onClick={() => i18n.changeLanguage(lang.code)}
-                    className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === lang.code ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
-                    <div className="flex items-center gap-2"><span className="text-lg">{lang.flag}</span> <span suppressHydrationWarning>{t(lang.key, lang.fallback)}</span></div>
-                    {i18n.language === lang.code && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
+                    key={l.code}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { i18n.changeLanguage(l.code); setLangOpen(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${i18n.language === l.code ? 'text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-zinc-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
+                    <div className="flex items-center gap-2"><span className="text-lg">{l.flag}</span> <span suppressHydrationWarning>{t(l.key, l.fallback)}</span></div>
+                    {i18n.language === l.code && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
                   </button>
                 ))}
               </div>
@@ -93,8 +135,15 @@ export default function TopNav({
         <ThemeToggle />
 
         {/* Notifications */}
-        <div className="relative group">
-          <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors dark:text-slate-400 dark:hover:bg-zinc-800 relative" aria-label="Notifications">
+        <div className="relative" ref={bellRef}>
+          <button
+            type="button"
+            onClick={() => setBellOpen((v) => !v)}
+            aria-haspopup="menu"
+            aria-expanded={bellOpen}
+            className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors dark:text-slate-400 dark:hover:bg-zinc-800 relative"
+            aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+          >
             <Bell size={20} />
             {unread > 0 && (
               <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-white dark:border-black flex items-center justify-center">
@@ -102,7 +151,7 @@ export default function TopNav({
               </span>
             )}
           </button>
-          <div className="absolute right-0 top-full pt-2 hidden group-hover:block z-50 w-80">
+          <div className={`absolute right-0 top-full pt-2 z-50 w-80 ${bellOpen ? "block" : "hidden"}`}>
             <div className="bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 shadow-lg rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="p-3 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex justify-between items-center">
                 <span className="font-bold text-sm text-slate-800 dark:text-slate-200" suppressHydrationWarning>{t('nav.notifications', 'Notifications')}</span>
