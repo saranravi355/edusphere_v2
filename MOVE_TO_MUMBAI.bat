@@ -27,15 +27,26 @@ echo ------------------------------------------------------------
 echo   BEFORE YOU RUN THIS, add two lines to .env
 echo ------------------------------------------------------------
 echo.
-echo   In the Supabase dashboard open the edusphere-mumbai project,
-echo   press Connect, and set a database password when prompted.
-echo   Then copy the two connection strings into .env:
+echo   1. supabase.com/dashboard - open the edusphere-mumbai
+echo      project - press Connect (top of the page).
+echo   2. If it asks you to set a database password, set one.
+echo      Avoid @ : / ? # ^& in it - those need URL-escaping.
+echo   3. The dialog lists three connection strings. Copy the
+echo      one called "Transaction pooler" (port 6543) and the
+echo      one called "Session pooler" (port 5432).
+echo   4. Paste them into .env, replacing [YOUR-PASSWORD] in each
+echo      with the password you just set:
 echo.
-echo     TARGET_DATABASE_URL="...pooler.supabase.com:6543/postgres?pgbouncer=true^&connection_limit=1"
-echo     TARGET_DIRECT_URL="...pooler.supabase.com:5432/postgres"
+echo        TARGET_DATABASE_URL="THE TRANSACTION POOLER STRING"
+echo        TARGET_DIRECT_URL="THE SESSION POOLER STRING"
 echo.
-echo   Same shape as your existing two lines, with ap-south-1 in
-echo   the host instead of ap-northeast-1.
+echo   5. On the end of the TARGET_DATABASE_URL one only, inside
+echo      the quotes, append this:
+echo.
+echo        ?pgbouncer=true^&connection_limit=1
+echo.
+echo   Same shape as the two lines already in .env, with
+echo   ap-south-1 in the host instead of ap-northeast-1.
 echo.
 echo   Ctrl+C to abort.
 pause
