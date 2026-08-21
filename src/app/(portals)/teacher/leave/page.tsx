@@ -1,111 +1,101 @@
-"use client";
-
 import PageHeader from "@/components/ui/PageHeader";
-import { Plane, Calendar, CheckCircle2, Clock, XCircle, FileText } from "lucide-react";
-import { useState } from "react";
+import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { CheckCircle2, Clock, XCircle, Trash2 } from "lucide-react";
+import LeaveForm from "./LeaveForm";
+import { withdrawLeave } from "./actions";
+import { ConfirmIconButton } from "@/components/ui/form";
+import { LEAVE_TYPES, leaveTypeLabel, workingDaysBetween, daysTakenByType } from "@/lib/leave";
+import { formatDate } from "@/lib/dates";
 
-export default function TeacherLeaveManagement() {
-  const [submitted, setSubmitted] = useState(false);
+export const dynamic = "force-dynamic";
+
+/**
+ * Leave Management.
+ *
+ * Everything on this page used to be invented: three balance cards reading
+ * 12/15, 8/10 and 4/5; a history table of three absences that never happened;
+ * and a form whose submit handler called preventDefault() and showed
+ * "Your leave request has been sent to the Principal for approval". The
+ * LeaveRequest table existed the whole time and the Principal's queue reads it,
+ * so the one thing the page never did was the thing it claimed to do.
+ */
+export default async function TeacherLeaveManagement() {
+  const session = await getSession();
+  if (!session || !["CLASS_TEACHER", "SUBJECT_TEACHER"].includes(session.user.role)) redirect("/");
+
+  const teacher = await prisma.teacher.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+  if (!teacher) redirect("/teacher");
+
+  const [requests, colleagues] = await Promise.all([
+    prisma.leaveRequest.findMany({
+      where: { teacherId: teacher.id },
+      select: {
+        id: true, leaveType: true, startDate: true, endDate: true, reason: true,
+        status: true, appliedAt: true, decidedAt: true,
+        substituteTeacher: { select: { user: { select: { name: true } } } },
+      },
+      orderBy: { startDate: "desc" },
+    }),
+    prisma.teacher.findMany({
+      where: { id: { not: teacher.id } },
+      select: { id: true, user: { select: { name: true } } },
+      orderBy: { user: { name: "asc" } },
+    }),
+  ]);
+
+  const yearStart = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
+  const taken = daysTakenByType(requests.filter((r) => r.startDate >= yearStart));
+
+  const tone = {
+    APPROVED: { chip: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400", Icon: CheckCircle2 },
+    PENDING: { chip: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400", Icon: Clock },
+    REJECTED: { chip: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400", Icon: XCircle },
+  } as const;
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
-      <PageHeader 
-        title="Leave Management" 
+      <PageHeader
+        title="Leave Management"
         description="Request time off and track your leave balances."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Balances */}
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Casual Leave (CL)</p>
-              <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">12 <span className="text-sm font-normal text-slate-500">/ 15</span></h3>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-500 flex items-center justify-center">
-              <Calendar size={24} />
-            </div>
-          </div>
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Sick Leave (SL)</p>
-              <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">8 <span className="text-sm font-normal text-slate-500">/ 10</span></h3>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 flex items-center justify-center">
-              <Clock size={24} />
-            </div>
-          </div>
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Earned Leave (EL)</p>
-              <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">4 <span className="text-sm font-normal text-slate-500">/ 5</span></h3>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-500 flex items-center justify-center">
-              <Plane size={24} />
-            </div>
-          </div>
+        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {LEAVE_TYPES.map((t) => {
+            const used = taken[t.value] ?? 0;
+            const left = t.entitlement === null ? null : Math.max(0, t.entitlement - used);
+            return (
+              <div key={t.value} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
+                <p className="text-sm font-medium text-slate-500">{t.label} ({t.short})</p>
+                <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+                  {left ?? used}
+                  {t.entitlement !== null && <span className="text-sm font-normal text-slate-500"> / {t.entitlement}</span>}
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  {t.entitlement === null ? `${used} day${used === 1 ? "" : "s"} taken this year` : `${used} used this year`}
+                </p>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Request Form */}
-        <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-          <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-            <FileText size={18} className="text-blue-500" />
-            New Request
-          </h3>
-          {submitted ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 size={32} />
-              </div>
-              <h4 className="font-bold text-lg text-slate-800 dark:text-slate-100">Request Submitted</h4>
-              <p className="text-sm text-slate-500 mt-1 mb-4">Your leave request has been sent to the Principal for approval.</p>
-              <button onClick={() => setSubmitted(false)} className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 rounded-lg text-sm font-medium">Submit Another</button>
-            </div>
-          ) : (
-            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Leave Type</label>
-                <select required className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black">
-                  <option>Casual Leave</option>
-                  <option>Sick Leave</option>
-                  <option>Earned Leave</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">From</label>
-                  <input required type="date" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">To</label>
-                  <input required type="date" className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black text-slate-500" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Reason</label>
-                <textarea required rows={3} className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black" placeholder="Reason for leave..."></textarea>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Substitute Teacher (Optional)</label>
-                <select className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black">
-                  <option>Auto-assign</option>
-                  <option>Mr. Rajesh Kumar</option>
-                  <option>Mrs. Sindhu Sharma</option>
-                </select>
-              </div>
-              <button type="submit" className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">
-                Submit Request
-              </button>
-            </form>
-          )}
+        <div className="lg:col-span-1">
+          <LeaveForm colleagues={colleagues.map((c) => ({ id: c.id, name: c.user.name }))} />
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-3 px-1">
+            Balances count working days only, and a pending request is already reserved against them.
+          </p>
         </div>
 
-        {/* History */}
         <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
           <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100">Leave History</h3>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100">Leave history</h3>
           </div>
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-zinc-800 text-xs uppercase text-slate-500 bg-slate-50 dark:bg-zinc-900/30">
@@ -114,42 +104,53 @@ export default function TeacherLeaveManagement() {
                   <th className="p-4 font-medium">Duration</th>
                   <th className="p-4 font-medium">Substitute</th>
                   <th className="p-4 font-medium">Status</th>
+                  <th className="p-4 font-medium"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                  <td className="p-4 text-sm font-medium">Sick Leave</td>
-                  <td className="p-4 text-sm text-slate-500">Oct 12 - Oct 13</td>
-                  <td className="p-4 text-sm">2 Days</td>
-                  <td className="p-4 text-sm text-slate-500">Auto-assigned</td>
-                  <td className="p-4">
-                    <span className="px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-medium flex items-center gap-1 w-max">
-                      <CheckCircle2 size={12}/> Approved
-                    </span>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                  <td className="p-4 text-sm font-medium">Casual Leave</td>
-                  <td className="p-4 text-sm text-slate-500">Nov 5 - Nov 5</td>
-                  <td className="p-4 text-sm">1 Day</td>
-                  <td className="p-4 text-sm text-slate-500">Mr. Rajesh Kumar</td>
-                  <td className="p-4">
-                    <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-md text-xs font-medium flex items-center gap-1 w-max">
-                      <Clock size={12}/> Pending
-                    </span>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/20">
-                  <td className="p-4 text-sm font-medium">Earned Leave</td>
-                  <td className="p-4 text-sm text-slate-500">Dec 20 - Dec 24</td>
-                  <td className="p-4 text-sm">5 Days</td>
-                  <td className="p-4 text-sm text-slate-500">-</td>
-                  <td className="p-4">
-                    <span className="px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md text-xs font-medium flex items-center gap-1 w-max">
-                      <XCircle size={12}/> Rejected
-                    </span>
-                  </td>
-                </tr>
+                {requests.map((r) => {
+                  const t = tone[r.status as keyof typeof tone] ?? tone.PENDING;
+                  const days = workingDaysBetween(r.startDate, r.endDate);
+                  return (
+                    <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/20 align-top">
+                      <td className="p-4 text-sm font-medium">{leaveTypeLabel(r.leaveType)}</td>
+                      <td className="p-4 text-sm text-slate-500 whitespace-nowrap">
+                        {formatDate(r.startDate, "dMon")} – {formatDate(r.endDate, "dMon")}
+                        <span className="block text-xs text-slate-400 max-w-[16rem] truncate" title={r.reason}>{r.reason}</span>
+                      </td>
+                      <td className="p-4 text-sm whitespace-nowrap">{days} day{days === 1 ? "" : "s"}</td>
+                      <td className="p-4 text-sm text-slate-500">{r.substituteTeacher?.user.name ?? "No preference"}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1 w-max ${t.chip}`}>
+                          <t.Icon size={12} aria-hidden /> {r.status.charAt(0) + r.status.slice(1).toLowerCase()}
+                        </span>
+                        {r.decidedAt && (
+                          <span className="block text-[11px] text-slate-400 mt-1">{formatDate(r.decidedAt, "dMon")}</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right">
+                        {r.status === "PENDING" && (
+                          <ConfirmIconButton
+                            onConfirm={async () => { "use server"; return withdrawLeave(r.id); }}
+                            question="Withdraw this request?"
+                            confirmLabel="Withdraw"
+                            triggerLabel={`Withdraw leave from ${formatDate(r.startDate, "dMon")}`}
+                            triggerClassName="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          >
+                            <Trash2 size={14} aria-hidden />
+                          </ConfirmIconButton>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {requests.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-10 text-center text-sm text-slate-500">
+                      No leave requested yet. Your first request will appear here and in the Principal&apos;s queue.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

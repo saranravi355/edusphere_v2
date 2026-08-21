@@ -2,10 +2,13 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, UserCheck } from "lucide-react";
 import { SubmitButton } from "@/components/ui/form";
-import { guard, ADMIN_ROLES } from "@/lib/authz";
+import { decideLeave } from "@/app/(portals)/teacher/leave/actions";
+import { leaveTypeLabel, workingDaysBetween } from "@/lib/leave";
+import { formatDate } from "@/lib/dates";
+
+export const dynamic = "force-dynamic";
 
 export default async function StaffLeavePage() {
   const session = await getSession();
@@ -13,19 +16,21 @@ export default async function StaffLeavePage() {
     redirect("/");
   }
 
+  // Pending first — this is a queue, and a decision that has already been made
+  // does not need to be at the top of it.
   const leaveRequests = await prisma.leaveRequest.findMany({
-    include: { teacher: { include: { user: true } } },
-    orderBy: { appliedAt: 'desc' }
+    select: {
+      id: true, status: true, reason: true, leaveType: true,
+      startDate: true, endDate: true, appliedAt: true, decidedAt: true,
+      teacher: { select: { user: { select: { name: true } } } },
+      substituteTeacher: { select: { user: { select: { name: true } } } },
+    },
+    orderBy: [{ status: "asc" }, { startDate: "desc" }],
   });
-
-  async function updateStatus(id: string, status: 'APPROVED' | 'REJECTED') {
-    "use server";
-    // Directly invocable endpoint: approving leave must be an admin action.
-    const auth = await guard(ADMIN_ROLES);
-    if (!auth.ok) redirect("/");
-    await prisma.leaveRequest.update({ where: { id }, data: { status } });
-    revalidatePath("/admin/staff/leave");
-  }
+  const pendingFirst = [
+    ...leaveRequests.filter((r) => r.status === "PENDING"),
+    ...leaveRequests.filter((r) => r.status !== "PENDING"),
+  ];
 
   const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     PENDING: { label: "Pending", color: "text-orange-700 dark:text-orange-400", bg: "bg-orange-100 dark:bg-orange-900/30" },
@@ -41,7 +46,7 @@ export default async function StaffLeavePage() {
       />
 
       <div className="space-y-4">
-        {leaveRequests.map((req) => {
+        {pendingFirst.map((req) => {
           const config = statusConfig[req.status] || statusConfig.PENDING;
           return (
             <div key={req.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
@@ -49,7 +54,13 @@ export default async function StaffLeavePage() {
                 <div>
                   <p className="font-bold text-slate-800 dark:text-slate-200">{req.teacher.user.name}</p>
                   <p className="text-sm text-slate-500">
-                    {new Date(req.startDate).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })} – {new Date(req.endDate).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}
+                    {leaveTypeLabel(req.leaveType)} · {formatDate(req.startDate, "dMon")} – {formatDate(req.endDate, "dMon")}
+                    {" · "}{workingDaysBetween(req.startDate, req.endDate)} working day
+                    {workingDaysBetween(req.startDate, req.endDate) === 1 ? "" : "s"}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                    <UserCheck size={12} aria-hidden />
+                    Cover: {req.substituteTeacher?.user.name ?? "no preference given"}
                   </p>
                 </div>
                 <span className={`text-xs font-bold px-3 py-1 rounded-full ${config.bg} ${config.color}`}>
@@ -57,15 +68,18 @@ export default async function StaffLeavePage() {
                 </span>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 italic mb-4">&quot;{req.reason}&quot;</p>
+              {req.decidedAt && (
+                <p className="text-xs text-slate-400 mb-3">Decided {formatDate(req.decidedAt, "dMonYy")}.</p>
+              )}
 
               {req.status === 'PENDING' && (
                 <div className="flex gap-3">
-                  <form action={async () => { "use server"; await updateStatus(req.id, 'APPROVED'); }}>
+                  <form action={async () => { "use server"; await decideLeave(req.id, "APPROVED"); }}>
                     <SubmitButton size="sm" pendingText="Approving…" className="bg-green-600 hover:bg-green-700 text-white font-bold">
                       <CheckCircle2 size={12} aria-hidden /> Approve
                     </SubmitButton>
                   </form>
-                  <form action={async () => { "use server"; await updateStatus(req.id, 'REJECTED'); }}>
+                  <form action={async () => { "use server"; await decideLeave(req.id, "REJECTED"); }}>
                     <SubmitButton size="sm" pendingText="Rejecting…" className="bg-red-600 hover:bg-red-700 text-white font-bold">
                       <XCircle size={12} aria-hidden /> Reject
                     </SubmitButton>
@@ -75,7 +89,7 @@ export default async function StaffLeavePage() {
             </div>
           );
         })}
-        {leaveRequests.length === 0 && (
+        {pendingFirst.length === 0 && (
           <div className="text-center py-12 text-slate-400 flex flex-col items-center gap-2">
             <Clock size={32} />
             <p>No leave requests submitted.</p>

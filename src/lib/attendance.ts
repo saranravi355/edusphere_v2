@@ -1,5 +1,12 @@
 import prisma from "@/lib/prisma";
 
+/** The two registers taken each day. `FULL_DAY` is the legacy single mark. */
+export const SESSIONS = ["MORNING", "AFTERNOON"] as const;
+export type AttendanceSession = (typeof SESSIONS)[number];
+
+export const ATTENDANCE_STATUSES = ["PRESENT", "ABSENT", "LATE", "EXCUSED"] as const;
+
+
 export type Presence = {
   present: number;
   total: number;
