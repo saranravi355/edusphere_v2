@@ -3,25 +3,40 @@ setlocal
 cd /d "%~dp0"
 
 echo ============================================================
-echo   EduSphere 360 - move the database from Tokyo to Mumbai
+echo   THIS MOVE IS ALREADY DONE - 21 August 2026
 echo ============================================================
 echo.
-echo   WHY: your database is in Tokyo and Vercel runs the app in
-echo   the United States. Every page makes 4 to 22 database round
-echo   trips, and each one costs about 170ms across that distance.
-echo   That is where the ~3.5 seconds per page is going. The code
-echo   itself renders a page in 20-150ms.
+echo   Production now runs on edusphere-mumbai (ap-south-1) and
+echo   Tokyo is the rollback copy, frozen at the moment of the
+echo   original copy.
 echo.
-echo   A new Supabase project already exists:
+echo   RUNNING THIS AGAIN WOULD COPY THE OLD TOKYO DATA OVER THE
+echo   LIVE MUMBAI ONE, losing anything written since the move.
+echo   The copy refuses when the target holds more rows than the
+echo   source, but if the counts happen to match it will proceed.
+echo.
+echo   Close this window unless you know you want that.
+echo   It is kept as the record of how the move was done.
+echo.
+echo ------------------------------------------------------------
+echo   What it did, for the record
+echo ------------------------------------------------------------
+echo.
+echo   WHY: the database was in Tokyo and Vercel ran the app in
+echo   the United States. Every page makes 4 to 22 database round
+echo   trips. One measured round trip cost 651-813ms across that
+echo   distance; it is about 12ms now. The code itself renders a
+echo   page in 20-150ms and never was the problem.
+echo.
+echo   The Supabase project it moved to:
 echo     name    edusphere-mumbai
 echo     region  ap-south-1 (Mumbai)
 echo     ref     khwhqxpfltgrmveiwjjb
 echo     cost    free tier, 0 per month
 echo.
 echo   This script does NOT switch anything over. It creates the
-echo   tables in Mumbai and copies your data there. Tokyo is left
-echo   exactly as it is, still serving production, until you
-echo   decide to switch.
+echo   tables in the target and copies data there. Pointing
+echo   production at it is a separate, manual step in Vercel.
 echo.
 echo ------------------------------------------------------------
 echo   BEFORE YOU RUN THIS, add two lines to .env

@@ -2,10 +2,14 @@
  * Copy every row from one PostgreSQL database into another.
  *
  * Written to move this school's data from the Supabase project in Tokyo
- * (ap-northeast-1) to a new one in Mumbai (ap-south-1). The app was spending
- * roughly 170ms on every database round trip because the Vercel functions run
- * in the United States and the database was in Japan; a page makes up to 22
- * round trips, so that was ~3.7s of pure waiting per page.
+ * (ap-northeast-1) to a new one in Mumbai (ap-south-1), which has since been
+ * done. A single round trip to the Tokyo database measured 651-813ms from the
+ * serverless function; a page makes between 4 and 22 of them. After the move
+ * the same round trip measures about 12ms.
+ *
+ * An earlier version of this comment estimated 170ms from geography alone.
+ * The measured figure was four times worse, which is the usual lesson about
+ * estimating latency instead of measuring it.
  *
  *   node scripts/copy-db.mjs            # copy, refusing to touch a non-empty target
  *   node scripts/copy-db.mjs --truncate # wipe the target first, then copy
