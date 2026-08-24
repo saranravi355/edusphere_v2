@@ -24,8 +24,8 @@ const tools: { href: string; icon: React.ReactNode; title: string; description: 
   { href: "/admin/ai-insights/route-optimiser", icon: <Route size={18} />, title: "Transport Route Optimiser", description: "Re-sequences bus stops to cut commute time and fuel cost.", audience: "admin" },
   { href: "/admin/finance/payment-predictor", icon: <Wallet size={18} />, title: "Fee Payment Predictor", description: "Predicts which families are likely to pay the next invoice late.", audience: "admin" },
   { href: "/admin/finance/cashflow-forecast", icon: <LineChart size={18} />, title: "AI Cash Flow Forecast", description: "Projects 6-month cash position against the payroll calendar.", audience: "admin" },
-  { href: "/admin/canteen", icon: <UtensilsCrossed size={18} />, title: "Nutrition Demand Forecaster", description: "Predicts daily canteen demand per menu item.", audience: "admin" },
-  { href: "/admin/resources/predictive-ai", icon: <PackageOpen size={18} />, title: "Predictive Resource Allocation", description: "Forecasts inventory depletion and drafts purchase orders.", badge: "Existing", audience: "admin" },
+  { href: "/operations/canteen", icon: <UtensilsCrossed size={18} />, title: "Nutrition Demand Forecaster", description: "Predicts daily canteen demand per menu item.", audience: "admin" },
+  { href: "/operations/resources/predictive-ai", icon: <PackageOpen size={18} />, title: "Predictive Resource Allocation", description: "Forecasts inventory depletion and drafts purchase orders.", badge: "Existing", audience: "admin" },
 ];
 
 export default async function AdminAIInsightsHub() {

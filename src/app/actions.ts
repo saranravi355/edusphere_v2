@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { isOperationsRole, operationsLandingPath } from "@/lib/operations";
 
 export type LoginState = { error?: string } | undefined;
 
@@ -76,6 +77,10 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     redirect("/parent");
   } else if (user.role === "STUDENT") {
     redirect("/student");
+  } else if (isOperationsRole(user.role)) {
+    // Straight to the one department they run — /operations itself would only
+    // show them four doors they cannot open.
+    redirect(operationsLandingPath(user.role));
   } else {
     redirect("/");
   }

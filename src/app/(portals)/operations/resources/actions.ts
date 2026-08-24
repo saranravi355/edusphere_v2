@@ -2,7 +2,11 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { guard, ADMIN_ROLES } from "@/lib/authz";
+import { guard } from "@/lib/authz";
+import { rolesForDepartment } from "@/lib/operations";
+
+/** Administrators, plus the resources manager. */
+const RESOURCES = rolesForDepartment("resources");
 import type { ActionState } from "@/components/ui/form";
 
 /**
@@ -14,7 +18,7 @@ import type { ActionState } from "@/components/ui/form";
  * submitting anything. Whichever button you pressed, you were told it worked.
  */
 export async function createResource(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const auth = await guard(ADMIN_ROLES);
+  const auth = await guard(RESOURCES);
   if (!auth.ok) return { error: auth.error };
 
   const name = String(formData.get("name") ?? "").trim();
@@ -36,6 +40,6 @@ export async function createResource(_prev: ActionState, formData: FormData): Pr
 
   await prisma.resource.create({ data: { name, type, capacity, status: "AVAILABLE" } });
 
-  revalidatePath("/admin/resources");
+  revalidatePath("/operations/resources");
   return { success: `${name} added to the directory.` };
 }

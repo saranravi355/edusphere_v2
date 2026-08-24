@@ -58,6 +58,29 @@ const ADMIN_OVERVIEW: NavSection = {
   ],
 };
 
+/**
+ * Operations.
+ *
+ * Shown whole to administrators. Each department manager gets only their own
+ * entry, below — a sidebar listing four doors they cannot open is just a row of
+ * dead ends.
+ */
+const OPERATIONS_SECTION: NavSection = {
+  label: "Operations",
+  links: [
+    { name: "All operations", href: "/operations", icon: LayoutDashboard },
+    { name: "Canteen", href: "/operations/canteen", icon: UtensilsCrossed },
+    { name: "Transport", href: "/operations/transport", icon: Bus },
+    { name: "Hostel", href: "/operations/hostel", icon: Bed },
+    { name: "Resources", href: "/operations/resources", icon: Monitor },
+    { name: "Assets", href: "/operations/assets", icon: Package },
+  ],
+};
+
+const onlyDepartment = (name: string, href: string, icon: LucideIcon): NavSection[] => [
+  { label: "Operations", links: [{ name, href, icon }] },
+];
+
 const SECTIONS: Record<string, NavSection[]> = {
   SUPER_ADMIN: [
     ADMIN_OVERVIEW,
@@ -70,16 +93,7 @@ const SECTIONS: Record<string, NavSection[]> = {
         { name: "Fee Plans", href: "/admin/fees", icon: Receipt },
       ],
     },
-    {
-      label: "Operations",
-      links: [
-        { name: "Canteen", href: "/admin/canteen", icon: UtensilsCrossed },
-        { name: "Transport", href: "/admin/transport", icon: Bus },
-        { name: "Hostel", href: "/admin/hostel", icon: Bed },
-        { name: "Resources", href: "/admin/resources", icon: Monitor },
-        { name: "Assets", href: "/admin/assets", icon: Package },
-      ],
-    },
+    OPERATIONS_SECTION,
     {
       label: "System",
       links: [
@@ -92,6 +106,11 @@ const SECTIONS: Record<string, NavSection[]> = {
   PRINCIPAL: [ADMIN_OVERVIEW, ADMIN_ACADEMICS, ADMIN_PEOPLE],
   CLASS_TEACHER: [],
   SUBJECT_TEACHER: [],
+  CANTEEN_MANAGER: onlyDepartment("Canteen", "/operations/canteen", UtensilsCrossed),
+  TRANSPORT_MANAGER: onlyDepartment("Transport", "/operations/transport", Bus),
+  HOSTEL_MANAGER: onlyDepartment("Hostel", "/operations/hostel", Bed),
+  RESOURCES_MANAGER: onlyDepartment("Resources", "/operations/resources", Monitor),
+  ASSETS_MANAGER: onlyDepartment("Assets", "/operations/assets", Package),
   PARENT: [
     {
       label: "Overview",

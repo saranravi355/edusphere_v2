@@ -2,7 +2,11 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { guard, ADMIN_ROLES } from "@/lib/authz";
+import { guard } from "@/lib/authz";
+import { rolesForDepartment } from "@/lib/operations";
+
+/** Administrators, plus the transport manager who actually runs the buses. */
+const TRANSPORT = rolesForDepartment("transport");
 import type { ActionState } from "@/components/ui/form";
 
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -10,7 +14,7 @@ const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 /**
  * Create a bus route.
  *
- * /admin/transport reported "24 of 26 vehicles active", 24 drivers, one alert
+ * /operations/transport reported "24 of 26 vehicles active", 24 drivers, one alert
  * and three named routes with ETAs — all a literal array inside the page — and
  * its "Track" button was a bare <button> in a Server Component with no handler.
  * /parent/transport/live animated a bus along a CSS road, counting an ETA down
@@ -18,7 +22,7 @@ const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
  * exist. There was no transport model of any kind.
  */
 export async function createRoute(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const auth = await guard(ADMIN_ROLES);
+  const auth = await guard(TRANSPORT);
   if (!auth.ok) return { error: auth.error };
 
   const name = String(formData.get("name") ?? "").trim();
@@ -38,13 +42,13 @@ export async function createRoute(_prev: ActionState, formData: FormData): Promi
   await prisma.transportRoute.create({
     data: { name, vehicleNumber, driverName, driverPhone: driverPhone || null, capacity },
   });
-  revalidatePath("/admin/transport");
+  revalidatePath("/operations/transport");
   return { success: `${name} added.` };
 }
 
 /** Add a stop to a route. */
 export async function addStop(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const auth = await guard(ADMIN_ROLES);
+  const auth = await guard(TRANSPORT);
   if (!auth.ok) return { error: auth.error };
 
   const routeId = String(formData.get("routeId") ?? "");
@@ -69,13 +73,13 @@ export async function addStop(_prev: ActionState, formData: FormData): Promise<A
       sequence: (route.stops[0]?.sequence ?? 0) + 1,
     },
   });
-  revalidatePath("/admin/transport");
+  revalidatePath("/operations/transport");
   return { success: `${name} added to ${route.name}.` };
 }
 
 /** Put a student on a route, or move them. */
 export async function assignRider(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const auth = await guard(ADMIN_ROLES);
+  const auth = await guard(TRANSPORT);
   if (!auth.ok) return { error: auth.error };
 
   const studentId = String(formData.get("studentId") ?? "");
@@ -115,31 +119,31 @@ export async function assignRider(_prev: ActionState, formData: FormData): Promi
     update: { routeId, stopId: stopId || null },
   });
 
-  revalidatePath("/admin/transport");
+  revalidatePath("/operations/transport");
   revalidatePath("/parent/transport");
   return { success: `${student.name} is on ${route.name}.` };
 }
 
 /** Take a student off transport. */
 export async function removeRider(studentId: string): Promise<{ error?: string; success?: boolean }> {
-  const auth = await guard(ADMIN_ROLES);
+  const auth = await guard(TRANSPORT);
   if (!auth.ok) return { error: auth.error };
 
   const row = await prisma.studentTransport.findUnique({ where: { studentId }, select: { id: true } });
   if (!row) return { error: "That student is not on a route." };
 
   await prisma.studentTransport.delete({ where: { studentId } });
-  revalidatePath("/admin/transport");
+  revalidatePath("/operations/transport");
   revalidatePath("/parent/transport");
   return { success: true };
 }
 
 /** Take a route out of service without losing its history. */
 export async function setRouteActive(routeId: string, isActive: boolean): Promise<{ error?: string; success?: boolean }> {
-  const auth = await guard(ADMIN_ROLES);
+  const auth = await guard(TRANSPORT);
   if (!auth.ok) return { error: auth.error };
   await prisma.transportRoute.update({ where: { id: routeId }, data: { isActive } });
-  revalidatePath("/admin/transport");
+  revalidatePath("/operations/transport");
   revalidatePath("/parent/transport");
   return { success: true };
 }

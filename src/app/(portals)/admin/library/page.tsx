@@ -219,7 +219,7 @@ export default async function LibraryPage({
       <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
         <Boxes size={14} aria-hidden />
         Laptops, projectors and lab equipment are tracked separately —{" "}
-        <Link href="/admin/assets" className="text-blue-600 hover:underline inline-flex items-center gap-1">
+        <Link href="/operations/assets" className="text-blue-600 hover:underline inline-flex items-center gap-1">
           {assetCount} assets <ArrowRight size={11} aria-hidden />
         </Link>
       </p>
