@@ -6,29 +6,19 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { LogoFull } from "@/components/ui/Logo";
+import { portalBySlug } from "@/lib/portals";
 import { Suspense, useActionState } from "react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "student";
   const [state, formAction, pending] = useActionState(login, undefined);
 
-  let defaultEmail = "aarav.p@edusphere.com";
-  let roleTitle = "Student";
-
-  if (role === "admin") {
-    defaultEmail = "admin@edusphere.com";
-    roleTitle = "Administrator";
-  } else if (role === "teacher") {
-    defaultEmail = "meena.k@edusphere.com";
-    roleTitle = "Teacher";
-  } else if (role === "parent") {
-    defaultEmail = "rahul.p@edusphere.com";
-    roleTitle = "Parent";
-  } else if (role === "principal") {
-    defaultEmail = "principal@edusphere.com";
-    roleTitle = "Principal";
-  }
+  // One table, shared with the landing page, so a new portal cannot appear on
+  // the front door and be missing here. An unknown ?role= falls back rather
+  // than rendering a blank form.
+  const portal = portalBySlug(searchParams.get("role"));
+  const defaultEmail = portal.sampleEmail;
+  const roleTitle = portal.loginTitle;
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-200 dark:bg-slate-950 p-4 sm:p-8">
@@ -80,6 +70,11 @@ function LoginForm() {
                   className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
                   required
                 />
+                {portal.alternatives && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+                    Also {portal.alternatives.join(", ")} — each opens its own department.
+                  </p>
+                )}
               </div>
 
               <div>

@@ -2,7 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
-import { GraduationCap, Users, UserCircle, School, Bell, ChevronRight, Building, Briefcase } from "lucide-react";
+import { GraduationCap, Users, UserCircle, School, Bell, ChevronRight, Building, Briefcase, Boxes, LogIn } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LogoFull } from "@/components/ui/Logo";
 
@@ -21,6 +21,24 @@ export type PublicNotice = {
   startDate: string;
   endDate: string | null;
 };
+
+/**
+ * The six front doors.
+ *
+ * This was five near-identical blocks of JSX, each repeating the same inline
+ * arrow SVG. Adding Operations by copying a sixth would have made the next one
+ * worse again, so the markup is written once and the differences live here.
+ * The slugs match lib/portals.ts, which is what the login form reads to decide
+ * the heading and the prefilled address.
+ */
+const PORTAL_CARDS = [
+  { slug: "admin",      label: "Management", Icon: Building,      accent: "border-purple-500", chip: "bg-purple-600 dark:bg-purple-500", text: "text-purple-600 dark:text-purple-500" },
+  { slug: "principal",  label: "Principal",  Icon: Briefcase,     accent: "border-pink-500",   chip: "bg-pink-600 dark:bg-pink-500",     text: "text-pink-600 dark:text-pink-500" },
+  { slug: "teacher",    label: "Teacher",    Icon: Users,         accent: "border-yellow-500", chip: "bg-yellow-500",                    text: "text-yellow-600 dark:text-yellow-500" },
+  { slug: "student",    label: "Student",    Icon: GraduationCap, accent: "border-blue-500",   chip: "bg-blue-600 dark:bg-blue-500",     text: "text-blue-600 dark:text-blue-400" },
+  { slug: "parent",     label: "Parent",     Icon: UserCircle,    accent: "border-green-500",  chip: "bg-green-600 dark:bg-green-500",   text: "text-green-600 dark:text-green-500" },
+  { slug: "operations", label: "Operations", Icon: Boxes,         accent: "border-teal-500",   chip: "bg-teal-600 dark:bg-teal-500",     text: "text-teal-600 dark:text-teal-400" },
+] as const;
 
 export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
   const containerVariants = {
@@ -57,82 +75,23 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full max-w-[90rem] z-10"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 w-full max-w-[95rem] z-10"
       >
-        {/* Management Card */}
-        <Link href="/login?role=admin">
-          <motion.div variants={itemVariants} className="group relative">
-            <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-purple-500 rounded-b-lg">
-              <Building size={48} className="text-slate-700 dark:text-slate-300" />
-              <div className="flex items-center gap-4 mt-2">
-                <span className="font-bold text-purple-600 dark:text-purple-500 text-lg">Management</span>
-                <div className="w-8 h-8 rounded bg-purple-600 dark:bg-purple-500 flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        {PORTAL_CARDS.map(({ slug, label, Icon, accent, chip, text }) => (
+          <Link key={slug} href={`/login?role=${slug}`} aria-label={`Sign in to the ${label} portal`}>
+            <motion.div variants={itemVariants} className="group relative h-full">
+              <div className={`bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 h-full flex flex-col items-center justify-center gap-4 border-t-4 ${accent} rounded-b-lg`}>
+                <Icon size={48} className="text-slate-700 dark:text-slate-300" />
+                <div className="flex items-center gap-4 mt-2">
+                  <span className={`font-bold text-lg ${text}`}>{label}</span>
+                  <span className={`w-8 h-8 rounded ${chip} flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform`}>
+                    <LogIn size={16} aria-hidden />
+                  </span>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </Link>
-
-        {/* Principal Card */}
-        <Link href="/login?role=principal">
-          <motion.div variants={itemVariants} className="group relative">
-            <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-pink-500 rounded-b-lg">
-              <Briefcase size={48} className="text-slate-700 dark:text-slate-300" />
-              <div className="flex items-center gap-4 mt-2">
-                <span className="font-bold text-pink-600 dark:text-pink-500 text-lg">Principal</span>
-                <div className="w-8 h-8 rounded bg-pink-600 dark:bg-pink-500 flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </Link>
-
-        {/* Teacher Card */}
-        <Link href="/login?role=teacher">
-          <motion.div variants={itemVariants} className="group relative">
-            <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-yellow-500 rounded-b-lg">
-              <Users size={48} className="text-slate-700 dark:text-slate-300" />
-              <div className="flex items-center gap-4 mt-2">
-                <span className="font-bold text-yellow-600 dark:text-yellow-500 text-lg">Teacher</span>
-                <div className="w-8 h-8 rounded bg-yellow-500 flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </Link>
-
-        {/* Student Card */}
-        <Link href="/login?role=student">
-          <motion.div variants={itemVariants} className="group relative">
-            <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-blue-500 rounded-b-lg">
-              <GraduationCap size={48} className="text-slate-700 dark:text-slate-300" />
-              <div className="flex items-center gap-4 mt-2">
-                <span className="font-bold text-blue-600 dark:text-blue-400 text-lg">Student</span>
-                <div className="w-8 h-8 rounded bg-blue-600 dark:bg-blue-500 flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </Link>
-
-        {/* Parent Card */}
-        <Link href="/login?role=parent">
-          <motion.div variants={itemVariants} className="group relative">
-            <div className="bg-white dark:bg-zinc-900 shadow-md hover:shadow-lg transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 border-t-4 border-green-500 rounded-b-lg">
-              <UserCircle size={48} className="text-slate-700 dark:text-slate-300" />
-              <div className="flex items-center gap-4 mt-2">
-                <span className="font-bold text-green-600 dark:text-green-500 text-lg">Parent</span>
-                <div className="w-8 h-8 rounded bg-green-600 dark:bg-green-500 flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </Link>
+            </motion.div>
+          </Link>
+        ))}
       </motion.div>
 
       {/* General Notification / Circular Board */}
