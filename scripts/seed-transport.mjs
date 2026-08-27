@@ -131,21 +131,37 @@ if (ROUTES_ONLY) {
 }
 
 /**
- * Sorted by registration number so the selection is reproducible, and riders
- * are picked evenly across that order rather than as the first N — otherwise
- * one bus would carry an entire cohort, since registration numbers run in
- * enrollment order.
+ * Every student, sorted by registration number so the selection is
+ * reproducible.
+ *
+ * Addresses are fixed for all of them, riders are drawn only from the ones
+ * still enrolled. The sixteen inactive students are graduated DP leavers with
+ * Alumni records — they do not belong on a bus, but the placeholder address in
+ * their record is just as wrong as anyone else's, and filtering them out of the
+ * query entirely would have quietly left it there.
  */
 const students = await prisma.student.findMany({
-  where: { isActive: true },
-  select: { id: true, registrationNo: true, name: true, address: true, transport: { select: { routeId: true } } },
+  select: {
+    id: true, registrationNo: true, name: true, address: true, isActive: true,
+    transport: { select: { routeId: true } },
+  },
   orderBy: { registrationNo: "asc" },
 });
 
+const enrolled = students.filter((s) => s.isActive);
 const TARGET = ROUTES.reduce((n, r) => n + r.riders, 0);
-const isRider = students.map((_, i) =>
-  Math.floor(((i + 1) * TARGET) / students.length) > Math.floor((i * TARGET) / students.length),
-);
+
+/**
+ * Riders are picked evenly across the enrolled list rather than as the first N
+ * — otherwise one bus would carry an entire cohort, since registration numbers
+ * run in enrollment order.
+ */
+const riderIds = new Set();
+enrolled.forEach((s, i) => {
+  const takes = Math.floor(((i + 1) * TARGET) / enrolled.length) > Math.floor((i * TARGET) / enrolled.length);
+  if (takes) riderIds.add(s.id);
+});
+log(`${students.length} students, ${enrolled.length} enrolled, ${riderIds.size} to be seated.\n`);
 
 // Seats, dealt round-robin across the routes so every bus carries a mix of
 // PYP, MYP and DP rather than one contiguous block of registration numbers.
@@ -181,7 +197,7 @@ for (const [i, s] of students.entries()) {
 
   if (s.transport) {
     ridersKept++;                       // already on a route — leave it alone
-  } else if (isRider[i] && seatCursor < seats.length) {
+  } else if (riderIds.has(s.id) && seatCursor < seats.length) {
     const route = seats[seatCursor++];
     const routeId = routeIdByName.get(route.name);
     const stopIdx = (perRouteStopCursor.get(route.name) ?? 0) % route.stops.length;
