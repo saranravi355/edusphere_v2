@@ -9,6 +9,7 @@ import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { SubmitButton } from "@/components/ui/form";
 import { guard, TEACHER_ROLES } from "@/lib/authz";
 import { formatDate, schoolDay } from "@/lib/dates";
+import { markOne, markManyPresent } from "@/lib/attendance";
 
 /** The caller's teacher row plus the ids of the classes they own. */
 async function ownClasses() {
@@ -37,19 +38,7 @@ async function markAttendance(studentId: string, status: string) {
   // Marking the register twice used to append a second row for the same child
   // on the same day, so the attendance percentage drifted every time a teacher
   // corrected a mistake. Today's record is updated in place.
-  const { start, end } = schoolDay();
-  const existing = await prisma.attendance.findFirst({
-    where: { studentId, date: { gte: start, lt: end }, session: "FULL_DAY" },
-    select: { id: true },
-  });
-
-  if (existing) {
-    await prisma.attendance.update({ where: { id: existing.id }, data: { status, recordedBy: ctx.userId } });
-  } else {
-    await prisma.attendance.create({
-      data: { studentId, status, date: new Date(), session: "FULL_DAY", recordedBy: ctx.userId },
-    });
-  }
+  await markOne({ studentId, status, session: "FULL_DAY", recordedBy: ctx.userId });
   revalidatePath("/teacher");
   revalidatePath("/teacher/attendance");
 }
@@ -97,20 +86,7 @@ async function bulkMarkPresent(studentIds: string[]) {
   if (!mine.length) return;
 
   const { start, end } = schoolDay();
-  const already = await prisma.attendance.findMany({
-    where: { studentId: { in: mine.map((s) => s.id) }, date: { gte: start, lt: end }, session: "FULL_DAY" },
-    select: { studentId: true },
-  });
-  const marked = new Set(already.map((a) => a.studentId));
-  const fresh = mine.filter((s) => !marked.has(s.id));
-
-  if (fresh.length) {
-    await prisma.attendance.createMany({
-      data: fresh.map(({ id }) => ({
-        studentId: id, status: "PRESENT", date: new Date(), session: "FULL_DAY", recordedBy: ctx.userId,
-      })),
-    });
-  }
+  await markManyPresent({ studentIds: mine.map((s) => s.id), session: "FULL_DAY", recordedBy: ctx.userId });
   revalidatePath("/teacher");
   revalidatePath("/teacher/attendance");
 }

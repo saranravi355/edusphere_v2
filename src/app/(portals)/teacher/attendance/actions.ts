@@ -3,8 +3,7 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { guard, TEACHER_ROLES } from "@/lib/authz";
-import { schoolDay } from "@/lib/dates";
-import { SESSIONS, ATTENDANCE_STATUSES } from "@/lib/attendance";
+import { SESSIONS, ATTENDANCE_STATUSES, markOne, markManyPresent } from "@/lib/attendance";
 
 async function teacherContext() {
   const auth = await guard(TEACHER_ROLES);
@@ -35,25 +34,9 @@ export async function setAttendance(studentId: string, session: string, status: 
   const student = await prisma.student.findUnique({ where: { id: studentId }, select: { classroomId: true } });
   if (!student || !ctx.classIds.includes(student.classroomId ?? "")) return;
 
-  const { start, end } = schoolDay();
-  const existing = await prisma.attendance.findFirst({
-    where: { studentId, session, date: { gte: start, lt: end } },
-    select: { id: true, status: true },
-  });
-
-  if (existing) {
-    // Pressing the same button again clears the mark, so a mis-tap is
-    // correctable rather than permanent.
-    if (existing.status === status) {
-      await prisma.attendance.delete({ where: { id: existing.id } });
-    } else {
-      await prisma.attendance.update({ where: { id: existing.id }, data: { status, recordedBy: ctx.userId } });
-    }
-  } else {
-    await prisma.attendance.create({
-      data: { studentId, status, session, date: new Date(), recordedBy: ctx.userId },
-    });
-  }
+  // Pressing the same button again clears the mark, so a mis-tap is
+  // correctable rather than permanent.
+  await markOne({ studentId, status, session, recordedBy: ctx.userId, toggle: true });
 
   revalidatePath("/teacher/attendance");
   revalidatePath("/teacher");
@@ -71,20 +54,7 @@ export async function markSessionPresent(classroomId: string, session: string) {
   });
   if (!students.length) return;
 
-  const { start, end } = schoolDay();
-  const already = await prisma.attendance.findMany({
-    where: { studentId: { in: students.map((s) => s.id) }, session, date: { gte: start, lt: end } },
-    select: { studentId: true },
-  });
-  const marked = new Set(already.map((a) => a.studentId));
-  const fresh = students.filter((s) => !marked.has(s.id));
-  if (!fresh.length) return;
-
-  await prisma.attendance.createMany({
-    data: fresh.map((s) => ({
-      studentId: s.id, status: "PRESENT", session, date: new Date(), recordedBy: ctx.userId,
-    })),
-  });
+  await markManyPresent({ studentIds: students.map((s) => s.id), session, recordedBy: ctx.userId });
 
   revalidatePath("/teacher/attendance");
   revalidatePath("/teacher");

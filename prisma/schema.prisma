@@ -163,6 +163,15 @@ model Attendance {
   isMedicalLeave Boolean  @default(false)
   recordedBy     String   // userId
   createdAt      DateTime @default(now())
+
+  /// One mark per student, per register, per day. Without this the table
+  /// happily held a child marked PRESENT and ABSENT on the same morning —
+  /// three separate call sites each did their own find-then-create, and one
+  /// of them ignored `session` and computed "today" from the server's
+  /// midnight rather than Bengaluru's. `date` is normalised to midnight UTC
+  /// of the IST calendar date by registerDate() in src/lib/attendance.ts, so
+  /// this constraint means what it reads like.
+  @@unique([studentId, date, session])
 }
 
 model Grade {
