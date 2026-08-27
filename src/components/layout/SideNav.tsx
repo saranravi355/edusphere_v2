@@ -8,7 +8,7 @@ import {
   FileText, IndianRupee, Activity, CheckCircle2, Calendar, Bus, Wallet, Tent,
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
-  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare,
+  ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare, MessagesSquare,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
@@ -137,6 +137,10 @@ const SECTIONS: Record<string, NavSection[]> = {
         { name: "Messages", href: "/parent/messages", icon: MessageSquare },
         { name: "Fees", href: "/parent/fees", icon: IndianRupee },
       ],
+    },
+    {
+      label: "AI",
+      links: [{ name: "Handbook Assistant", href: "/parent/handbook-assistant", icon: MessagesSquare }],
     },
   ],
   STUDENT: [
