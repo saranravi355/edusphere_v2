@@ -3,170 +3,394 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import LiveRefresh from "./LiveRefresh";
+import Link from "next/link";
+import { formatDate, schoolDay } from "@/lib/dates";
 import {
-  Users, GraduationCap, CheckCircle2, IndianRupee, ShieldAlert, Stethoscope,
-  CalendarClock, Bell, HeartHandshake, Activity, BookOpen, MessageSquare,
+  CheckCircle2, ClipboardList, UserX, Stethoscope, Bus, BookOpen, IndianRupee,
+  ShieldAlert, CalendarClock, Inbox, AlertTriangle,
 } from "lucide-react";
+
+/**
+ * Live Operations — the school right now.
+ *
+ * This page answers "what is happening today, and what needs someone before
+ * home time". Everything on it is an exception or a queue: a register not yet
+ * taken, a child absent with no explanation, an approval waiting, a book not
+ * returned, an invoice that has tipped overdue. If a panel would not make
+ * somebody do something today, it belongs on /admin/analytics instead.
+ *
+ * The rule, stated once so it survives the next edit:
+ *   Live never draws a time axis. Analytics never shows a queue.
+ *
+ * What this replaces: six stat cards that duplicated /admin/analytics almost
+ * exactly, above a health score. The headline attendance was the worst of it —
+ * it fell back to "the latest day with any register at all", which for weeks
+ * was 18 August, a day holding exactly two rows. Both were present, so the
+ * dashboard reported 100% attendance for a school of 157, under a pulsing LIVE
+ * badge, and weighted that number at 35% of a health score. A dashboard that
+ * cannot tell "nobody was marked absent" from "nobody was marked" is worse
+ * than no dashboard, because it is confidently wrong.
+ *
+ * So the register panel now leads, and it distinguishes the three states that
+ * matter: taken, partly taken, and not taken at all.
+ */
 
 export const dynamic = "force-dynamic";
 
-export default async function LiveDashboardPage() {
+export default async function LiveOperationsPage() {
   const session = await getSession();
   if (!session || !["SUPER_ADMIN", "PRINCIPAL"].includes(session.user.role)) redirect("/");
 
+  const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+
   const now = new Date();
-  const dayStart = new Date(now); dayStart.setHours(0, 0, 0, 0);
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
-  const weekAhead = new Date(now.getTime() + 14 * 24 * 3600 * 1000);
-  const latestAttendanceDay = await prisma.attendance.findFirst({ orderBy: { date: "desc" }, select: { date: true } });
-  const attDayStart = latestAttendanceDay ? new Date(new Date(latestAttendanceDay.date).setHours(0, 0, 0, 0)) : dayStart;
-  const attDayEnd = new Date(attDayStart.getTime() + 24 * 3600 * 1000);
+  // schoolDay() gives the IST day boundaries. Doing this with setHours(0,0,0,0)
+  // uses the SERVER's midnight, which on a UTC host is 05:30 IST — so the first
+  // period of every morning would land in the previous day's register.
+  const { start: dayStart, end: dayEnd } = schoolDay(now);
+  const in48h = new Date(now.getTime() + 48 * 3600 * 1000);
+
+  /**
+   * The current term, from the school's own calendar. Live needs it for one
+   * reason: to keep last year's arrears out of today's chase list. Without the
+   * boundary the fee queue reads "198 invoices past due", of which about 175
+   * are a year old — which buries the seventeen families who have actually
+   * missed this term's payment.
+   */
+  const term = await prisma.academicEvent.findFirst({
+    where: { type: "TERM", startDate: { lte: now }, endDate: { gte: now } },
+    orderBy: { startDate: "desc" },
+  });
+  const termStart = term ? new Date(term.startDate) : new Date(now.getFullYear(), 0, 1);
+  const isWeekend = [0, 6].includes(now.getDay());
 
   const [
-    studentCount, teacherCount, presentToday, totalToday,
-    feePaid, feePending, incidentsWeek, clinicWeek,
-    upcomingExams, recentMessages, recentIncidents, activeIEP, lessonPlansDelivered, lessonPlansTotal,
+    classrooms, todayAttendance, absentToday, clinicToday, pendingLeave,
+    overdueBooks, overdueInvoices, examsSoon, incidentsToday, routes, enrolled, olderArrears,
   ] = await Promise.all([
+    prisma.classroom.findMany({ select: { id: true, name: true, _count: { select: { students: true } } }, orderBy: { name: "asc" } }),
+    prisma.attendance.findMany({
+      where: { date: { gte: dayStart, lt: dayEnd } },
+      select: { status: true, student: { select: { classroomId: true } } },
+    }),
+    prisma.attendance.findMany({
+      where: { date: { gte: dayStart, lt: dayEnd }, status: { in: ["ABSENT", "LATE"] } },
+      select: {
+        status: true, isMedicalLeave: true,
+        student: { select: { name: true, classroom: { select: { name: true } } } },
+      },
+      orderBy: { status: "asc" },
+    }),
+    prisma.clinicVisit.findMany({
+      where: { date: { gte: dayStart, lt: dayEnd } },
+      select: { id: true, reason: true, treatment: true, student: { select: { name: true } } },
+    }),
+    prisma.leaveRequest.findMany({
+      where: { status: "PENDING" },
+      select: { id: true, leaveType: true, startDate: true, endDate: true, teacher: { select: { user: { select: { name: true } } } } },
+      orderBy: { startDate: "asc" }, take: 6,
+    }),
+    prisma.bookLoan.findMany({
+      where: { status: "ACTIVE", dueDate: { lt: now } },
+      select: { id: true, dueDate: true, book: { select: { title: true } }, user: { select: { name: true } } },
+      orderBy: { dueDate: "asc" }, take: 6,
+    }),
+    prisma.feeInvoice.findMany({
+      where: { status: { in: ["OVERDUE", "PENDING"] }, dueDate: { lt: now, gte: termStart } },
+      select: { id: true, amount: true, dueDate: true, student: { select: { name: true } } },
+      orderBy: { dueDate: "asc" },
+    }),
+    prisma.iBExamSession.findMany({
+      where: { date: { gte: dayStart, lte: in48h } }, orderBy: { date: "asc" }, take: 5,
+    }),
+    prisma.behaviorIncident.findMany({
+      where: { date: { gte: dayStart, lt: dayEnd } },
+      select: { id: true, type: true, category: true, student: { select: { name: true } } },
+    }),
+    prisma.transportRoute.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, vehicleNumber: true, driverName: true, capacity: true, _count: { select: { riders: true } } },
+      orderBy: { name: "asc" },
+    }),
     prisma.student.count({ where: { isActive: true } }),
-    prisma.teacher.count(),
-    prisma.attendance.count({ where: { date: { gte: attDayStart, lt: attDayEnd }, status: "PRESENT" } }),
-    prisma.attendance.count({ where: { date: { gte: attDayStart, lt: attDayEnd } } }),
-    prisma.feeInvoice.aggregate({ _sum: { amount: true }, where: { status: "PAID" } }),
-    prisma.feeInvoice.aggregate({ _sum: { amount: true }, where: { status: { in: ["PENDING", "OVERDUE"] } } }),
-    prisma.behaviorIncident.count({ where: { date: { gte: weekAgo } } }),
-    prisma.clinicVisit.count(),
-    prisma.iBExamSession.findMany({ where: { date: { gte: now, lte: weekAhead } }, orderBy: { date: "asc" }, take: 5 }),
-    prisma.message.findMany({ orderBy: { createdAt: "desc" }, take: 3, include: { sender: { select: { name: true } } } }),
-    prisma.behaviorIncident.findMany({ orderBy: { date: "desc" }, take: 3, include: { student: { select: { name: true } } } }),
-    prisma.iEPPlan.count({ where: { status: "ACTIVE" } }),
-    prisma.lessonPlan.count({ where: { status: "DELIVERED" } }),
-    prisma.lessonPlan.count(),
+    prisma.feeInvoice.aggregate({
+      _sum: { amount: true }, _count: true,
+      where: { status: { in: ["OVERDUE", "PENDING"] }, dueDate: { lt: termStart } },
+    }),
   ]);
 
-  const attendancePct = totalToday > 0 ? Math.round((presentToday / totalToday) * 100) : 0;
-  const collected = feePaid._sum.amount || 0;
-  const outstanding = feePending._sum.amount || 0;
-  const collectionPct = collected + outstanding > 0 ? Math.round((collected / (collected + outstanding)) * 100) : 0;
-  const coverage = lessonPlansTotal > 0 ? Math.round((lessonPlansDelivered / lessonPlansTotal) * 100) : 0;
-  const healthScore = Math.round(attendancePct * 0.35 + collectionPct * 0.25 + Math.max(0, 100 - incidentsWeek * 5) * 0.2 + Math.min(100, coverage + 40) * 0.2);
-  const inr = (n: number) => `₹${(n / 100000).toFixed(1)}L`;
+  /* -------------------------------------------------- today's register -- */
 
-  const cards = [
-    { label: "Attendance (latest day)", value: `${attendancePct}%`, sub: `${presentToday}/${totalToday} present`, icon: CheckCircle2, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400" },
-    { label: "Students enrolled", value: studentCount, sub: `${activeIEP} active IEP plans`, icon: GraduationCap, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400" },
-    { label: "Teaching staff", value: teacherCount, sub: `${coverage}% lesson coverage`, icon: Users, color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400" },
-    { label: "Fees collected", value: inr(collected), sub: `${inr(outstanding)} outstanding · ${collectionPct}%`, icon: IndianRupee, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400" },
-    { label: "Incidents (7 days)", value: incidentsWeek, sub: "behaviour reports", icon: ShieldAlert, color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400" },
-    { label: "Clinic visits", value: clinicWeek, sub: "total logged", icon: Stethoscope, color: "text-teal-600 bg-teal-100 dark:bg-teal-900/30 dark:text-teal-400" },
-  ];
+  const markedByClass = new Map<string, number>();
+  for (const a of todayAttendance) {
+    const c = a.student.classroomId;
+    if (c) markedByClass.set(c, (markedByClass.get(c) ?? 0) + 1);
+  }
+  const registers = classrooms.map((c) => {
+    const marked = markedByClass.get(c.id) ?? 0;
+    return { ...c, marked, expected: c._count.students, complete: marked >= c._count.students && c._count.students > 0 };
+  });
+  const complete = registers.filter((r) => r.complete).length;
+  const untouched = registers.filter((r) => r.marked === 0);
+  const partial = registers.filter((r) => r.marked > 0 && !r.complete);
+  const presentToday = todayAttendance.filter((a) => a.status === "PRESENT").length;
+
+  const overdueTotal = overdueInvoices.reduce((n, i) => n + i.amount, 0);
+
+  /** Everything that has somebody waiting at the other end of it. */
+  const queues = [
+    { n: pendingLeave.length, label: "Leave requests awaiting a decision", icon: Inbox, href: "/admin/staff", tone: "amber" },
+    { n: overdueInvoices.length, label: `Invoices overdue this term · ${inr(Math.round(overdueTotal))}`, icon: IndianRupee, href: "/admin/finance/invoices", tone: "rose" },
+    { n: overdueBooks.length, label: "Library books overdue", icon: BookOpen, href: "/operations/resources", tone: "amber" },
+    { n: untouched.length, label: "Classes with no register taken today", icon: ClipboardList, href: "#register", tone: "rose" },
+  ].filter((q) => q.n > 0);
+
+  const TONES: Record<string, string> = {
+    amber: "border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300",
+    rose: "border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300",
+  };
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <PageHeader
-          title="Live School Dashboard"
-          description="Real-time operational view straight from the database — refreshes itself every 30 seconds."
+          title="Live Operations"
+          description={`Today at the school — ${formatDate(now)}. Registers, absences, approvals and anything overdue. For trends across the term, use School Analytics.`}
         />
         <div className="mb-6"><LiveRefresh /></div>
       </div>
 
-      {/* Health score banner */}
-      <div className="bg-primary rounded-2xl p-6 text-white shadow-sm flex items-center justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-blue-100 flex items-center gap-1.5"><Activity size={14} /> School Health Score</p>
-          <p className="text-4xl font-black mt-1">{healthScore} <span className="text-lg font-normal text-blue-100">/ 100</span></p>
-          <p className="text-xs text-blue-100 mt-1">Weighted: attendance 35% · fee collection 25% · behaviour 20% · curriculum coverage 20%</p>
+      {/* Needs attention. Empty when there is nothing to do, which is the point. */}
+      {queues.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {queues.map((q) => (
+            <Link key={q.label} href={q.href}
+                  className={`flex items-center gap-4 border rounded-xl px-5 py-4 transition-opacity hover:opacity-80 ${TONES[q.tone]}`}>
+              <q.icon size={20} className="shrink-0" />
+              <div className="min-w-0">
+                <p className="text-2xl font-black leading-none">{q.n}</p>
+                <p className="text-xs font-medium mt-1">{q.label}</p>
+              </div>
+            </Link>
+          ))}
         </div>
-        <div className="hidden md:block w-28 h-28 rounded-full border-8 border-white/30 relative">
-          <div className="absolute inset-0 flex items-center justify-center text-2xl font-black">{healthScore}</div>
+      ) : (
+        <div className="flex items-center gap-3 border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl px-5 py-4">
+          <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+          <p className="text-sm text-emerald-800 dark:text-emerald-300">Nothing is waiting on the office right now.</p>
         </div>
-      </div>
+      )}
 
-      {/* Stat grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {cards.map((s) => (
-          <div key={s.label} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm flex items-center gap-4">
-            <div className={`w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 ${s.color}`}>
-              <s.icon size={20} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{s.value}</p>
-              <p className="text-xs text-slate-500 truncate">{s.label}</p>
-              <p className="text-[10px] text-slate-400 truncate">{s.sub}</p>
+      {olderArrears._count > 0 && (
+        <p className="text-xs text-slate-400 -mt-2">
+          Separately, {olderArrears._count} invoices from before {term?.title ?? "this term"} remain unpaid
+          ({inr(Math.round(olderArrears._sum.amount ?? 0))}). Older arrears are a finance job rather than a
+          today job, so they are counted here and chased from{" "}
+          <Link href="/admin/finance/invoices" className="underline hover:text-slate-600">Finance</Link>.
+        </p>
+      )}
+
+      {/* ------------------------------------------------- today's register */}
+      <div id="register" className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ClipboardList size={15} className="text-blue-600" />
+            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">Today&rsquo;s register</h3>
+          </div>
+          <span className="text-xs text-slate-500">{complete} of {classrooms.length} classes complete</span>
+        </div>
+
+        {todayAttendance.length === 0 ? (
+          <div className="p-5 flex items-start gap-3">
+            <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                No register has been taken today{isWeekend ? " — it is the weekend" : ""}.
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                This is not the same as an attendance rate of zero, and it is deliberately not shown as one.
+              </p>
             </div>
           </div>
-        ))}
+        ) : (
+          <>
+            <div className="px-5 py-4 grid grid-cols-3 gap-4 border-b border-slate-100 dark:border-zinc-800">
+              <div>
+                <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  {Math.round((presentToday / todayAttendance.length) * 100)}%
+                </p>
+                <p className="text-xs text-slate-500">present of those marked</p>
+                <p className="text-[11px] text-slate-400">{presentToday} of {todayAttendance.length}</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{todayAttendance.length}<span className="text-sm font-normal text-slate-400"> / {enrolled}</span></p>
+                <p className="text-xs text-slate-500">students accounted for</p>
+                <p className="text-[11px] text-slate-400">{enrolled - todayAttendance.length} not yet marked</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{partial.length + untouched.length}</p>
+                <p className="text-xs text-slate-500">classes still to finish</p>
+                <p className="text-[11px] text-slate-400">{partial.length} partial · {untouched.length} not started</p>
+              </div>
+            </div>
+            <div className="px-5 py-4 flex flex-wrap gap-1.5">
+              {registers.map((r) => (
+                <span key={r.id}
+                      title={`${r.marked} of ${r.expected} marked`}
+                      className={`text-[11px] font-semibold px-2 py-1 rounded-md ${
+                        r.complete ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                        : r.marked > 0 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                        : "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"}`}>
+                  {r.name}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upcoming IB assessments */}
+        {/* --------------------------------------------- absent right now */}
+        <Card icon={UserX} tone="text-rose-600" title={`Absent or late today (${absentToday.length})`}>
+          {absentToday.length === 0 ? (
+            <Empty>Nobody is marked absent or late today.</Empty>
+          ) : (
+            absentToday.slice(0, 8).map((a, i) => (
+              <Row key={i}
+                   main={a.student.name}
+                   meta={`${a.student.classroom?.name ?? "no class"} · ${a.status === "LATE" ? "late" : a.isMedicalLeave ? "absent, medical" : "absent, unexplained"}`}
+                   badge={a.status === "LATE" ? "Late" : a.isMedicalLeave ? "Medical" : "Chase"}
+                   badgeTone={a.status === "LATE" ? "amber" : a.isMedicalLeave ? "slate" : "rose"} />
+            ))
+          )}
+        </Card>
+
+        {/* ------------------------------------------ approvals waiting */}
+        <Card icon={Inbox} tone="text-amber-600" title={`Awaiting the Principal (${pendingLeave.length})`}>
+          {pendingLeave.length === 0 ? (
+            <Empty>No leave requests are waiting.</Empty>
+          ) : (
+            pendingLeave.map((l) => (
+              <Row key={l.id}
+                   main={l.teacher.user.name}
+                   meta={`${l.leaveType.toLowerCase()} leave · ${formatDate(l.startDate)} to ${formatDate(l.endDate)}`}
+                   badge="Decide" badgeTone="amber" />
+            ))
+          )}
+        </Card>
+
+        {/* ------------------------------------------------- clinic today */}
+        <Card icon={Stethoscope} tone="text-teal-600" title={`Clinic today (${clinicToday.length})`}>
+          {clinicToday.length === 0 ? (
+            <Empty>No clinic visits logged today.</Empty>
+          ) : (
+            clinicToday.map((c) => <Row key={c.id} main={c.student.name} meta={`${c.reason} · ${c.treatment}`} />)
+          )}
+        </Card>
+
+        {/* ------------------------------------------------ behaviour today */}
+        <Card icon={ShieldAlert} tone="text-purple-600" title={`Behaviour logged today (${incidentsToday.length})`}>
+          {incidentsToday.length === 0 ? (
+            <Empty>Nothing logged today.</Empty>
+          ) : (
+            incidentsToday.map((i) => (
+              <Row key={i.id} main={i.student.name} meta={i.category}
+                   badge={i.type === "MERIT" ? "Merit" : "Demerit"}
+                   badgeTone={i.type === "MERIT" ? "emerald" : "rose"} />
+            ))
+          )}
+        </Card>
+
+        {/* -------------------------------------------------- library chase */}
+        <Card icon={BookOpen} tone="text-blue-600" title={`Books overdue (${overdueBooks.length})`}>
+          {overdueBooks.length === 0 ? (
+            <Empty>Nothing is overdue.</Empty>
+          ) : (
+            overdueBooks.map((l) => (
+              <Row key={l.id} main={l.book.title} meta={`${l.user.name} · due ${formatDate(l.dueDate)}`} badge="Chase" badgeTone="amber" />
+            ))
+          )}
+        </Card>
+
+        {/* ------------------------------------------------ buses this run */}
+        <Card icon={Bus} tone="text-indigo-600" title={`Buses running (${routes.length})`}>
+          {routes.length === 0 ? (
+            <Empty>No active routes.</Empty>
+          ) : (
+            routes.map((r) => (
+              <Row key={r.id} main={r.name}
+                   meta={`${r.vehicleNumber} · ${r.driverName}`}
+                   badge={`${r._count.riders}/${r.capacity}`}
+                   badgeTone={r._count.riders >= r.capacity ? "rose" : "slate"} />
+            ))
+          )}
+        </Card>
+      </div>
+
+      {/* ------------------------------------------ next 48 hours only */}
+      {examsSoon.length > 0 && (
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-5 py-3.5 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2">
             <CalendarClock size={15} className="text-blue-600" />
-            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">Upcoming IB assessments (14 days)</h3>
-          </div>
-          {upcomingExams.length === 0 ? (
-            <p className="p-5 text-xs text-slate-400">No assessments in the next two weeks.</p>
-          ) : (
-            <div className="divide-y divide-slate-50 dark:divide-zinc-800/50">
-              {upcomingExams.map((e) => (
-                <div key={e.id} className="px-5 py-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{e.subjectName}{e.level ? ` ${e.level}` : ""} — {e.paper}</p>
-                    <p className="text-[11px] text-slate-400">{e.session}</p>
-                  </div>
-                  <span className="text-xs text-slate-500 whitespace-nowrap">{e.date.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" })}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Activity feed */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2">
-            <Bell size={15} className="text-purple-600" />
-            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">Latest activity</h3>
+            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">IB assessments in the next 48 hours</h3>
           </div>
           <div className="divide-y divide-slate-50 dark:divide-zinc-800/50">
-            {recentMessages.map((m) => (
-              <div key={m.id} className="px-5 py-3 flex items-start gap-3">
-                <MessageSquare size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
+            {examsSoon.map((e) => (
+              <div key={e.id} className="px-5 py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm text-slate-700 dark:text-slate-200 truncate"><b>{m.sender.name}</b>: {m.subject}</p>
-                  <p className="text-[11px] text-slate-400">{m.createdAt.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })} · message</p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
+                    {e.subjectName}{e.level ? ` ${e.level}` : ""} — {e.paper}
+                  </p>
+                  <p className="text-[11px] text-slate-400">{e.session}{e.room ? ` · ${e.room}` : ""}</p>
                 </div>
+                <span className="text-xs text-slate-500 whitespace-nowrap">{formatDate(e.date)}</span>
               </div>
             ))}
-            {recentIncidents.map((i) => (
-              <div key={i.id} className="px-5 py-3 flex items-start gap-3">
-                <ShieldAlert size={14} className={`mt-0.5 flex-shrink-0 ${i.type === "MERIT" ? "text-emerald-500" : "text-rose-500"}`} />
-                <div className="min-w-0">
-                  <p className="text-sm text-slate-700 dark:text-slate-200 truncate"><b>{i.student.name}</b>: {i.category} ({i.points > 0 ? "+" : ""}{i.points} pts)</p>
-                  <p className="text-[11px] text-slate-400">{i.date.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })} · behaviour</p>
-                </div>
-              </div>
-            ))}
-            {recentMessages.length + recentIncidents.length === 0 && (
-              <p className="p-5 text-xs text-slate-400">No recent activity.</p>
-            )}
           </div>
         </div>
-      </div>
+      )}
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-        {[
-          { label: "IEP support", value: activeIEP, icon: HeartHandshake, href: "learning support plans active" },
-          { label: "Lesson plans delivered", value: `${lessonPlansDelivered}/${lessonPlansTotal}`, icon: BookOpen, href: "curriculum coverage tracking" },
-          { label: "Collection rate", value: `${collectionPct}%`, icon: IndianRupee, href: "of invoiced fees received" },
-        ].map((x) => (
-          <div key={x.label} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-            <x.icon size={18} className="mx-auto text-slate-400 mb-1" />
-            <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{x.value}</p>
-            <p className="text-[11px] text-slate-400">{x.label} · {x.href}</p>
-          </div>
-        ))}
+/* ------------------------------------------------------------ fragments -- */
+
+function Card({ icon: Icon, tone, title, children }: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  tone: string; title: string; children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2">
+        <Icon size={15} className={tone} />
+        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">{title}</h3>
       </div>
+      <div className="divide-y divide-slate-50 dark:divide-zinc-800/50">{children}</div>
+    </div>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="p-5 text-xs text-slate-400">{children}</p>;
+}
+
+const BADGE: Record<string, string> = {
+  rose: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+  amber: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  slate: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+};
+
+function Row({ main, meta, badge, badgeTone = "slate" }: {
+  main: string; meta?: string; badge?: string; badgeTone?: string;
+}) {
+  return (
+    <div className="px-5 py-3 flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{main}</p>
+        {meta && <p className="text-[11px] text-slate-400 truncate">{meta}</p>}
+      </div>
+      {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${BADGE[badgeTone]}`}>{badge}</span>}
     </div>
   );
 }
