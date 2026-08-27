@@ -6,6 +6,7 @@ import AIEmptyState from "@/components/ai/AIEmptyState";
 import RiskBadge from "@/components/ai/RiskBadge";
 import { useAIScan } from "@/lib/useAIScan";
 import { AlertTriangle, BrainCircuit, TrendingDown } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const flagged = [
   { name: "Rohan Verma", grade: "DP2", subject: "Mathematics: Analysis & Approaches HL", signal: "Predicted grade dropped 6 → 4 over two reporting periods", risk: "high" as const, ia: "IA draft overdue by 9 days" },
@@ -23,6 +24,8 @@ export default function EarlyWarningPage() {
         title="Early Academic Risk Detection"
         description="Cross-references predicted grades, ATL skill trends, IA/EE checkpoints and attendance to flag DP and MYP students drifting off track."
       />
+
+      <AIPreviewNotice />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import ExportButton from "@/components/data/ExportButton";
 import LibraryControls from "./LibraryControls";
+import ScanIssue from "./ScanIssue";
 import { returnBook } from "./actions";
 import { ConfirmIconButton } from "@/components/ui/form";
 import { Book, BookUp, Clock, Search, Undo2, Boxes, ArrowRight } from "lucide-react";
@@ -86,6 +87,9 @@ export default async function LibraryPage({
         description="Catalogue, loans and due dates."
         action={
           <div className="flex flex-wrap gap-2 items-center">
+            {/* Scanning sits first: at a counter it is the common case, and
+                picking two names out of dropdowns is the slow fallback. */}
+            <ScanIssue isbnCoverage={{ withIsbn: allBooks.filter((b) => b.isbn).length, total: allBooks.length }} />
             <LibraryControls
               lendable={allBooks
                 .filter((b) => b._count.loans < b.copiesTotal)

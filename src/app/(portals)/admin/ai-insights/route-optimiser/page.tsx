@@ -5,6 +5,7 @@ import AIControlPanel from "@/components/ai/AIControlPanel";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import { useAIScan } from "@/lib/useAIScan";
 import { Route, Clock, Fuel } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const routes = [
   { name: "Route 4 — Whitefield Loop", before: "52 min", after: "39 min", saving: "25% time, ₹1,240/wk fuel", stops: 14 },
@@ -21,6 +22,8 @@ export default function RouteOptimiserPage() {
         title="Transport Route Optimiser"
         description="Re-sequences pickup/drop stops per bus route using live traffic patterns and student address clustering to cut commute time and fuel cost."
       />
+
+      <AIPreviewNotice />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <AIControlPanel

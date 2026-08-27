@@ -5,6 +5,7 @@ import AIControlPanel from "@/components/ai/AIControlPanel";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import { useAIScan } from "@/lib/useAIScan";
 import { Scale, Users } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const teachers = [
   { name: "Ms. R. Sharma", role: "DP Mathematics HL/SL", load: 92, ia: 38, cas: 2 },
@@ -23,6 +24,8 @@ export default function WorkloadBalancerPage() {
         title="Teacher Workload Balancer"
         description="Weighs teaching periods, IA/EE marking load, CAS supervision and pastoral duties to flag uneven distribution across the staff body."
       />
+
+      <AIPreviewNotice />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">

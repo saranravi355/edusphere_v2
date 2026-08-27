@@ -112,3 +112,104 @@ export async function returnBook(loanId: string): Promise<{ error?: string; succ
   revalidatePath("/student/library");
   return { success: true };
 }
+
+/* ------------------------------------------------------------- scanning -- */
+
+/**
+ * Resolve one scanned code to a book or a borrower.
+ *
+ * Worth being precise about what "scanning" means here, because this screen
+ * used to carry a fake one. Almost every barcode scanner a school buys is a
+ * keyboard-wedge device: it types the digits it reads and presses Enter,
+ * exactly as if someone had typed them fast. So a focused text input IS a
+ * working scanner for that hardware — there is no camera, no image decoding
+ * and no library involved, and nothing here is simulated. Point a ₹1,500 USB
+ * scanner at a barcode and this resolves it.
+ *
+ * Camera scanning, from a phone or a webcam, is a different problem and is not
+ * built. The panel says so rather than pretending.
+ *
+ * What a code can be:
+ *   - a book's ISBN, or its catalogue id if the school prints its own labels
+ *   - a student's registration number, which is what goes on a student ID card
+ *   - a staff member's email, for teachers borrowing
+ */
+export type ScanHit =
+  | { kind: "book"; id: string; label: string; detail: string; available: number }
+  | { kind: "borrower"; id: string; label: string; detail: string }
+  | { kind: "none"; code: string };
+
+export async function resolveScanCode(raw: string): Promise<ScanHit> {
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return { kind: "none", code: raw };
+
+  const code = raw.trim();
+  if (!code) return { kind: "none", code };
+
+  const book = await prisma.libraryBook.findFirst({
+    where: { OR: [{ isbn: code }, { id: code }] },
+    select: {
+      id: true, title: true, author: true, copiesTotal: true,
+      _count: { select: { loans: { where: { status: "ACTIVE" } } } },
+    },
+  });
+  if (book) {
+    return {
+      kind: "book", id: book.id, label: book.title,
+      detail: book.author,
+      available: book.copiesTotal - book._count.loans,
+    };
+  }
+
+  const student = await prisma.student.findFirst({
+    where: { registrationNo: code, isActive: true, userId: { not: null } },
+    select: { userId: true, name: true, registrationNo: true, classroom: { select: { name: true } } },
+  });
+  if (student?.userId) {
+    return {
+      kind: "borrower", id: student.userId, label: student.name,
+      detail: `${student.registrationNo}${student.classroom ? ` · ${student.classroom.name}` : ""}`,
+    };
+  }
+
+  const staff = await prisma.user.findFirst({
+    where: { email: code, role: { in: ["CLASS_TEACHER", "SUBJECT_TEACHER", "PRINCIPAL", "SUPER_ADMIN"] } },
+    select: { id: true, name: true, role: true },
+  });
+  if (staff) {
+    return {
+      kind: "borrower", id: staff.id, label: staff.name,
+      detail: staff.role.replace("_", " ").toLowerCase(),
+    };
+  }
+
+  return { kind: "none", code };
+}
+
+/**
+ * Issue a book from two scans. Deliberately delegates every rule to
+ * issueBook() rather than restating them, so the counter and the form can
+ * never drift apart on what counts as a valid loan.
+ */
+export async function issueByScan(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return { error: auth.error };
+
+  const bookCode = String(formData.get("bookCode") ?? "").trim();
+  const borrowerCode = String(formData.get("borrowerCode") ?? "").trim();
+  if (!bookCode) return { error: "Scan or type the book's code." };
+  if (!borrowerCode) return { error: "Scan or type the borrower's ID." };
+
+  const [book, borrower] = await Promise.all([
+    resolveScanCode(bookCode),
+    resolveScanCode(borrowerCode),
+  ]);
+
+  if (book.kind !== "book") return { error: `No book matches “${bookCode}”.` };
+  if (borrower.kind !== "borrower") return { error: `No student or staff member matches “${borrowerCode}”.` };
+
+  const forward = new FormData();
+  forward.set("bookId", book.id);
+  forward.set("userId", borrower.id);
+  return issueBook(_prev, forward);
+}

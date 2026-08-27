@@ -6,6 +6,7 @@ import AIEmptyState from "@/components/ai/AIEmptyState";
 import RiskBadge from "@/components/ai/RiskBadge";
 import { useAIScan } from "@/lib/useAIScan";
 import { LogOut, MessageSquareWarning } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const students = [
   { name: "Vikram Choudhary", grade: "DP1", risk: "high" as const, reason: "Parent fee-payment delays (2 cycles) + predicted grades down in 3 of 6 subjects; comparable profile pattern matches past withdrawals." },
@@ -22,6 +23,8 @@ export default function EnrolmentRiskPage() {
         title="Enrolment Drop-Out Predictor"
         description="Flags students likely to withdraw from the Diploma Programme or the school entirely, using fee, academic, communication and historical withdrawal-pattern signals."
       />
+
+      <AIPreviewNotice />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <AIControlPanel

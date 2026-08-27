@@ -5,6 +5,7 @@ import AIControlPanel from "@/components/ai/AIControlPanel";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import { useAIScan } from "@/lib/useAIScan";
 import { HeartHandshake, MailWarning } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const families = [
   { name: "Patel Family", child: "Rohan Verma · DP2", score: 38, signals: "Missed last 2 parent-teacher conferences; portal login 0x in 30 days" },
@@ -21,6 +22,8 @@ export default function ParentEngagementPage() {
         title="Parent Engagement Score"
         description="Scores each family's engagement using portal logins, message responsiveness, event attendance and conference participation."
       />
+
+      <AIPreviewNotice />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <AIControlPanel

@@ -6,6 +6,7 @@ import AIEmptyState from "@/components/ai/AIEmptyState";
 import RiskBadge from "@/components/ai/RiskBadge";
 import { useAIScan } from "@/lib/useAIScan";
 import { UserMinus, TrendingDown } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const staff = [
   { name: "Mr. D. Clark", tenure: "4 yrs", role: "MYP Coordinator", risk: "high" as const, signals: ["Workload index at 88% for 3 consecutive terms", "Declined CPD/IB training nomination", "Below-average engagement in staff pulse survey"] },
@@ -22,6 +23,8 @@ export default function AttritionRiskPage() {
         title="Staff Attrition Risk Predictor"
         description="Combines workload index, CPD/IB training engagement, leave patterns and staff pulse-survey sentiment to flag teachers at risk of leaving."
       />
+
+      <AIPreviewNotice />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <AIControlPanel

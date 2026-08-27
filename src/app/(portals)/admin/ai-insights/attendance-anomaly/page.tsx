@@ -3,6 +3,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import { ScanLine, Sparkles, CalendarX2 } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const anomalies = [
   { name: "Kabir Singh", grade: "MYP3", pattern: "Absent every Monday for 4 consecutive weeks", confidence: 92 },
@@ -20,6 +21,8 @@ export default function AttendanceAnomalyPage() {
         title="Attendance Anomaly Detector"
         description="Detects unusual attendance patterns across the school — beyond simple absence-rate thresholds — that may indicate disengagement, bullying, or scheduling issues."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-700/40">
         <div className="absolute top-0 right-0 p-8 opacity-10">

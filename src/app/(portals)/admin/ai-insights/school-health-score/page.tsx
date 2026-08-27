@@ -5,6 +5,7 @@ import { useAIScan } from "@/lib/useAIScan";
 import ScoreGauge from "@/components/ai/ScoreGauge";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import { HeartPulse, Sparkles } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const pillars = [
   { label: "Academic Performance (DP/MYP)", score: 81 },
@@ -24,6 +25,8 @@ export default function SchoolHealthScorePage() {
         title="School Health Score"
         description="A single composite KPI blending academics, attendance, staff wellbeing, finance and parent sentiment into one trackable index for leadership."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><HeartPulse size={150} /></div>

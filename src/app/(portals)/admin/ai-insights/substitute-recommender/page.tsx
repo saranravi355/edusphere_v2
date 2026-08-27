@@ -5,6 +5,7 @@ import AIControlPanel from "@/components/ai/AIControlPanel";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import { useAIScan } from "@/lib/useAIScan";
 import { UserCheck, Star } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const candidates = [
   { name: "Mr. K. Iyer", match: 96, reason: "Currently teaches MYP Sciences; free Periods 3-4 today; previously covered this exact unit", load: "Low" },
@@ -21,6 +22,8 @@ export default function SubstituteRecommenderPage() {
         title="Substitute Teacher Recommender"
         description="Suggests the best-fit substitute for an absent teacher's period, factoring subject familiarity, current free periods, and existing workload."
       />
+
+      <AIPreviewNotice />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <AIControlPanel

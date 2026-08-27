@@ -4,6 +4,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import { BookCheck, Sparkles, AlertCircle } from "lucide-react";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const coverage = [
   { subject: "Mathematics: Analysis & Approaches HL (Group 5)", grade: "DP2", pacing: 78, target: 85, status: "behind" },
@@ -28,6 +29,8 @@ export default function CurriculumCoveragePage() {
         title="Curriculum Coverage Tracker"
         description="Compares each subject's actual unit-plan progress against the IB pacing guide for DP and MYP, flagging classes that risk not completing syllabus before assessment windows."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><BookCheck size={150} /></div>
