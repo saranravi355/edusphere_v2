@@ -94,3 +94,7 @@ migration-verify.log
 data-load.log
 
 _to_delete/
+PUSH_MAIN.bat
+DELETE_OLD_BRANCH.bat
+_incoming/
+EduSphere360_Build_And_Next_Steps.docx
