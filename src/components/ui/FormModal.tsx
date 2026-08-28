@@ -28,6 +28,7 @@ export default function FormModal({
   submitLabel = "Save",
   pendingLabel = "Saving…",
   action,
+  keepOpenOnSuccess = false,
   children,
 }: {
   title: string;
@@ -39,6 +40,13 @@ export default function FormModal({
   pendingLabel?: string;
   /** Must return `{ error }` or `{ success }` — see ActionState. */
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
+  /**
+   * Keep the dialog open after a successful save so the person can read the
+   * result. Needed when the success message carries something they have to
+   * write down — a one-time password for an account they just created — which
+   * a dialog that closes itself would throw away.
+   */
+  keepOpenOnSuccess?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -53,7 +61,7 @@ export default function FormModal({
     const result = await action(prev, formData);
     if (result?.success) {
       formRef.current?.reset();
-      setOpen(false);
+      if (!keepOpenOnSuccess) setOpen(false);
     }
     return result;
   }, undefined);

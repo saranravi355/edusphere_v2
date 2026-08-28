@@ -3,7 +3,8 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { guard, ADMIN_ROLES } from "@/lib/authz";
-import { hashPassword } from "@/lib/password";
+import { generateTempPassword, hashPassword } from "@/lib/password";
+import { recordAudit } from "@/lib/audit";
 import type { ActionState } from "@/components/ui/form";
 
 
@@ -16,15 +17,19 @@ export async function onboardTeacher(formData: FormData) {
   const email = formData.get("email") as string;
   const subjects = formData.get("subjects") as string;
 
-  // Create User
+  // One password, generated here, shown to the office once, and refused after
+  // the teacher's first sign-in. It used to be `hashPassword("password123")` —
+  // a hash of a string printed in the login form, which is not a password at
+  // all.
+  const tempPassword = generateTempPassword();
+
   const user = await prisma.user.create({
     data: {
       email,
       name,
       role: "SUBJECT_TEACHER",
-      // Set explicitly: omitting this falls back to the schema's plaintext
-      // @default("password123"), which would create an un-hashed account.
-      password: await hashPassword("password123"),
+      password: await hashPassword(tempPassword),
+      mustChangePassword: true,
     }
   });
 
@@ -36,9 +41,18 @@ export async function onboardTeacher(formData: FormData) {
     }
   });
 
+  await recordAudit({
+    action: "ACCOUNT_CREATED",
+    summary: `${auth.user.name ?? "An administrator"} created a subject teacher account for ${name} (${email}).`,
+    actor: auth.user,
+    entity: "User",
+    entityId: user.id,
+    detail: { role: "SUBJECT_TEACHER", via: "onboardTeacher" },
+  });
+
   // Revalidate to update counts
   revalidatePath("/admin");
-  return { success: true };
+  return { success: true, tempPassword };
 }
 
 /**

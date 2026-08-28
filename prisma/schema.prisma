@@ -15,9 +15,20 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String   @default("password123")
+  /// scrypt$<saltHex>$<hashHex>. No default: a row created without one used to
+  /// silently receive the string "password123", which is the whole reason 370
+  /// accounts shared a password. Every creation site must now supply a hash.
+  password  String
   name      String
   role      String   @default("PARENT")
+  /// True until the person has chosen a password of their own. Defaults to
+  /// true so that an account created by an administrator, or by a future
+  /// import written by someone who has not read this file, is closed by
+  /// default rather than open by default. Login sends these accounts to
+  /// /change-password and the middleware keeps them out of every portal.
+  mustChangePassword Boolean  @default(true)
+  /// Null means never changed since the account was made.
+  passwordChangedAt  DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -943,4 +954,46 @@ model PYPUnit {
   createdAt   DateTime  @default(now())
 
   @@index([theme])
+}
+
+/// Who did what, and when.
+///
+/// The application had no answer to that question at all: a role could be
+/// changed, a fee written off, an account created or a password reset with no
+/// record beyond the row it altered. For a school holding 173 children's
+/// records that is not an engineering gap, it is a safeguarding one — the
+/// first thing anyone asks after an incident is who had access and what they
+/// touched.
+///
+/// Append-only by convention. Nothing in the application updates or deletes a
+/// row here; a retention sweep, when there is one, should be a documented job
+/// and should itself write a row saying what it removed.
+model AuditLog {
+  id         String   @id @default(cuid())
+  at         DateTime @default(now())
+
+  /// Denormalised on purpose. The actor's account may later be renamed,
+  /// have its role changed, or be deleted outright, and an audit entry that
+  /// reads "role changed by (deleted user)" answers nothing.
+  actorId    String?
+  actorEmail String?
+  actorRole  String?
+
+  /// Machine-readable verb, e.g. SIGN_IN, SIGN_IN_FAILED, PASSWORD_CHANGED,
+  /// PASSWORD_RESET, ACCOUNT_CREATED, ROLE_CHANGED.
+  action     String
+  /// The kind of thing acted on ("User", "FeeInvoice", ...) and its id.
+  entity     String?
+  entityId   String?
+
+  /// One sentence, written for a human reading the log a year from now.
+  summary    String
+  /// Anything structured worth keeping, as a short JSON string. Never a
+  /// password, a hash, or a session token.
+  detail     String?
+
+  @@index([at])
+  @@index([actorId, at])
+  @@index([entity, entityId])
+  @@index([action, at])
 }

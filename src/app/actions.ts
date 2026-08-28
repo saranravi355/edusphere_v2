@@ -1,13 +1,13 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { encrypt } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { getSession } from "@/lib/session";
+import { getSession, issueSession } from "@/lib/session";
+import { recordAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
-import { isOperationsRole, operationsLandingPath } from "@/lib/operations";
+import { landingPathFor } from "@/lib/portals";
 
 export type LoginState = { error?: string } | undefined;
 
@@ -29,13 +29,7 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
 
   let user;
   try {
-    user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        teacherProfile: true,
-        parentProfile: true,
-      }
-    });
+    user = await prisma.user.findUnique({ where: { email } });
   } catch (e) {
     // A database outage must not look like a wrong password.
     console.error("[login] database lookup failed:", e);
@@ -49,6 +43,14 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     user?.password ?? "$never$matches$",
   );
   if (!user || !valid) {
+    await recordAudit({
+      action: "SIGN_IN_FAILED",
+      summary: `Failed sign-in for ${email}.`,
+      actor: { email },
+      entity: "User",
+      entityId: user?.id ?? null,
+      detail: { reason: user ? "wrong password" : "no such account" },
+    });
     return { error: "Invalid email or password." };
   }
 
@@ -61,32 +63,40 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     }
   }
 
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const session = await encrypt({ user, expires });
+  await issueSession(user);
 
-  const cookieStore = await cookies();
-  cookieStore.set("session", session, { expires, httpOnly: true, sameSite: "lax", path: "/" });
+  await recordAudit({
+    action: "SIGN_IN",
+    summary: `${user.name} signed in as ${user.role}.`,
+    actor: { id: user.id, email: user.email, role: user.role },
+    entity: "User",
+    entityId: user.id,
+  });
 
   // redirect() signals via a thrown control-flow error, so it must stay outside
   // the try/catch above.
-  if (user.role === "SUPER_ADMIN" || user.role === "PRINCIPAL") {
-    redirect("/admin");
-  } else if (user.role === "CLASS_TEACHER" || user.role === "SUBJECT_TEACHER") {
-    redirect("/teacher");
-  } else if (user.role === "PARENT") {
-    redirect("/parent");
-  } else if (user.role === "STUDENT") {
-    redirect("/student");
-  } else if (isOperationsRole(user.role)) {
-    // Straight to the one department they run — /operations itself would only
-    // show them four doors they cannot open.
-    redirect(operationsLandingPath(user.role));
-  } else {
-    redirect("/");
+
+  // An account that has never had a password of its own goes nowhere else.
+  // The seeded accounts all shared one password and there was no screen on
+  // which to change it; this is that screen, and the middleware refuses every
+  // portal until the flag clears.
+  if (user.mustChangePassword) {
+    redirect("/change-password");
   }
+  redirect(landingPathFor(user.role));
 }
 
 export async function logout() {
+  const session = await getSession();
+  if (session?.user) {
+    await recordAudit({
+      action: "SIGN_OUT",
+      summary: `${session.user.name} signed out.`,
+      actor: { id: session.user.id, email: session.user.email, role: session.user.role },
+      entity: "User",
+      entityId: session.user.id,
+    });
+  }
   const cookieStore = await cookies();
   cookieStore.set("session", "", { expires: new Date(0) });
   redirect("/");

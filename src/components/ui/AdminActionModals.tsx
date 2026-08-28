@@ -23,7 +23,15 @@ const tile =
 async function onboardTeacherWithMessage(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const res = await onboardTeacher(formData);
   if (res && "error" in res && res.error) return { error: res.error };
-  return { success: `${String(formData.get("name") ?? "The teacher")} now has a portal account.` };
+  const who = String(formData.get("name") ?? "The teacher");
+  const temp = res && "tempPassword" in res ? res.tempPassword : undefined;
+  // The dialog is told to stay open (keepOpenOnSuccess) precisely so this can
+  // be read and written down. It is shown once and stored nowhere.
+  return {
+    success: temp
+      ? `${who} now has a portal account. One-time password: ${temp} — write it down now, it is not shown again. They will be asked to choose their own on first sign-in.`
+      : `${who} now has a portal account.`,
+  };
 }
 
 export default function AdminActionModals() {
@@ -40,6 +48,7 @@ export default function AdminActionModals() {
         submitLabel="Create teacher profile"
         pendingLabel="Creating…"
         action={onboardTeacherWithMessage}
+        keepOpenOnSuccess
       >
         <div>
           <label className={label} htmlFor="ot-name">Full name</label>

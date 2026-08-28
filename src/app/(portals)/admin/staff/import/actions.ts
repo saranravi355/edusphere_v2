@@ -5,10 +5,16 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import type { ImportRow, ImportResult } from "@/lib/bulkImport";
 import { cleanValue } from "@/lib/bulkImport";
-import { hashPassword } from "@/lib/password";
+import { generateTempPassword, hashPassword } from "@/lib/password";
+import { recordAudit } from "@/lib/audit";
 
-/** Imported accounts get this until the holder signs in and it is re-hashed. */
-const DEFAULT_STAFF_PASSWORD = "password123";
+/*
+ * Imported accounts used to share the constant "password123". A bulk import is
+ * the worst place for a shared password: forty accounts created in one click,
+ * all opening with a string printed on the login form. Each row now gets its
+ * own one-time password, reported back in that row's import message so the
+ * office can hand it over, and every one of them is refused after first use.
+ */
 
 const VALID_ROLES = ["CLASS_TEACHER", "SUBJECT_TEACHER"];
 
@@ -53,11 +59,13 @@ export async function importStaff(rows: ImportRow[]): Promise<ImportResult> {
     const cpd = cleanValue(raw.cpdHours);
 
     try {
-      await prisma.user.create({
+      const tempPassword = generateTempPassword();
+      const created = await prisma.user.create({
         data: {
           name,
           email,
-          password: await hashPassword(DEFAULT_STAFF_PASSWORD),
+          password: await hashPassword(tempPassword),
+          mustChangePassword: true,
           role,
           teacherProfile: {
             create: {
@@ -71,7 +79,19 @@ export async function importStaff(rows: ImportRow[]): Promise<ImportResult> {
       });
       takenEmails.add(email);
       result.created++;
-      result.messages.push({ row: rowNo, status: "created", detail: `${name} added (${role.replace("_", " ").toLowerCase()}).` });
+      result.messages.push({
+        row: rowNo,
+        status: "created",
+        detail: `${name} added (${role.replace("_", " ").toLowerCase()}). One-time password: ${tempPassword}`,
+      });
+      await recordAudit({
+        action: "ACCOUNT_CREATED",
+        summary: `${session.user.name ?? "An administrator"} created a staff account for ${name} (${email}) by import.`,
+        actor: { id: session.user.id, email: session.user.email, role: session.user.role },
+        entity: "User",
+        entityId: created.id,
+        detail: { role, via: "importStaff" },
+      });
     } catch (e) {
       result.failed++;
       result.messages.push({ row: rowNo, status: "failed", detail: e instanceof Error ? e.message : "Unknown error." });

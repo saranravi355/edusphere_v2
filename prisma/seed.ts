@@ -1,6 +1,21 @@
 import { PrismaClient } from '@prisma/client'
+import { generateTempPassword, hashPassword } from '../src/lib/password'
 
 const prisma = new PrismaClient()
+
+/**
+ * The seed used to write the literal string 'password123' into every account
+ * it created — un-hashed, and the same for all of them. That one line is where
+ * the shared password came from in the first place.
+ *
+ * Now: one password per seed run, generated unless SEED_PASSWORD says
+ * otherwise, hashed, printed once to the console for whoever ran it, and
+ * flagged `mustChangePassword` so it stops working the moment a real person
+ * signs in with it. A demo database stays as easy to use as before; what it no
+ * longer does is hand a known password to production.
+ */
+const SEED_PASSWORD = process.env.SEED_PASSWORD || generateTempPassword();
+let seedHash = '';
 
 function daysAgo(n: number) {
   const d = new Date();
@@ -14,6 +29,7 @@ function pick<T>(arr: T[]): T {
 }
 
 async function main() {
+  seedHash = await hashPassword(SEED_PASSWORD);
   console.log('Seeding 5 Staff and 5 Students...')
 
   // Create Staff (1 Principal, 2 Super Admins, 2 Teachers)
@@ -35,7 +51,8 @@ async function main() {
         email: staff.email,
         name: staff.name,
         role: staff.role,
-        password: 'password123'
+        password: seedHash,
+        mustChangePassword: true
       }
     });
 
@@ -73,7 +90,7 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { email: t.email },
       update: { name: t.name },
-      create: { email: t.email, name: t.name, role: 'SUBJECT_TEACHER', password: 'password123' }
+      create: { email: t.email, name: t.name, role: 'SUBJECT_TEACHER', password: seedHash, mustChangePassword: true }
     });
     const teacher = await prisma.teacher.upsert({
       where: { userId: user.id },
@@ -126,7 +143,8 @@ async function main() {
         email: `${stu.reg.toLowerCase()}@student.edusphere.com`,
         name: stu.name,
         role: 'STUDENT',
-        password: 'password123'
+        password: seedHash,
+        mustChangePassword: true
       }
     });
 
@@ -873,6 +891,12 @@ async function main() {
   }
 
   console.log('Seeding completed successfully!')
+  console.log('')
+  console.log('  Every seeded account opens with this password, once:')
+  console.log(`      ${SEED_PASSWORD}`)
+  console.log('  Each account is then required to choose its own on first sign-in.')
+  console.log('  Set SEED_PASSWORD in the environment to choose it yourself.')
+  console.log('')
 }
 
 main()

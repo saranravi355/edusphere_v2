@@ -3,11 +3,17 @@
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { hashPassword } from "@/lib/password";
+import { generateTempPassword, hashPassword } from "@/lib/password";
+import { recordAudit } from "@/lib/audit";
 import type { ImportResult } from "@/lib/bulkImport";
 
 /** Imported accounts get this until the holder signs in and it is re-hashed. */
-const DEFAULT_IMPORT_PASSWORD = "password123";
+/*
+ * Imported students and their parents used to share the constant
+ * "password123" — the same string printed on the login form, handed to a whole
+ * year group at once. Each account now gets its own one-time password, shown
+ * back in that row's import message, and refused after first use.
+ */
 
 export type ImportStudentRow = {
   name?: string;
@@ -121,15 +127,30 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
     const parentEmailRaw = clean(raw.parentEmail)?.toLowerCase();
     const parentPhone = clean(raw.parentPhone);
 
+    // Generated outside the transaction so the message below can quote them.
+    // `issued` records which were actually used — a row may reuse an existing
+    // parent account, and reporting a password for an account nobody created
+    // would send the office chasing a login that does not exist.
+    const studentTemp = generateTempPassword();
+    const parentTemp = generateTempPassword();
+    const issued: { student?: string; parent?: string; parentEmail?: string } = {};
+
     try {
       await prisma.$transaction(async (tx) => {
         // Student portal login (optional).
         let studentUserId: string | undefined;
         if (email) {
           const u = await tx.user.create({
-            data: { name, email, password: await hashPassword(DEFAULT_IMPORT_PASSWORD), role: "STUDENT" },
+            data: {
+              name,
+              email,
+              password: await hashPassword(studentTemp),
+              mustChangePassword: true,
+              role: "STUDENT",
+            },
           });
           studentUserId = u.id;
+          issued.student = studentTemp;
         }
 
         // Parent — reuse existing parent by email, else create if any parent info present.
@@ -147,10 +168,19 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
           } else {
             const pEmail = parentEmailRaw ?? `parent.${registrationNo!.toLowerCase()}@edusphere.com`;
             parentUser = await tx.user.create({
-              data: { name: parentName ?? `${name}'s Parent`, email: pEmail, password: await hashPassword(DEFAULT_IMPORT_PASSWORD), role: "PARENT", parentProfile: { create: { phone: parentPhone } } },
+              data: {
+                name: parentName ?? `${name}'s Parent`,
+                email: pEmail,
+                password: await hashPassword(parentTemp),
+                mustChangePassword: true,
+                role: "PARENT",
+                parentProfile: { create: { phone: parentPhone } },
+              },
               include: { parentProfile: true },
             });
             parentId = parentUser.parentProfile!.id;
+            issued.parent = parentTemp;
+            issued.parentEmail = pEmail;
           }
         }
 
@@ -181,7 +211,29 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
       if (parentEmailRaw) takenEmails.add(parentEmailRaw);
 
       result.created++;
-      result.messages.push({ row: rowNo, status: "created", detail: `${name} (${registrationNo}) enrolled.` });
+      const logins = [
+        issued.student ? `${email} → ${issued.student}` : null,
+        issued.parent ? `${issued.parentEmail} → ${issued.parent}` : null,
+      ].filter(Boolean);
+      result.messages.push({
+        row: rowNo,
+        status: "created",
+        detail: logins.length
+          ? `${name} (${registrationNo}) enrolled. One-time passwords: ${logins.join("; ")}`
+          : `${name} (${registrationNo}) enrolled.`,
+      });
+      await recordAudit({
+        action: "ACCOUNT_CREATED",
+        summary: `${session.user.name ?? "An administrator"} enrolled ${name} (${registrationNo}) by import.`,
+        actor: { id: session.user.id, email: session.user.email, role: session.user.role },
+        entity: "Student",
+        entityId: registrationNo,
+        detail: {
+          via: "importStudents",
+          studentLogin: Boolean(issued.student),
+          parentLogin: Boolean(issued.parent),
+        },
+      });
     } catch (e) {
       result.failed++;
       result.messages.push({ row: rowNo, status: "failed", detail: e instanceof Error ? e.message : "Unknown error." });

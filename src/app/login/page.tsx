@@ -81,7 +81,6 @@ function LoginForm() {
                 <input
                   type="password"
                   name="password"
-                  defaultValue="password123"
                   placeholder="Password"
                   autoComplete="current-password"
                   className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
@@ -111,6 +110,8 @@ function LoginForm() {
                     A dead href="#" link is worse than saying so plainly. */}
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Forgotten your password? Contact the school office.
+                  {" "}Signing in for the first time since the reset? Use the
+                  password you were given and you will be asked to choose your own.
                 </p>
               </div>
             </form>

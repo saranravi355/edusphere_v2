@@ -1,4 +1,4 @@
-import { DEPARTMENTS } from "@/lib/operations";
+import { DEPARTMENTS, isOperationsRole, operationsLandingPath } from "@/lib/operations";
 
 /**
  * The front door.
@@ -47,4 +47,22 @@ const FALLBACK = PORTALS.find((p) => p.slug === "student")!;
 /** Never throws: an unknown ?role= falls back to the student portal. */
 export function portalBySlug(slug: string | null | undefined): Portal {
   return PORTALS.find((p) => p.slug === slug) ?? FALLBACK;
+}
+
+/**
+ * Where a role lands after signing in — or after changing a password, which is
+ * the same question asked from a different screen. It used to be an if/else
+ * chain inside `login()`, which meant the change-password screen would have
+ * had to grow a second copy of it and the two would eventually disagree about
+ * where a hostel warden belongs.
+ */
+export function landingPathFor(role: string | undefined | null): string {
+  if (role === "SUPER_ADMIN" || role === "PRINCIPAL") return "/admin";
+  if (role === "CLASS_TEACHER" || role === "SUBJECT_TEACHER") return "/teacher";
+  if (role === "PARENT") return "/parent";
+  if (role === "STUDENT") return "/student";
+  // Straight to the one department they run — /operations itself would only
+  // show them four doors they cannot open.
+  if (isOperationsRole(role)) return operationsLandingPath(role);
+  return "/";
 }
