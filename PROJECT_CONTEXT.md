@@ -79,8 +79,12 @@ The sandbox has **no stored GitHub credentials** (the user's Windows credential 
 
 ## 7. Known gaps / sensible next steps
 
+- **Committed but NOT applied to Mumbai:** `prisma/migrations/20260827120000_attendance_one_row_per_register`. It deletes duplicate Attendance rows before adding the unique index, so it needs a deliberate go-ahead. Until it runs, `markManyPresent`'s `skipDuplicates` has no index to work against and duplicates can still appear.
+- The Tokyo Supabase project `mypgubeimwwsjcuzzujm` was paused on 28 Aug 2026 — a July snapshot of all 365 accounts and 173 students. `.env` keeps its URL commented as `ROLLBACK_TOKYO_*`. Delete it from the Supabase dashboard when you no longer want the snapshot.
+
 - All 25 PRD AI features except auto-grading and the timetable generator are **scripted PREVIEW mocks** — wiring them to a real LLM endpoint is the biggest upgrade (UI is ready).
 - Not built: payments gateway (Razorpay), WhatsApp/SMS/email channels, payroll statutory outputs (TDS/PF/Form 16), recruitment, events & permission slips, OMR digitisation, real GPS, mobile apps, Excel import.
-- Security is demo-grade: plaintext passwords, hardcoded JWT secret, no 2FA/audit trail — must fix before real users.
+- Sign-in (28 Aug 2026): all 370 accounts shared the password `password123`, which the login form also pre-filled, and no screen existed to change it. Now: the default is gone from the schema, every account carries `mustChangePassword`, middleware refuses every portal until it clears, `/change-password` is the screen, account creation mints a one-time password per person, and `AuditLog` records sign-ins, failures, password changes and account creation. Session cookies no longer carry the password hash; `SESSION_VERSION` invalidates ones minted before the change. Still missing: 2FA, rate limiting on sign-in, and a way to reset a forgotten password without the office (needs an email provider).
+- Run `VERIFY_SECURITY.bat` after touching `src/lib/password.ts` — it compiles that module alone and checks the rules against it.
 - Full PRD coverage audit lives in `EduSphere360_PRD_Coverage_Report.docx` (repo root).
 - Console warning "script tag in React component" from next-themes is a known benign React 19 dev-mode notice — ignore.
