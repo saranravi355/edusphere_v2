@@ -3,8 +3,9 @@
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { generateTempPassword, hashPassword } from "@/lib/password";
+import { DEMO_PASSWORD, generateTempPassword, hashPassword } from "@/lib/password";
 import { recordAudit } from "@/lib/audit";
+import { FORCE_PASSWORD_RESET } from "@/lib/demo";
 import type { ImportResult } from "@/lib/bulkImport";
 
 /** Imported accounts get this until the holder signs in and it is re-hashed. */
@@ -131,8 +132,8 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
     // `issued` records which were actually used — a row may reuse an existing
     // parent account, and reporting a password for an account nobody created
     // would send the office chasing a login that does not exist.
-    const studentTemp = generateTempPassword();
-    const parentTemp = generateTempPassword();
+    const studentTemp = FORCE_PASSWORD_RESET ? generateTempPassword() : DEMO_PASSWORD;
+    const parentTemp = FORCE_PASSWORD_RESET ? generateTempPassword() : DEMO_PASSWORD;
     const issued: { student?: string; parent?: string; parentEmail?: string } = {};
 
     try {
@@ -145,7 +146,7 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
               name,
               email,
               password: await hashPassword(studentTemp),
-              mustChangePassword: true,
+              mustChangePassword: FORCE_PASSWORD_RESET,
               role: "STUDENT",
             },
           });
@@ -172,7 +173,7 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
                 name: parentName ?? `${name}'s Parent`,
                 email: pEmail,
                 password: await hashPassword(parentTemp),
-                mustChangePassword: true,
+                mustChangePassword: FORCE_PASSWORD_RESET,
                 role: "PARENT",
                 parentProfile: { create: { phone: parentPhone } },
               },
@@ -211,7 +212,7 @@ export async function importStudents(rows: ImportStudentRow[]): Promise<ImportRe
       if (parentEmailRaw) takenEmails.add(parentEmailRaw);
 
       result.created++;
-      const logins = [
+      const logins = !FORCE_PASSWORD_RESET ? [] : [
         issued.student ? `${email} → ${issued.student}` : null,
         issued.parent ? `${issued.parentEmail} → ${issued.parent}` : null,
       ].filter(Boolean);

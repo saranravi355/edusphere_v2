@@ -5,8 +5,9 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import type { ImportRow, ImportResult } from "@/lib/bulkImport";
 import { cleanValue } from "@/lib/bulkImport";
-import { generateTempPassword, hashPassword } from "@/lib/password";
+import { DEMO_PASSWORD, generateTempPassword, hashPassword } from "@/lib/password";
 import { recordAudit } from "@/lib/audit";
+import { FORCE_PASSWORD_RESET } from "@/lib/demo";
 
 /*
  * Imported accounts used to share the constant "password123". A bulk import is
@@ -59,13 +60,13 @@ export async function importStaff(rows: ImportRow[]): Promise<ImportResult> {
     const cpd = cleanValue(raw.cpdHours);
 
     try {
-      const tempPassword = generateTempPassword();
+      const tempPassword = FORCE_PASSWORD_RESET ? generateTempPassword() : DEMO_PASSWORD;
       const created = await prisma.user.create({
         data: {
           name,
           email,
           password: await hashPassword(tempPassword),
-          mustChangePassword: true,
+          mustChangePassword: FORCE_PASSWORD_RESET,
           role,
           teacherProfile: {
             create: {
@@ -82,7 +83,9 @@ export async function importStaff(rows: ImportRow[]): Promise<ImportResult> {
       result.messages.push({
         row: rowNo,
         status: "created",
-        detail: `${name} added (${role.replace("_", " ").toLowerCase()}). One-time password: ${tempPassword}`,
+        detail: FORCE_PASSWORD_RESET
+          ? `${name} added (${role.replace("_", " ").toLowerCase()}). One-time password: ${tempPassword}`
+          : `${name} added (${role.replace("_", " ").toLowerCase()}).`,
       });
       await recordAudit({
         action: "ACCOUNT_CREATED",

@@ -4,9 +4,10 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { UserPlus } from "lucide-react";
-import { generateTempPassword, hashPassword } from "@/lib/password";
+import { DEMO_PASSWORD, generateTempPassword, hashPassword } from "@/lib/password";
 import { recordAudit } from "@/lib/audit";
 import { cookies } from "next/headers";
+import { FORCE_PASSWORD_RESET } from "@/lib/demo";
 import { guard, ADMIN_ROLES } from "@/lib/authz";
 
 async function registerStudent(formData: FormData) {
@@ -26,8 +27,9 @@ async function registerStudent(formData: FormData) {
   const address = formData.get("address") as string;
 
   // Was `hashPassword("changeme123")` for every student the office registered.
-  // One password across a whole intake is one password; this is one each.
-  const tempPassword = generateTempPassword();
+  // In demo mode it is the shared password like every other account; with
+  // FORCE_PASSWORD_RESET set it is one per student, shown once on this page.
+  const tempPassword = FORCE_PASSWORD_RESET ? generateTempPassword() : DEMO_PASSWORD;
 
   const user = email
     ? await prisma.user.create({
@@ -35,7 +37,7 @@ async function registerStudent(formData: FormData) {
           name,
           email,
           password: await hashPassword(tempPassword),
-          mustChangePassword: true,
+          mustChangePassword: FORCE_PASSWORD_RESET,
           role: "STUDENT",
         }
       })
@@ -70,7 +72,7 @@ async function registerStudent(formData: FormData) {
   // up in browser history, in the referrer of the next request, and in every
   // access log between here and the office. A short-lived httpOnly cookie,
   // cleared by the page that reads it, keeps it to this one render.
-  if (user) {
+  if (user && FORCE_PASSWORD_RESET) {
     const jar = await cookies();
     jar.set("newStudentLogin", `${email}|${tempPassword}`, {
       httpOnly: true,

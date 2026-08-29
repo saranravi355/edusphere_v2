@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
-import { generateTempPassword, hashPassword } from '../src/lib/password'
+import { DEMO_PASSWORD, generateTempPassword, hashPassword } from '../src/lib/password'
+import { FORCE_PASSWORD_RESET } from '../src/lib/demo'
 
 const prisma = new PrismaClient()
 
@@ -8,13 +9,16 @@ const prisma = new PrismaClient()
  * it created — un-hashed, and the same for all of them. That one line is where
  * the shared password came from in the first place.
  *
- * Now: one password per seed run, generated unless SEED_PASSWORD says
- * otherwise, hashed, printed once to the console for whoever ran it, and
- * flagged `mustChangePassword` so it stops working the moment a real person
- * signs in with it. A demo database stays as easy to use as before; what it no
- * longer does is hand a known password to production.
+ * Now it is hashed either way, and which password it is depends on the mode.
+ * A demo seed keeps the shared password on purpose, so anyone can sign in as
+ * any role and look around. With FORCE_PASSWORD_RESET set, the seed generates
+ * one password for the run, prints it once, and flags every account so the
+ * password stops working as soon as a real person uses it. SEED_PASSWORD
+ * overrides both.
  */
-const SEED_PASSWORD = process.env.SEED_PASSWORD || generateTempPassword();
+const SEED_PASSWORD =
+  process.env.SEED_PASSWORD ||
+  (FORCE_PASSWORD_RESET ? generateTempPassword() : DEMO_PASSWORD);
 let seedHash = '';
 
 function daysAgo(n: number) {
@@ -52,7 +56,7 @@ async function main() {
         name: staff.name,
         role: staff.role,
         password: seedHash,
-        mustChangePassword: true
+        mustChangePassword: FORCE_PASSWORD_RESET
       }
     });
 
@@ -90,7 +94,7 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { email: t.email },
       update: { name: t.name },
-      create: { email: t.email, name: t.name, role: 'SUBJECT_TEACHER', password: seedHash, mustChangePassword: true }
+      create: { email: t.email, name: t.name, role: 'SUBJECT_TEACHER', password: seedHash, mustChangePassword: FORCE_PASSWORD_RESET }
     });
     const teacher = await prisma.teacher.upsert({
       where: { userId: user.id },
@@ -144,7 +148,7 @@ async function main() {
         name: stu.name,
         role: 'STUDENT',
         password: seedHash,
-        mustChangePassword: true
+        mustChangePassword: FORCE_PASSWORD_RESET
       }
     });
 
@@ -892,10 +896,14 @@ async function main() {
 
   console.log('Seeding completed successfully!')
   console.log('')
-  console.log('  Every seeded account opens with this password, once:')
+  console.log('  Every seeded account opens with this password:')
   console.log(`      ${SEED_PASSWORD}`)
-  console.log('  Each account is then required to choose its own on first sign-in.')
-  console.log('  Set SEED_PASSWORD in the environment to choose it yourself.')
+  console.log(
+    FORCE_PASSWORD_RESET
+      ? '  Each account must then choose its own on first sign-in.'
+      : '  Demo mode: shared on purpose. Set NEXT_PUBLIC_FORCE_PASSWORD_RESET=true to require a change.',
+  )
+  console.log('  Set SEED_PASSWORD in the environment to choose the password yourself.')
   console.log('')
 }
 

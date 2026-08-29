@@ -24,6 +24,15 @@ const scrypt = promisify(_scrypt) as (
  * successful sign-in, so the column drains itself.
  */
 
+/**
+ * The password every account in the demo deployment opens with.
+ *
+ * Kept here rather than in lib/demo.ts because this module imports node:crypto
+ * and so can never be bundled into a browser. Only server code should ever
+ * name it. See lib/demo.ts for the switch that stops it being used.
+ */
+export const DEMO_PASSWORD = "password123";
+
 const KEYLEN = 64;
 
 export async function hashPassword(plain: string): Promise<string> {

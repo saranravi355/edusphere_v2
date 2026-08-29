@@ -21,12 +21,18 @@ model User {
   password  String
   name      String
   role      String   @default("PARENT")
-  /// True until the person has chosen a password of their own. Defaults to
-  /// true so that an account created by an administrator, or by a future
-  /// import written by someone who has not read this file, is closed by
-  /// default rather than open by default. Login sends these accounts to
-  /// /change-password and the middleware keeps them out of every portal.
-  mustChangePassword Boolean  @default(true)
+  /// True until the person has chosen a password of their own. Login sends
+  /// these accounts to /change-password and the middleware keeps them out of
+  /// every portal until the flag clears.
+  ///
+  /// Defaults to false because this deployment is a demonstration: every
+  /// account shares one password on purpose so the system can be shown without
+  /// handing out credentials first. Every creation site sets the value
+  /// explicitly from FORCE_PASSWORD_RESET (see src/lib/demo.ts), so flipping
+  /// that one environment variable closes the gate again without a schema
+  /// change. The column default only decides what a row written by something
+  /// that has not read this file gets.
+  mustChangePassword Boolean  @default(false)
   /// Null means never changed since the account was made.
   passwordChangedAt  DateTime?
   createdAt DateTime @default(now())

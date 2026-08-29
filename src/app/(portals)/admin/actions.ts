@@ -3,8 +3,9 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { guard, ADMIN_ROLES } from "@/lib/authz";
-import { generateTempPassword, hashPassword } from "@/lib/password";
+import { DEMO_PASSWORD, generateTempPassword, hashPassword } from "@/lib/password";
 import { recordAudit } from "@/lib/audit";
+import { FORCE_PASSWORD_RESET } from "@/lib/demo";
 import type { ActionState } from "@/components/ui/form";
 
 
@@ -17,11 +18,11 @@ export async function onboardTeacher(formData: FormData) {
   const email = formData.get("email") as string;
   const subjects = formData.get("subjects") as string;
 
-  // One password, generated here, shown to the office once, and refused after
-  // the teacher's first sign-in. It used to be `hashPassword("password123")` —
-  // a hash of a string printed in the login form, which is not a password at
-  // all.
-  const tempPassword = generateTempPassword();
+  // In demo mode this is the shared password, the same as every other account,
+  // so whoever is being shown the system can sign in as the new teacher
+  // straight away. With FORCE_PASSWORD_RESET set it is a single-use password
+  // instead, shown to the office once and refused after first sign-in.
+  const tempPassword = FORCE_PASSWORD_RESET ? generateTempPassword() : DEMO_PASSWORD;
 
   const user = await prisma.user.create({
     data: {
@@ -29,7 +30,7 @@ export async function onboardTeacher(formData: FormData) {
       name,
       role: "SUBJECT_TEACHER",
       password: await hashPassword(tempPassword),
-      mustChangePassword: true,
+      mustChangePassword: FORCE_PASSWORD_RESET,
     }
   });
 
@@ -52,7 +53,7 @@ export async function onboardTeacher(formData: FormData) {
 
   // Revalidate to update counts
   revalidatePath("/admin");
-  return { success: true, tempPassword };
+  return { success: true, tempPassword: FORCE_PASSWORD_RESET ? tempPassword : undefined };
 }
 
 /**

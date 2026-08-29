@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { LogoFull } from "@/components/ui/Logo";
 import { portalBySlug } from "@/lib/portals";
+import { FORCE_PASSWORD_RESET } from "@/lib/demo";
 import { Suspense, useActionState } from "react";
 
 function LoginForm() {
@@ -78,9 +79,24 @@ function LoginForm() {
               </div>
 
               <div>
+                {/* The password is prefilled while this is a demonstration and
+                    every account shares one. Setting
+                    NEXT_PUBLIC_FORCE_PASSWORD_RESET=true empties it: a login
+                    form that types the password for you is a door with the key
+                    left in it once real families are behind it.
+
+                    The env var is read here directly rather than through the
+                    FORCE_PASSWORD_RESET constant so that Next inlines it as a
+                    literal and the minifier folds this whole branch away —
+                    otherwise the shared password stays in the public bundle
+                    even after the switch is flipped, which would make the
+                    switch a lie. Verified: with the flag on, the only
+                    remaining occurrence is the "do not reuse it" hint on the
+                    change-password form. */}
                 <input
                   type="password"
                   name="password"
+                  defaultValue={process.env.NEXT_PUBLIC_FORCE_PASSWORD_RESET === "true" ? "" : "password123"}
                   placeholder="Password"
                   autoComplete="current-password"
                   className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
@@ -110,8 +126,10 @@ function LoginForm() {
                     A dead href="#" link is worse than saying so plainly. */}
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Forgotten your password? Contact the school office.
-                  {" "}Signing in for the first time since the reset? Use the
-                  password you were given and you will be asked to choose your own.
+                  {FORCE_PASSWORD_RESET && (
+                    <> Signing in for the first time since the reset? Use the
+                    password you were given and you will be asked to choose your own.</>
+                  )}
                 </p>
               </div>
             </form>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Users, AlertTriangle, Megaphone } from "lucide-react";
 import { onboardTeacher, createAnnouncement } from "@/app/(portals)/admin/actions";
+import { FORCE_PASSWORD_RESET } from "@/lib/demo";
 import FormModal from "@/components/ui/FormModal";
 import type { ActionState } from "@/components/ui/form";
 
@@ -48,7 +49,7 @@ export default function AdminActionModals() {
         submitLabel="Create teacher profile"
         pendingLabel="Creating…"
         action={onboardTeacherWithMessage}
-        keepOpenOnSuccess
+        keepOpenOnSuccess={FORCE_PASSWORD_RESET}
       >
         <div>
           <label className={label} htmlFor="ot-name">Full name</label>
