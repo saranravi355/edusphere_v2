@@ -75,6 +75,7 @@ model Teacher {
   meetings         ParentTeacherMeeting[]
   baseSalary       Float?         /// monthly gross, in rupees
   payrollLines     PayrollLine[]
+  aiGradingSubmissions AIGradingSubmission[]
 }
 
 model Parent {
@@ -142,6 +143,7 @@ model Student {
   ibSubjects       IBSubjectRecord[]
   ibCore           IBCoreRecord[]
   assessmentResults AssessmentResult[]
+  aiGradingSubmissions AIGradingSubmission[]
 }
 
 model Classroom {
@@ -716,6 +718,54 @@ model AssessmentResult {
   maxGrade    Int      @default(7)
   comment     String?
   term        String   @default("Term 1 2026-27")
+
+  aiGradingSubmission AIGradingSubmission?
+}
+
+/// One scanned answer sheet run through the AI grader: the OCR'd text, the
+/// full per-question/criterion breakdown, on-paper annotations, and any
+/// teacher override — kept in full even after publishing, since
+/// AssessmentResult (below) only has room for a single final 1-7 grade and a
+/// comment. On "Publish," a summary is written/updated into AssessmentResult
+/// so the result shows up in the normal gradebook/reports/student-grades
+/// views exactly like a manually-entered grade; assessmentResultId then
+/// records which row that was.
+model AIGradingSubmission {
+  id             String   @id @default(cuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classroomId    String
+  teacherId      String
+  teacher        Teacher  @relation(fields: [teacherId], references: [id])
+  subjectName    String
+  title          String                 // e.g. "Unit Test 2: Mechanics"
+  term           String
+  programme      String                 // DP or MYP, at time of grading
+  courseworkType String                 // internal-assessment, extended-essay, tok, external-assessment, exam
+  fileUrl        String                 // Vercel Blob URL of the uploaded scan
+  ocrText        String?  @db.Text
+  ocrPages       Json?                  // page images + OCR line boxes, for annotation rendering
+  ocrConfidence  Float?
+  result         Json                   // full GradingResult shape: questions, criteria, annotations, feedback
+  totalScore     Int
+  maxTotal       Int
+  providerUsed   String?                // "groq" | "openai", for troubleshooting
+  status         String   @default("EVALUATED")
+  // OCR_PROCESSING, EVALUATING, EVALUATED, NEEDS_REVIEW, FAILED, PUBLISHED
+  errorMessage   String?
+
+  teacherOverrideScore          Int?
+  teacherOverrideQuestionScores Json?
+  teacherFeedback String?
+
+  assessmentResultId String?  @unique
+  assessmentResult   AssessmentResult? @relation(fields: [assessmentResultId], references: [id], onDelete: SetNull)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([teacherId, classroomId])
+  @@index([studentId])
 }
 
 model FeeItem {
