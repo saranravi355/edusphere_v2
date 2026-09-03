@@ -1,62 +1,92 @@
-"use client";
+import PageHeader from '@/components/ui/PageHeader';
+import prisma from '@/lib/prisma';
+import { getSession } from '@/lib/session';
+import { redirect } from 'next/navigation';
+import AIGraderClient from './AIGraderClient';
+import type { SubmissionRow } from './types';
+import type { GradingResult, OcrPage } from '@/lib/grading/types';
 
-import { useState } from "react";
-import PageHeader from "@/components/ui/PageHeader";
-import { ScanLine, Sparkles, CheckCircle2 } from "lucide-react";
+export const dynamic = 'force-dynamic';
 
-export default function AIGraderPage() {
-  const [scanning, setScanning] = useState(false);
-  const [result, setResult] = useState<string[] | null>(null);
+export default async function AIGraderPage({
+  searchParams
+}: {
+  searchParams: Promise<{ classId?: string }>;
+}) {
+  const session = await getSession();
+  if (!session || !['CLASS_TEACHER', 'SUBJECT_TEACHER'].includes(session.user.role)) redirect('/');
 
-  const runScan = () => {
-    setScanning(true);
-    setResult(null);
-    setTimeout(() => {
-      setResult([
-        "> Initializing OCR engine...",
-        "> Detected handwriting block (confidence: 94%)",
-        "> Extracted: &quot;Newton&apos;s second law states that F=ma...&quot;",
-        "> Extracted: &quot;Force is energy applied over a distance...&quot;",
-        "> Cross-referencing answer key...",
-        "> Question 1: Correct (full marks)",
-        "> Question 2: Partial credit — missing unit conversion",
-        "> Final Score: 8.5 / 10",
-      ]);
-      setScanning(false);
-    }, 2800);
-  };
+  const teacher = await prisma.teacher.findUnique({
+    where: { userId: session.user.id },
+    select: { subjects: true, classes: { select: { id: true, name: true }, orderBy: { name: 'asc' } } }
+  });
+
+  if (!teacher || teacher.classes.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6 pb-12">
+        <PageHeader title="AI Exam Grader" description="Upload scanned answer sheets for instant AI-assisted grading." />
+        <p className="text-slate-500">You are not assigned to any classes yet.</p>
+      </div>
+    );
+  }
+
+  const sp = await searchParams;
+  const activeClass = teacher.classes.find(c => c.id === sp.classId) ?? teacher.classes[0];
+  const mySubjects = teacher.subjects.split(',').map(s => s.trim()).filter(Boolean);
+
+  const students = await prisma.student.findMany({
+    where: { classroomId: activeClass.id, isActive: true },
+    select: { id: true, name: true, registrationNo: true },
+    orderBy: { name: 'asc' }
+  });
+
+  const submissions = await prisma.aIGradingSubmission.findMany({
+    where: { classroomId: activeClass.id },
+    select: {
+      id: true,
+      studentId: true,
+      subjectName: true,
+      title: true,
+      term: true,
+      programme: true,
+      status: true,
+      errorMessage: true,
+      totalScore: true,
+      maxTotal: true,
+      teacherOverrideScore: true,
+      teacherOverrideQuestionScores: true,
+      teacherFeedback: true,
+      result: true,
+      ocrText: true,
+      ocrPages: true,
+      ocrConfidence: true,
+      fileUrl: true,
+      createdAt: true
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const studentsById = new Map(students.map(s => [s.id, s]));
+  const rows: SubmissionRow[] = submissions.map(s => ({
+    ...s,
+    createdAt: s.createdAt.toISOString(),
+    studentName: studentsById.get(s.studentId)?.name ?? 'Unknown student',
+    registrationNo: studentsById.get(s.studentId)?.registrationNo ?? '',
+    result: s.result as unknown as GradingResult,
+    ocrPages: s.ocrPages as unknown as OcrPage[] | null,
+    teacherOverrideQuestionScores: s.teacherOverrideQuestionScores as unknown as Record<number, number> | null
+  }));
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12">
-      <PageHeader
-        title="AI Automated Exam Grader"
-        description="Upload scanned answer sheets for instant AI-assisted grading."
+    <div className="max-w-6xl mx-auto space-y-6 pb-12">
+      <PageHeader title="AI Exam Grader" description="Upload scanned answer sheets for instant AI-assisted grading, then review and publish to families." />
+      <AIGraderClient
+        classes={teacher.classes}
+        activeClassId={activeClass.id}
+        mySubjects={mySubjects.length ? mySubjects : ['General']}
+        students={students}
+        submissions={rows}
       />
-
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 shadow-sm">
-        <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-10 flex flex-col items-center text-center mb-6">
-          <ScanLine size={40} className="text-slate-400 mb-3" />
-          <p className="text-slate-600 dark:text-slate-400 mb-4">Drop a scanned answer sheet here, or click to upload</p>
-          <button
-            onClick={runScan}
-            disabled={scanning}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm disabled:opacity-70"
-          >
-            <Sparkles size={16} /> {scanning ? "Processing..." : "Simulate Scan"}
-          </button>
-        </div>
-
-        {result && (
-          <div className="bg-slate-950 rounded-xl p-5 font-mono text-sm text-green-400 space-y-1 shadow-inner">
-            {result.map((line, i) => (
-              <p key={i} dangerouslySetInnerHTML={{ __html: line }} />
-            ))}
-            <p className="flex items-center gap-2 text-white font-bold pt-2">
-              <CheckCircle2 size={14} className="text-green-400" /> Grading complete.
-            </p>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
