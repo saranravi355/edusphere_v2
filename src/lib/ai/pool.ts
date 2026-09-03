@@ -63,7 +63,10 @@ function envKeyName(provider: ProviderId, index: number): string {
 function loadProviderAccounts(provider: ProviderId, priorityOffset: number): AccountConfig[] {
   const accounts: AccountConfig[] = [];
   for (let i = 1; i <= MAX_ACCOUNTS_PER_PROVIDER; i++) {
-    const apiKey = process.env[envKeyName(provider, i)];
+    // .trim() guards against a real failure mode seen in practice: pasting a key into
+    // Vercel's env var editor can carry an invisible trailing newline/space, which makes
+    // the Bearer token wrong even though the key "looks" right when reviewed.
+    const apiKey = process.env[envKeyName(provider, i)]?.trim();
     if (!apiKey) continue;
     accounts.push({
       accountId: `${provider}:${i}`,
