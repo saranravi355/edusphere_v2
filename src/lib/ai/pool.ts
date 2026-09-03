@@ -26,7 +26,14 @@ function sleep(ms: number) {
  *  or a second concurrent serverless instance starts with a clean slate. Good enough for
  *  "don't hammer a rate-limited key for the next N seconds" within one running process;
  *  NOT a durable, globally-consistent usage ledger across a whole deployment - that would
- *  need a shared store (Redis/KV/DB). */
+ *  need a shared store (Redis/KV/DB).
+ *
+ *  Gotcha seen live: fixing a bad API key in Vercel's env vars and clicking "Redeploy" is
+ *  NOT enough to clear an existing auth cooldown (up to 1 hour, see AUTH_ERROR_COOLDOWN_MS
+ *  below) - Fluid Compute can keep the same warm instance (and its in-memory healthMap)
+ *  running across a redeploy, so the account keeps getting silently skipped ("cooling
+ *  down") without ever actually retrying the now-fixed key. A genuinely new deployment
+ *  (a real commit, not just "Redeploy") forces fresh instances and clears this immediately. */
 const healthMap = new Map<string, AccountHealth>();
 const disabledSet = new Set<string>();
 const usageLog: UsageEvent[] = [];
