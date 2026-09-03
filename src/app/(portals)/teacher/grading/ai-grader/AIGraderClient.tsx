@@ -2,7 +2,8 @@
 
 import { useActionState, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UploadCloud, Sparkles, RefreshCw, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { UploadCloud, Sparkles, RefreshCw, Trash2, BarChart3 } from 'lucide-react';
 import { SubmitButton, FormFeedback } from '@/components/ui/form';
 import { uploadAndGrade, retryGrading, deleteSubmission } from './actions';
 import SubmissionReport from './SubmissionReport';
@@ -248,8 +249,14 @@ export default function AIGraderClient({
 
       {/* Queue */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50">
+        <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex items-center justify-between gap-3">
           <h3 className="font-bold text-slate-800 dark:text-slate-100">{activeClass?.name} — graded sheets</h3>
+          <Link
+            href={`/teacher/grading/ai-grader/analytics?classId=${activeClassId}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
+          >
+            <BarChart3 size={13} aria-hidden /> Class Analytics
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
