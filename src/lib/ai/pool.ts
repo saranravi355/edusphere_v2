@@ -32,16 +32,21 @@ const disabledSet = new Set<string>();
 const usageLog: UsageEvent[] = [];
 
 function envBaseUrl(provider: ProviderId): string {
-  return provider === 'groq' ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
+  if (provider === 'groq') return 'https://api.groq.com/openai/v1';
+  // Google's own OpenAI-compatible endpoint - same request/response shape as Groq/OpenAI,
+  // so it plugs into the shared adapter with no special-casing beyond base URL/model/key.
+  if (provider === 'gemini') return 'https://generativelanguage.googleapis.com/v1beta/openai';
+  return 'https://api.openai.com/v1';
 }
 
 function envModel(provider: ProviderId): string {
   if (provider === 'groq') return process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+  if (provider === 'gemini') return process.env.GEMINI_MODEL || 'gemini-3.7-flash';
   return process.env.OPENAI_MODEL || 'gpt-4o-mini';
 }
 
 function envKeyName(provider: ProviderId, index: number): string {
-  const base = provider === 'groq' ? 'GROQ_API_KEY' : 'OPENAI_API_KEY';
+  const base = provider === 'groq' ? 'GROQ_API_KEY' : provider === 'gemini' ? 'GEMINI_API_KEY' : 'OPENAI_API_KEY';
   return index === 1 ? base : `${base}_${index}`;
 }
 
@@ -66,13 +71,17 @@ function loadProviderAccounts(provider: ProviderId, priorityOffset: number): Acc
   return accounts;
 }
 
-/** Fixed failover order: every Groq account (in declared order), then every OpenAI account -
- *  there's no live drag-to-reorder UI since persisting a custom order needs a database. To
- *  change priority, reorder which env vars you set, or add a provider back by extending
- *  PROVIDER_LABELS/envBaseUrl/envModel/envKeyName and giving it its own priority band below
- *  (this pool previously also carried Gemini and OpenRouter - see git history). */
+/** Fixed failover order: every Groq account, then every Gemini account, then every OpenAI
+ *  account (each provider's own accounts tried in declared order) - there's no live
+ *  drag-to-reorder UI since persisting a custom order needs a database. Gemini sits before
+ *  OpenAI because it's also a free-tier option (matching Groq) with a much larger context
+ *  window, making it a good fallback for a paper too long for Groq's tighter per-request cap.
+ *  To change priority, reorder which env vars you set, or add a provider back by extending
+ *  PROVIDER_LABELS/envBaseUrl/envModel/envKeyName and giving it its own priority band below. */
 export function loadAllAccounts(): AccountConfig[] {
-  return [...loadProviderAccounts('groq', 0), ...loadProviderAccounts('openai', 100)].sort((a, b) => a.priority - b.priority);
+  return [...loadProviderAccounts('groq', 0), ...loadProviderAccounts('gemini', 50), ...loadProviderAccounts('openai', 100)].sort(
+    (a, b) => a.priority - b.priority
+  );
 }
 
 function ensureHealth(accountId: string): AccountHealth {

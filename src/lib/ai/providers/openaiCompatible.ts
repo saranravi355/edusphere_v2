@@ -6,15 +6,16 @@ interface ChatCompletionResponse {
 }
 
 /** Groq's free tier caps combined prompt+completion tokens at 8000 per request (found
- *  empirically from live rate-limit errors). OpenAI's hosted models have a much larger
- *  context window, so they aren't held to that same tight cap. A fixed completion budget
- *  either wastes headroom on short prompts or truncates the JSON mid-object on long/detailed
- *  ones (many questions x many criteria x evidence/missing text easily exceeds a flat 4000)
- *  - so the completion budget scales to whatever's left after a rough estimate of the
- *  prompt's own size, per provider. */
+ *  empirically from live rate-limit errors). OpenAI and Gemini's hosted models have a much
+ *  larger context window, so they aren't held to that same tight cap. A fixed completion
+ *  budget either wastes headroom on short prompts or truncates the JSON mid-object on
+ *  long/detailed ones (many questions x many criteria x evidence/missing text easily exceeds
+ *  a flat 4000) - so the completion budget scales to whatever's left after a rough estimate
+ *  of the prompt's own size, per provider. */
 const COMBINED_TOKEN_CAP: Record<ProviderId, number> = {
   groq: 8000,
-  openai: 100_000
+  openai: 100_000,
+  gemini: 100_000
 };
 const RESPONSE_SAFETY_MARGIN = 200;
 const MIN_COMPLETION_TOKENS = 1500;
@@ -46,9 +47,19 @@ function classifyError(resp: Response, message: string): 'rate-limit' | 'auth' |
   return 'other';
 }
 
-/** Calls any OpenAI-compatible /chat/completions endpoint (Groq and OpenAI itself share this
- *  exact request/response shape). One adapter serves both - only baseUrl/apiKey/model differ
- *  per account. */
+/** Groq and OpenAI reliably support the OpenAI `response_format: json_object` param.
+ *  Gemini's compatibility layer's support for it isn't confirmed, so it's skipped there -
+ *  the grading prompt already instructs the model to respond with pure JSON, and
+ *  parseGradingResponse already falls back to extracting a JSON object from prose/fences
+ *  when strict mode isn't used, so this trades a little strictness for not risking an empty
+ *  response from a parameter Gemini's endpoint might reject or ignore badly. */
+function supportsJsonResponseFormat(provider: ProviderId): boolean {
+  return provider === 'groq' || provider === 'openai';
+}
+
+/** Calls any OpenAI-compatible /chat/completions endpoint (Groq, OpenAI, and Gemini's own
+ *  compatibility layer all share this request/response shape). One adapter serves all three
+ *  - only baseUrl/apiKey/model differ per account. */
 export async function callOpenAiCompatible(account: AccountConfig, prompt: string, jsonMode: boolean): Promise<string> {
   // Every ProviderCallError message below is deliberately unprefixed - callWithFailover
   // (lib/ai/pool.ts) already prepends the account label once when it builds the combined
@@ -76,7 +87,9 @@ export async function callOpenAiCompatible(account: AccountConfig, prompt: strin
       body: JSON.stringify({
         model: account.model,
         messages: [{ role: 'user', content: prompt }],
-        ...(jsonMode ? { max_tokens: maxTokens, response_format: { type: 'json_object' } } : {})
+        ...(jsonMode
+          ? { max_tokens: maxTokens, ...(supportsJsonResponseFormat(account.provider) ? { response_format: { type: 'json_object' } } : {}) }
+          : {})
       })
     });
   } catch (err) {
@@ -85,7 +98,12 @@ export async function callOpenAiCompatible(account: AccountConfig, prompt: strin
 
   let data: ChatCompletionResponse;
   try {
-    data = await resp.json();
+    const parsed: unknown = await resp.json();
+    // Most providers return a bare error object ({"error": {...}}), but Gemini's
+    // OpenAI-compatible endpoint wraps it in a one-element array ([{"error": {...}}]) -
+    // without unwrapping that, data.error below is always undefined for Gemini and every
+    // real error message collapses into the generic "error (status ###)" fallback.
+    data = (Array.isArray(parsed) ? parsed[0] : parsed) as ChatCompletionResponse;
   } catch {
     throw new ProviderCallError(`returned a non-JSON response (status ${resp.status})`, 'other');
   }
