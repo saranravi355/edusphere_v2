@@ -3,7 +3,7 @@
 import { useActionState, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { UploadCloud, Sparkles, RefreshCw, Trash2, BarChart3, Activity } from 'lucide-react';
+import { UploadCloud, Sparkles, RefreshCw, Trash2, BarChart3 } from 'lucide-react';
 import { SubmitButton, FormFeedback } from '@/components/ui/form';
 import { uploadAndGrade, retryGrading, deleteSubmission } from './actions';
 import SubmissionReport from './SubmissionReport';
@@ -251,20 +251,12 @@ export default function AIGraderClient({
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex items-center justify-between gap-3">
           <h3 className="font-bold text-slate-800 dark:text-slate-100">{activeClass?.name} — graded sheets</h3>
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/teacher/grading/ai-grader/status"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200"
-            >
-              <Activity size={13} aria-hidden /> Provider status
-            </Link>
-            <Link
-              href={`/teacher/grading/ai-grader/analytics?classId=${activeClassId}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
-              <BarChart3 size={13} aria-hidden /> Class Analytics
-            </Link>
-          </div>
+          <Link
+            href={`/teacher/grading/ai-grader/analytics?classId=${activeClassId}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
+          >
+            <BarChart3 size={13} aria-hidden /> Class Analytics
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
