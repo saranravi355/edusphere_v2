@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import AIGraderClient from './AIGraderClient';
 import type { SubmissionRow } from './types';
 import type { GradingResult, OcrPage } from '@/lib/grading/types';
+import { SUBJECTS } from '@/lib/grading/subjects';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +33,10 @@ export default async function AIGraderPage({
 
   const sp = await searchParams;
   const activeClass = teacher.classes.find(c => c.id === sp.classId) ?? teacher.classes[0];
-  const mySubjects = teacher.subjects.split(',').map(s => s.trim()).filter(Boolean);
+  // Full IB subject list, not narrowed to this teacher's own Teacher.subjects record - a
+  // teacher covering for a colleague, or grading a cross-subject exam, shouldn't be blocked
+  // from picking the right subject just because their own staff profile lists fewer.
+  const mySubjects = SUBJECTS;
 
   const students = await prisma.student.findMany({
     where: { classroomId: activeClass.id, isActive: true },
@@ -83,7 +87,7 @@ export default async function AIGraderPage({
       <AIGraderClient
         classes={teacher.classes}
         activeClassId={activeClass.id}
-        mySubjects={mySubjects.length ? mySubjects : ['General']}
+        mySubjects={mySubjects}
         students={students}
         submissions={rows}
       />
