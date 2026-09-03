@@ -2,9 +2,9 @@
 
 import { useActionState, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UploadCloud, Sparkles, RefreshCw } from 'lucide-react';
+import { UploadCloud, Sparkles, RefreshCw, Trash2 } from 'lucide-react';
 import { SubmitButton, FormFeedback } from '@/components/ui/form';
-import { uploadAndGrade, retryGrading } from './actions';
+import { uploadAndGrade, retryGrading, deleteSubmission } from './actions';
 import SubmissionReport from './SubmissionReport';
 import type { SubmissionRow } from './types';
 
@@ -60,6 +60,7 @@ export default function AIGraderClient({
   const [fileName, setFileName] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [retrying, setRetrying] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -69,6 +70,15 @@ export default function AIGraderClient({
     setRetrying(id);
     await retryGrading(id);
     setRetrying(null);
+    router.refresh();
+  };
+
+  const handleDelete = async (id: string, label: string) => {
+    if (!window.confirm(`Delete "${label}"? This cannot be undone.`)) return;
+    setDeleting(id);
+    await deleteSubmission(id);
+    setDeleting(null);
+    if (expanded === id) setExpanded(null);
     router.refresh();
   };
 
@@ -262,6 +272,8 @@ export default function AIGraderClient({
                   onToggle={() => setExpanded(expanded === s.id ? null : s.id)}
                   onRetry={() => handleRetry(s.id)}
                   retrying={retrying === s.id}
+                  onDelete={() => handleDelete(s.id, `${s.studentName} — ${s.title}`)}
+                  deleting={deleting === s.id}
                 />
               ))}
               {submissions.length === 0 && (
@@ -284,15 +296,20 @@ function SubmissionQueueRow({
   expanded,
   onToggle,
   onRetry,
-  retrying
+  retrying,
+  onDelete,
+  deleting
 }: {
   submission: SubmissionRow;
   expanded: boolean;
   onToggle: () => void;
   onRetry: () => void;
   retrying: boolean;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
   const canOpen = submission.status !== 'OCR_PROCESSING' && submission.status !== 'EVALUATING';
+  const inFlight = submission.status === 'OCR_PROCESSING' || submission.status === 'EVALUATING';
   const pct = submission.maxTotal > 0 ? Math.round((submission.totalScore / submission.maxTotal) * 100) : null;
 
   return (
@@ -319,16 +336,27 @@ function SubmissionQueueRow({
           {pct !== null ? `${submission.totalScore}/${submission.maxTotal} (${pct}%)` : '—'}
         </td>
         <td className="p-4 text-right" onClick={e => e.stopPropagation()}>
-          {submission.status === 'FAILED' && (
+          <div className="inline-flex items-center gap-2">
+            {submission.status === 'FAILED' && (
+              <button
+                type="button"
+                onClick={onRetry}
+                disabled={retrying || deleting}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200 disabled:opacity-60"
+              >
+                <RefreshCw size={12} className={retrying ? 'animate-spin' : ''} aria-hidden /> Retry
+              </button>
+            )}
             <button
               type="button"
-              onClick={onRetry}
-              disabled={retrying}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200 disabled:opacity-60"
+              onClick={onDelete}
+              disabled={inFlight || retrying || deleting}
+              title={inFlight ? 'Wait for grading to finish before deleting' : 'Delete'}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <RefreshCw size={12} className={retrying ? 'animate-spin' : ''} aria-hidden /> Retry
+              <Trash2 size={12} aria-hidden /> {deleting ? 'Deleting…' : 'Delete'}
             </button>
-          )}
+          </div>
         </td>
       </tr>
       {expanded && (

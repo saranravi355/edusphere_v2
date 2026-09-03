@@ -171,6 +171,22 @@ export async function retryGrading(submissionId: string): Promise<ActionState> {
   return { success: 'Re-grading complete.' };
 }
 
+/** Removes a submission from the queue entirely. Safe to do at any status - the Prisma
+ *  relation to AssessmentResult is SetNull, so a published grade already sitting in the
+ *  gradebook is untouched; only the AI grader's own row (file reference, OCR text, etc.)
+ *  goes away. */
+export async function deleteSubmission(submissionId: string): Promise<ActionState> {
+  const c = await ctx();
+  if (!c) return { error: 'Your staff record is missing.' };
+
+  const submission = await prisma.aIGradingSubmission.findUnique({ where: { id: submissionId }, select: { classroomId: true } });
+  if (!submission || !c.teacher.classes.some(k => k.id === submission.classroomId)) return { error: 'Not one of your classes.' };
+
+  await prisma.aIGradingSubmission.delete({ where: { id: submissionId } });
+  revalidatePath('/teacher/grading/ai-grader');
+  return { success: 'Deleted.' };
+}
+
 export async function setTeacherOverrideScore(submissionId: string, score: number | null): Promise<ActionState> {
   const c = await ctx();
   if (!c) return { error: 'Your staff record is missing.' };
