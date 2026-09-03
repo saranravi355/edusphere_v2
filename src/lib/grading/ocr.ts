@@ -1,9 +1,24 @@
+import { Agent, setGlobalDispatcher } from 'undici';
 import type { OcrLine, OcrPage } from './types';
 
 const JOB_URL = 'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs';
 const MODEL = 'PP-OCRv6';
 const POLL_INTERVAL_MS = 5000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1000;
+
+/** PaddleOCR's host takes noticeably longer than most APIs just to establish a connection
+ *  (observed 5-11s+ from some networks) - well past undici's default 10s connect timeout,
+ *  which made every request here fail with a generic "fetch failed" / ConnectTimeoutError
+ *  before the request was ever actually sent, even though the host was reachable.
+ *  setGlobalDispatcher is process-wide (every fetch() call, not just this module's), but
+ *  raising only the CONNECT-phase timeout is low-risk generally - it can't turn a real hang
+ *  into a longer hang, it only gives a slow TLS handshake more room before giving up. */
+let dispatcherInstalled = false;
+function ensureLongConnectTimeout() {
+  if (dispatcherInstalled) return;
+  setGlobalDispatcher(new Agent({ connect: { timeout: 30_000 } }));
+  dispatcherInstalled = true;
+}
 
 interface SubmitJobResponse {
   data?: { jobId?: string };
@@ -78,6 +93,8 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
  *  show a teacher on any failure - callers decide how to surface/log it (e.g. writing it to
  *  AIGradingSubmission.errorMessage). */
 export async function runOcr(pdfBuffer: Buffer): Promise<OcrResult> {
+  ensureLongConnectTimeout();
+
   const token = process.env.PADDLEOCR_ACCESS_TOKEN;
   if (!token) throw new Error('Server is missing PADDLEOCR_ACCESS_TOKEN');
 
@@ -114,14 +131,25 @@ export async function runOcr(pdfBuffer: Buffer): Promise<OcrResult> {
 
   const deadline = Date.now() + POLL_TIMEOUT_MS;
   let resultJsonUrl: string | undefined;
+  // A single poll among dozens (one every 5s for up to 5 minutes) hitting a transient network
+  // blip shouldn't abort a job that's otherwise on track to finish - only give up after
+  // several IN A ROW fail, and reset the count on any successful poll.
+  let consecutiveNetworkFailures = 0;
+  const MAX_CONSECUTIVE_POLL_FAILURES = 5;
 
   while (Date.now() < deadline) {
     let pollResp: Response;
     try {
       pollResp = await fetch(`${JOB_URL}/${jobId}`, { headers: authHeader });
     } catch (err) {
-      throw new Error(`Could not poll PaddleOCR job: ${(err as Error).message}`);
+      consecutiveNetworkFailures++;
+      if (consecutiveNetworkFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
+        throw new Error(`Could not poll PaddleOCR job after ${MAX_CONSECUTIVE_POLL_FAILURES} attempts: ${(err as Error).message}`);
+      }
+      await sleep(POLL_INTERVAL_MS);
+      continue;
     }
+    consecutiveNetworkFailures = 0;
 
     let pollData: JobStatusResponse;
     try {
