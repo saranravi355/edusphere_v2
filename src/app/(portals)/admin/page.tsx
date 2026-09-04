@@ -110,16 +110,16 @@ export default async function AdminDashboard() {
 
           <Card>
             <CardContent className="p-6 grid grid-cols-2 gap-4">
-              <div className="flex flex-col items-center text-center">
+              <Link href="/admin/students/registry" className="flex flex-col items-center text-center rounded-lg py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <Users className="w-6 h-6 text-blue-500 mb-1" />
                 <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalStudents}</p>
                 <p className="text-xs text-slate-500">Students</p>
-              </div>
-              <div className="flex flex-col items-center text-center">
+              </Link>
+              <Link href="/admin/staff" className="flex flex-col items-center text-center rounded-lg py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <GraduationCap className="w-6 h-6 text-purple-500 mb-1" />
                 <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalTeachers}</p>
                 <p className="text-xs text-slate-500">Teachers</p>
-              </div>
+              </Link>
             </CardContent>
           </Card>
 
