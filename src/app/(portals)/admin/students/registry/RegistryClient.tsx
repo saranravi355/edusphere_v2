@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search, GraduationCap, Users, HeartHandshake, Sparkles, X,
-  BrainCircuit, TrendingUp, ShieldAlert, Loader2, Download, ChevronDown,
+  BrainCircuit, TrendingUp, ShieldAlert, Loader2, Download, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { formatDate } from "@/lib/dates";
 import { toCsv, downloadCsv } from "@/lib/csv";
@@ -33,6 +34,7 @@ const AI_ACTIONS: { id: AIAction; name: string; description: string; icon: typeo
 const PROGRAMMES = ["ALL", "PYP", "MYP", "DP"];
 
 export default function RegistryClient({ rows }: { rows: Row[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [programme, setProgramme] = useState("ALL");
   const [iepOnly, setIepOnly] = useState(false);
@@ -264,14 +266,27 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
         <table className="w-full text-sm min-w-[820px]">
           <thead>
             <tr className="border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 text-left">
-              {["Student", "Reg No", "Programme", "Class", "Parent / Guardian", "Enrolled", "Status"].map((h) => (
+              {["Student", "Reg No", "Programme", "Class", "Parent / Guardian", "Enrolled", "Status", ""].map((h) => (
                 <th key={h} className="px-5 py-3 font-bold text-xs text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.map((r) => (
-              <tr key={r.id} className="border-b border-slate-50 dark:border-zinc-800/50 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30">
+              <tr
+                key={r.id}
+                onClick={() => router.push(`/admin/students/registry/${r.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(`/admin/students/registry/${r.id}`);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`View ${r.name}'s profile`}
+                className="border-b border-slate-50 dark:border-zinc-800/50 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 cursor-pointer focus-visible:outline-none focus-visible:bg-slate-50 dark:focus-visible:bg-zinc-800/30"
+              >
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
@@ -315,11 +330,14 @@ export default function RegistryClient({ rows }: { rows: Row[] }) {
                     {r.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
+                <td className="px-5 py-3 text-right">
+                  <ChevronRight size={16} className="text-slate-300 dark:text-zinc-600 inline-block" aria-hidden />
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-slate-400 text-sm">
+                <td colSpan={8} className="px-5 py-10 text-center text-slate-400 text-sm">
                   No students match the current filters.
                 </td>
               </tr>

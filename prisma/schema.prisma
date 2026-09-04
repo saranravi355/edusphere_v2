@@ -124,7 +124,23 @@ model Student {
   motherOccupation String?
   motherMonthlyIncome String?
   fatherName       String?
-  
+  // Student Profile fields (admin/students/registry/[id]) - kept as loose optional
+  // strings like the demographic fields above, not modeled elsewhere, so they can be
+  // filled in gradually as the office collects them rather than blocking on all-or-nothing.
+  photoUrl         String?
+  phone            String?
+  city             String?
+  state            String?
+  country          String?
+  previousSchool   String?
+  section          String?
+  rollNumber       String?
+  academicYear     String?
+  fatherPhone      String?
+  fatherEmail      String?
+  motherPhone      String?
+  motherEmail      String?
+
   attendances      Attendance[]
   meetings         ParentTeacherMeeting[]
   transport        StudentTransport?
