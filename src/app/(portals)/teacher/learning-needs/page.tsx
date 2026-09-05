@@ -2,8 +2,9 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { HeartHandshake, Target, CheckCircle2, CalendarClock, UserCheck } from "lucide-react";
+import { HeartHandshake, Target, CheckCircle2, CalendarClock, UserCheck, Layers } from "lucide-react";
 import GoalProgressButton from "./GoalProgressButton";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,13 @@ export default async function TeacherLearningNeedsPage() {
       <PageHeader
         title="Learning Needs & IEP"
         description="IEP students in your classes — accommodations to apply and goals you can update after each lesson."
+      />
+
+      <AIFeatureLink
+        href="/teacher/differentiation"
+        icon={<Layers size={15} />}
+        title="Differentiation Assistant"
+        description="Adapts one lesson for the range of attainment in the room."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

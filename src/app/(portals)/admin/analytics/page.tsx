@@ -3,7 +3,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import AnalyticsBoard from "@/components/admin/AnalyticsBoard";
-import { TrendingDown, Users, IndianRupee, GraduationCap, Award } from "lucide-react";
+import { TrendingDown, Users, IndianRupee, GraduationCap, Award, AlertTriangle, ScanLine } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 /**
  * School Analytics — the school over an academic year.
@@ -216,6 +217,21 @@ export default async function AdminAnalyticsPage() {
         title="School Analytics"
         description={`Patterns across ${term?.title ?? "the current term"} — attendance, IB attainment, collection and behaviour. For today's register, approvals and anything needing chasing, use Live Operations.`}
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/admin/ai-insights/early-warning"
+          icon={<AlertTriangle size={15} />}
+          title="Early Academic Risk Detection"
+          description="Flags DP/MYP students drifting off predicted-grade trajectory."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/attendance-anomaly"
+          icon={<ScanLine size={15} />}
+          title="Attendance Anomaly Detector"
+          description="Surfaces unusual attendance patterns beyond simple thresholds."
+        />
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {headline.map((s) => (

@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Search, Clock, CheckCircle2 } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 import { formatDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +76,13 @@ export default async function StudentLibraryPage({
       <PageHeader
         title="Library"
         description="What the school library holds, and what you have out."
+      />
+
+      <AIFeatureLink
+        href="/student/library/recommender"
+        icon={<BookOpen size={15} />}
+        title="Reading Level Recommender"
+        description="Books matched to your reading level and current coursework."
       />
 
       {myLoans.length > 0 && (

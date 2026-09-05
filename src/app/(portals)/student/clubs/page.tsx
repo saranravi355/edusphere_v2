@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Tent, Trophy, CalendarDays, MapPin, CheckCircle2, Users, Sparkles } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,13 @@ export default async function StudentClubsPage() {
       <PageHeader
         title="My Clubs & Activities"
         description="Your club memberships, what you've taken part in, and what's coming up — great evidence for CAS reflections."
+      />
+
+      <AIFeatureLink
+        href="/student/activities-ai"
+        icon={<Trophy size={15} />}
+        title="Activity Recommender"
+        description="Clubs and CAS opportunities matched to your strengths."
       />
 
       {/* Upcoming events across my clubs */}

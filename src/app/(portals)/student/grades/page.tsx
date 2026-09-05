@@ -2,7 +2,8 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { BookOpen, Award, Globe2, Lightbulb, HeartHandshake, Trophy, Target } from "lucide-react";
+import { BookOpen, Award, Globe2, Lightbulb, HeartHandshake, Trophy, Target, Map, Sparkles } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,21 @@ export default async function StudentGrades() {
             : "The PYP uses continuous assessment — observations, projects and reflections rather than formal exams."
         }
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/student/learning-gap"
+          icon={<Map size={15} />}
+          title="Learning Gap Map"
+          description="See which sub-topics you're weakest on after each assessment."
+        />
+        <AIFeatureLink
+          href="/student/grade-forecast"
+          icon={<Sparkles size={15} />}
+          title="Predictive Grade Forecast"
+          description="Projects your final IB subject grades from this term's trend."
+        />
+      </div>
 
       {isDP && (
         <>

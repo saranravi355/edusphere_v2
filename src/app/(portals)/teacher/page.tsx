@@ -5,7 +5,8 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Lightbulb } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 import { SubmitButton } from "@/components/ui/form";
 import { guard, TEACHER_ROLES } from "@/lib/authz";
 import { formatDate, schoolDay } from "@/lib/dates";
@@ -137,6 +138,13 @@ export default async function TeacherDashboard() {
       />
 
       <SchoolSnapshot />
+
+      <AIFeatureLink
+        href="/teacher/ai-coach"
+        icon={<Lightbulb size={15} />}
+        title="AI Coaching Nudges"
+        description="Weekly teaching insights from your gradebook, ATL and CAS records."
+      />
 
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">

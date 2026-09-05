@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
-import { Target, Sparkles, TrendingUp, Briefcase } from "lucide-react";
+import { Target, Sparkles, TrendingUp, Briefcase, Award, Landmark } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 const careerPaths = [
   { title: "Software Engineering", match: 92, skills: ["Mathematics", "Logical Reasoning", "Problem Solving"] },
@@ -32,6 +33,21 @@ export default function CareerAIPage() {
         title="AI Career Predictor"
         description="Discover career paths aligned with your academic strengths."
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/student/scholarships"
+          icon={<Award size={15} />}
+          title="Scholarship Matcher"
+          description="Scholarships you would actually be eligible for, ranked by fit."
+        />
+        <AIFeatureLink
+          href="/student/university-fit"
+          icon={<Landmark size={15} />}
+          title="University Fit Analyzer"
+          description="Maps your predicted grades onto realistic university offers."
+        />
+      </div>
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10">

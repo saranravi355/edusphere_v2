@@ -3,6 +3,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ProgrammesClient from "./ProgrammesClient";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import { BookCheck, BookMarked, ShieldCheck, FolderSearch } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -141,6 +143,34 @@ export default async function ProgrammesPage() {
         title="IB Programme Coordination"
         description="PYP, MYP and DP coordinator dashboards — cohort health, assessment progress and core requirements at a glance."
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/admin/ai-insights/curriculum-coverage"
+          icon={<BookCheck size={15} />}
+          title="Curriculum Coverage Tracker"
+          description="Checks unit-plan pacing against the IB syllabus guide."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/ib-policy"
+          icon={<BookMarked size={15} />}
+          title="IB Policy Assistant"
+          description="Answers IB requirement questions, quoting the handbook passage."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/compliance-assistant"
+          icon={<ShieldCheck size={15} />}
+          title="Compliance Document Assistant"
+          description="Answers policy questions from the school's own documents."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/accreditation-evidence"
+          icon={<FolderSearch size={15} />}
+          title="Accreditation Evidence Finder"
+          description="Locates the evidence for each standard, and where it is thin."
+        />
+      </div>
+
       <ProgrammesClient data={data} />
     </div>
   );

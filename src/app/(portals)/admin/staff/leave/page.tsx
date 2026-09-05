@@ -7,6 +7,7 @@ import { SubmitButton } from "@/components/ui/form";
 import { decideLeave } from "@/app/(portals)/teacher/leave/actions";
 import { leaveTypeLabel, workingDaysBetween } from "@/lib/leave";
 import { formatDate } from "@/lib/dates";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,13 @@ export default async function StaffLeavePage() {
       <PageHeader
         title="Staff Leave Management"
         description="Review and approve teacher leave requests."
+      />
+
+      <AIFeatureLink
+        href="/admin/ai-insights/substitute-recommender"
+        icon={<UserCheck size={15} />}
+        title="Substitute Recommender"
+        description="Suggests the best-fit cover teacher for an open period."
       />
 
       <div className="space-y-4">

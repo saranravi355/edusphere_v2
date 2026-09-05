@@ -3,8 +3,9 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, ListChecks, BarChart3 } from "lucide-react";
 import Gradebook from "./Gradebook";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -170,6 +171,21 @@ export default async function TeacherGradingEngine({
           </Link>
         </div>
       </form>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/teacher/rubric-feedback"
+          icon={<ListChecks size={15} />}
+          title="Rubric Auto-Feedback"
+          description="Criterion-wise feedback grounded in the IB descriptors."
+        />
+        <AIFeatureLink
+          href="/teacher/assessment-difficulty"
+          icon={<BarChart3 size={15} />}
+          title="Assessment Difficulty Analyzer"
+          description="Shows how hard an assessment turned out to be, question by question."
+        />
+      </div>
 
       {title ? (
         <Gradebook

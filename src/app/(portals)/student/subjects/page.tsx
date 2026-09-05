@@ -3,6 +3,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import SubjectsClient from "./SubjectsClient";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import { ClipboardCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +52,12 @@ export default async function MySubjectsPage({
       <PageHeader
         title="My Subjects"
         description="Everything for each of your subjects in one place — resources, complete grade history and every assessment result."
+      />
+      <AIFeatureLink
+        href="/student/ia-feedback"
+        icon={<ClipboardCheck size={15} />}
+        title="IA Feedback Assistant"
+        description="Formative feedback on your internal assessment draft, criterion by criterion."
       />
       <SubjectsClient
         initialSubject={initialSubject}

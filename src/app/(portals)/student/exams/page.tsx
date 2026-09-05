@@ -3,7 +3,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { FileText, Clock, CheckCircle2, Lock, PlayCircle, CalendarClock, Landmark } from "lucide-react";
+import { FileText, Clock, CheckCircle2, Lock, PlayCircle, CalendarClock, Landmark, GaugeCircle, FileQuestion, Mic } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export default async function StudentExamsPage() {
   const session = await getSession();
@@ -62,6 +63,27 @@ export default async function StudentExamsPage() {
         title="Exams & Assessments"
         description="Your IB examination schedule, internal assessment deadlines, and school-based quizzes."
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <AIFeatureLink
+          href="/student/exam-readiness"
+          icon={<GaugeCircle size={15} />}
+          title="Exam Readiness Index"
+          description="Scores how ready you are for each upcoming exam, subject by subject."
+        />
+        <AIFeatureLink
+          href="/student/question-papers"
+          icon={<FileQuestion size={15} />}
+          title="Question Paper Generator"
+          description="IB-style practice papers with a mark scheme, for timed practice."
+        />
+        <AIFeatureLink
+          href="/student/oral-simulator"
+          icon={<Mic size={15} />}
+          title="Oral Exam Simulator"
+          description="A mock individual oral with examiner-style follow-up questions."
+        />
+      </div>
 
       {/* IB Examination Schedule */}
       {Object.keys(sessionGroups).length > 0 && (

@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { UserPlus, BrainCircuit, ArrowRight, GraduationCap, HeartHandshake, BookUser, UploadCloud } from "lucide-react";
+import { UserPlus, BrainCircuit, ArrowRight, GraduationCap, HeartHandshake, BookUser, UploadCloud, TrendingUp } from "lucide-react";
 
 export default async function StudentsHubPage() {
   const session = await getSession();
@@ -39,6 +39,13 @@ export default async function StudentsHubPage() {
       href: "/admin/students/learning-needs",
       icon: HeartHandshake,
       color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400",
+    },
+    {
+      title: "Admissions Conversion Predictor",
+      description: "Estimates which applicants are most likely to accept a place.",
+      href: "/admin/ai-insights/admissions-conversion",
+      icon: TrendingUp,
+      color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400",
     },
     {
       title: "Bulk Import",

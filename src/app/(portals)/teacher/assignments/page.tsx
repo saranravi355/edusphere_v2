@@ -6,8 +6,9 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Users, CheckCircle2, Clock, BookOpen } from "lucide-react";
+import { Plus, Users, CheckCircle2, Clock, BookOpen, FileEdit } from "lucide-react";
 import Link from "next/link";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 
 
@@ -61,6 +62,12 @@ export default async function TeacherAssignmentsPage() {
         }
       />
 
+      <AIFeatureLink
+        href="/teacher/assignments/ai-feedback"
+        icon={<FileEdit size={15} />}
+        title="Smart Homework Feedback"
+        description="Drafts criterion-referenced feedback for you to review and approve."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {teacher.homeworks.length > 0 ? teacher.homeworks.map(hw => {

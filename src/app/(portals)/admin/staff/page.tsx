@@ -3,7 +3,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { Plane, ArrowRight, Users, ClipboardCheck, UploadCloud } from "lucide-react";
+import { Plane, ArrowRight, Users, ClipboardCheck, UploadCloud, Scale, UserMinus, FileSearch } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export default async function StaffHubPage() {
   const session = await getSession();
@@ -20,6 +21,33 @@ export default async function StaffHubPage() {
         title="Staff"
         description="Manage teaching staff and leave requests."
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/admin/ai-insights/workload-balancer"
+          icon={<Scale size={15} />}
+          title="Teacher Workload Balancer"
+          description="Normalizes teaching, IA marking and CAS supervision load."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/attrition-risk"
+          icon={<UserMinus size={15} />}
+          title="Staff Attrition Risk"
+          description="Predicts teachers at risk of leaving using HR and survey signals."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/hiring-match"
+          icon={<Users size={15} />}
+          title="Teacher Hiring Match"
+          description="Ranks applicants against what the role actually needs."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/meeting-minutes"
+          icon={<FileSearch size={15} />}
+          title="Meeting Minutes Intelligence"
+          description="Searches minutes by meaning and tracks whether decisions happened."
+        />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex items-center gap-4">

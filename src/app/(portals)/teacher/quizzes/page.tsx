@@ -4,7 +4,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { HelpCircle, Plus, CheckCircle2, Clock, ClipboardCheck, ChevronRight } from "lucide-react";
+import { HelpCircle, Plus, CheckCircle2, Clock, ClipboardCheck, ChevronRight, ListChecks } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 async function createExam(formData: FormData) {
   "use server";
@@ -80,6 +81,13 @@ export default async function QuizzesPage() {
       <PageHeader
         title="Online Assessments"
         description="Create and manage exams, quizzes, and assessments for your classes."
+      />
+
+      <AIFeatureLink
+        href="/teacher/quizzes/ai-generator"
+        icon={<ListChecks size={15} />}
+        title="AI Question Bank Generator"
+        description="Generates IB-style questions mapped to assessment objectives."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

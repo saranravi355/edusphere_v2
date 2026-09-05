@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import TimetableGrid from "@/components/timetable/TimetableGrid";
 import { timetableForTeacher } from "@/lib/timetable";
 import PlannerClient from "./PlannerClient";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import { BookOpenCheck, Search } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +48,21 @@ export default async function TeacherPlannerPage() {
         title="Planner"
         description="Your weekly schedule plus IB-aligned lesson plans — tag units, ATL skills and learner profile attributes, and generate substitute plans in one tap."
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/teacher/lesson-copilot"
+          icon={<BookOpenCheck size={15} />}
+          title="Lesson Plan Co-Pilot"
+          description="Drafts an IB-aligned lesson plan from the unit guide."
+        />
+        <AIFeatureLink
+          href="/teacher/curriculum-qa"
+          icon={<Search size={15} />}
+          title="Curriculum Q&A"
+          description="Answers from the subject guides, quoting where each came from."
+        />
+      </div>
 
       <PlannerClient plans={plans} subjects={teacher?.subjects.split(",").map((s) => s.trim()) || []} />
 

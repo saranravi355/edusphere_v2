@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import AdminActionModals from "@/components/ui/AdminActionModals";
 import prisma from "@/lib/prisma";
-import { Users, GraduationCap, AlertTriangle, Plane, BookOpen } from "lucide-react";
+import { Users, GraduationCap, AlertTriangle, Plane, BookOpen, HeartPulse, HeartHandshake } from "lucide-react";
 import Link from "next/link";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export default async function AdminDashboard() {
   const session = await getSession();
@@ -49,6 +50,21 @@ export default async function AdminDashboard() {
       />
 
       <SchoolSnapshot />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AIFeatureLink
+          href="/admin/ai-insights/school-health-score"
+          icon={<HeartPulse size={15} />}
+          title="School Health Score"
+          description="Composite KPI across academics, attendance, staff and finance."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/parent-engagement"
+          icon={<HeartHandshake size={15} />}
+          title="Parent Engagement Score"
+          description="Scores family engagement across portal, events and messaging."
+        />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">

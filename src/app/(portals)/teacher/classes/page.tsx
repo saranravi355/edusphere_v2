@@ -2,8 +2,9 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { Users, HeartHandshake, Clock } from "lucide-react";
+import { Users, HeartHandshake, Clock, Activity } from "lucide-react";
 import Link from "next/link";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,12 @@ export default async function ClassesPage() {
       <PageHeader
         title="My Classes"
         description="The classes you teach — live student counts, learning-support flags and your scheduled periods."
+      />
+      <AIFeatureLink
+        href="/teacher/engagement-heatmap"
+        icon={<Activity size={15} />}
+        title="Class Engagement Heatmap"
+        description="Surfaces dropping participation before it shows up in a grade."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classrooms.map((c) => {

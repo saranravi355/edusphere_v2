@@ -3,7 +3,8 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { FileText, CheckCircle2, Clock, Upload } from "lucide-react";
+import { FileText, CheckCircle2, Clock, Upload, CalendarRange, AlarmClock, NotebookPen } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 import { SubmitButton } from "@/components/ui/form";
 import { formatDate } from "@/lib/dates";
 
@@ -73,6 +74,27 @@ export default async function StudentHomeworkPage() {
         title="Homework & Assignments"
         description="Track and submit your pending coursework."
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <AIFeatureLink
+          href="/student/study-plan"
+          icon={<CalendarRange size={15} />}
+          title="AI Study Plan"
+          description="A personalized weekly study schedule built around your deadlines."
+        />
+        <AIFeatureLink
+          href="/student/deadline-risk"
+          icon={<AlarmClock size={15} />}
+          title="Deadline Risk Monitor"
+          description="Flags the deadlines you are most likely to miss, and why."
+        />
+        <AIFeatureLink
+          href="/student/revision-generator"
+          icon={<NotebookPen size={15} />}
+          title="Concept Revision Generator"
+          description="Turns your weakest topics into a condensed revision sheet."
+        />
+      </div>
 
       <div>
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">

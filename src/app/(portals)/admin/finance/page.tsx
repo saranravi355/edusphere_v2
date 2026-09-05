@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Receipt, IndianRupee, LineChart, Wallet, ArrowRight } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export default async function FinanceHubPage() {
   const session = await getSession();
@@ -54,6 +55,27 @@ export default async function FinanceHubPage() {
         title="Finance"
         description="Invoicing, payroll, and AI-powered financial forecasting."
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <AIFeatureLink
+          href="/admin/finance/payment-predictor"
+          icon={<Wallet size={15} />}
+          title="Fee Payment Predictor"
+          description="Predicts which families are likely to pay the next invoice late."
+        />
+        <AIFeatureLink
+          href="/admin/finance/cashflow-forecast"
+          icon={<LineChart size={15} />}
+          title="AI Cash Flow Forecast"
+          description="Projects 6-month cash position against the payroll calendar."
+        />
+        <AIFeatureLink
+          href="/admin/ai-insights/budget-variance"
+          icon={<IndianRupee size={15} />}
+          title="Budget Variance Analyzer"
+          description="Explains why actual spend differs from budget, line by line."
+        />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">

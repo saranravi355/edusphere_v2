@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
-import { BookOpen, Monitor, MapPin, Search } from "lucide-react";
+import { BookOpen, Monitor, MapPin, Search, PackageOpen } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 import { getSession } from "@/lib/session";
 import { canAccessDepartment } from "@/lib/operations";
 import { redirect } from "next/navigation";
@@ -50,6 +51,13 @@ export default async function ResourcesPage({
         title="Resource Directory" 
         description="Manage facilities, library books, and equipment availability."
         action={<ResourceModal />}
+      />
+
+      <AIFeatureLink
+        href="/operations/resources/predictive-ai"
+        icon={<PackageOpen size={15} />}
+        title="Predictive Resource Allocation"
+        description="Forecasts inventory depletion and drafts purchase orders."
       />
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">

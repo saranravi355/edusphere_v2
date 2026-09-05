@@ -7,7 +7,8 @@ import ExportButton from "@/components/data/ExportButton";
 import TransportControls from "./TransportControls";
 import { removeRider, setRouteActive } from "./actions";
 import { ConfirmIconButton, SubmitButton } from "@/components/ui/form";
-import { Bus, Users, MapPin, UserMinus, Info } from "lucide-react";
+import { Bus, Users, MapPin, UserMinus, Info, Route } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,13 @@ export default async function TransportPage() {
             <ExportButton rows={exportRows} filename="transport-riders" label="Export riders" />
           </div>
         }
+      />
+
+      <AIFeatureLink
+        href="/admin/ai-insights/route-optimiser"
+        icon={<Route size={15} />}
+        title="Transport Route Optimiser"
+        description="Re-sequences bus stops to cut commute time and fuel cost."
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

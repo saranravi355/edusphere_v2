@@ -3,6 +3,8 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import RegistryClient from "./RegistryClient";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import { LogOut } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,12 @@ export default async function StudentRegistryPage() {
       <PageHeader
         title="Student Registry"
         description="The complete enrolment register — search, filter, and run Platform AI analyses on any cohort."
+      />
+      <AIFeatureLink
+        href="/admin/ai-insights/enrolment-risk"
+        icon={<LogOut size={15} />}
+        title="Enrolment Drop-Out Predictor"
+        description="Flags students likely to withdraw from the DP or the school."
       />
       <RegistryClient rows={rows} />
     </div>

@@ -3,8 +3,9 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare, Send, ClipboardList } from "lucide-react";
 import { sendMessage } from "../actions";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -91,6 +92,13 @@ export default async function TeacherMessagesPage({
       <PageHeader
         title="Messages"
         description="Reply to parents and reach out to the families in your classes."
+      />
+
+      <AIFeatureLink
+        href="/teacher/meeting-brief"
+        icon={<ClipboardList size={15} />}
+        title="Parent Meeting Brief"
+        description="A one-page brief on a student before you meet their parents."
       />
 
       <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden flex mt-4">

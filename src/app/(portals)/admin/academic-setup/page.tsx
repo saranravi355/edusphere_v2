@@ -1,6 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import prisma from "@/lib/prisma";
-import { FileSpreadsheet, CalendarDays, ArrowRight, Users, GraduationCap, CalendarRange } from "lucide-react";
+import { FileSpreadsheet, CalendarDays, ArrowRight, Users, GraduationCap, CalendarRange, LayoutGrid } from "lucide-react";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -72,6 +73,13 @@ export default async function AcademicSetupPage() {
       <PageHeader
         title="Academic Setup & Import"
         description="Bring students, staff and timetables into the system."
+      />
+
+      <AIFeatureLink
+        href="/admin/ai-insights/capacity-optimizer"
+        icon={<LayoutGrid size={15} />}
+        title="Class Capacity Optimizer"
+        description="Balances section sizes and room allocation across the timetable."
       />
 
       <Link href="/admin/academic-setup/calendar" className="group block">

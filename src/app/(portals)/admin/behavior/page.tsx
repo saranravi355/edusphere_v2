@@ -6,6 +6,7 @@ import { ShieldAlert, ThumbsUp, ThumbsDown } from "lucide-react";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { formatDate } from "@/lib/dates";
+import AIFeatureLink from "@/components/ai/AIFeatureLink";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,13 @@ export default async function BehaviorPage() {
         title="Behaviour & Disciplinary"
         description="Manage merits, demerits, and student conduct."
         action={<ExportButton rows={exportRows} filename="behavior-incidents" />}
+      />
+
+      <AIFeatureLink
+        href="/admin/ai-insights/incident-patterns"
+        icon={<ShieldAlert size={15} />}
+        title="Incident Pattern Intelligence"
+        description="Finds patterns across behaviour and safeguarding records."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
