@@ -11,6 +11,7 @@ import { SubmitButton } from "@/components/ui/form";
 import { guard, TEACHER_ROLES } from "@/lib/authz";
 import { formatDate, schoolDay } from "@/lib/dates";
 import { markOne, markManyPresent } from "@/lib/attendance";
+import { firstName } from "@/lib/utils";
 
 /** The caller's teacher row plus the ids of the classes they own. */
 async function ownClasses() {
@@ -133,7 +134,7 @@ export default async function TeacherDashboard() {
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
-        title={`Welcome back, ${session.user.name?.split(" ")[0] || "Teacher"}`}
+        title={`Welcome back, ${firstName(session.user.name, "Teacher")}`}
         description="Manage your class roster, grading, and attendance."
       />
 

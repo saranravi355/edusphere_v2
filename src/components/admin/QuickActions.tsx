@@ -1,11 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { Users, AlertTriangle, Megaphone } from "lucide-react";
+import Link from "next/link";
+import {
+  AlertTriangle, ArrowUpRight, CalendarPlus, Megaphone, Receipt,
+  ShieldAlert, Upload, UserPlus, Users, UserCog, type LucideIcon,
+} from "lucide-react";
 import { onboardTeacher, createAnnouncement } from "@/app/(portals)/admin/actions";
 import { FORCE_PASSWORD_RESET } from "@/lib/demo";
 import FormModal from "@/components/ui/FormModal";
 import type { ActionState } from "@/components/ui/form";
+
+/**
+ * Quick Actions — the things the office starts from the front door.
+ *
+ * Previously two: onboard a teacher, and send an announcement. Both are short
+ * enough to finish inside a dialog, which is why they are dialogs. Everything
+ * else the office begins from this screen already has a page of its own, and
+ * the most-used of them — registering a student — was reachable only by opening
+ * Students and then finding Register inside it.
+ *
+ * So the panel now holds both kinds, and the distinction is deliberate rather
+ * than incidental: a dialog when the whole job fits in three fields, a link when
+ * the job has a real form behind it. Registering a student asks for about thirty
+ * fields across five sections; reproducing that in a modal would be a worse copy
+ * of a page that already exists.
+ *
+ * Nothing here is offered to somebody who cannot open it. A Principal's sidebar
+ * is Overview, Academics and People — no Finance, no Operations, no user
+ * administration — so the two admin-only tiles are filtered out rather than
+ * left to fail with a redirect to the landing page.
+ */
 
 const field =
   "mt-1 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg " +
@@ -35,11 +60,78 @@ async function onboardTeacherWithMessage(_prev: ActionState, formData: FormData)
   };
 }
 
-export default function AdminActionModals() {
+interface ActionLink {
+  href: string;
+  icon: LucideIcon;
+  title: string;
+  line: string;
+  /** Colour family, matched to the two dialog tiles above. */
+  tone: keyof typeof TONES;
+  /** Hidden from a Principal, whose sidebar does not carry the section. */
+  adminOnly?: boolean;
+}
+
+const TONES = {
+  emerald: "bg-emerald-50 border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:hover:bg-emerald-900/40 dark:text-emerald-300",
+  sky: "bg-sky-50 border-sky-100 hover:bg-sky-100 hover:border-sky-200 text-sky-700 dark:bg-sky-900/20 dark:border-sky-900/30 dark:hover:bg-sky-900/40 dark:text-sky-300",
+  rose: "bg-rose-50 border-rose-100 hover:bg-rose-100 hover:border-rose-200 text-rose-700 dark:bg-rose-900/20 dark:border-rose-900/30 dark:hover:bg-rose-900/40 dark:text-rose-300",
+  amber: "bg-amber-50 border-amber-100 hover:bg-amber-100 hover:border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-900/30 dark:hover:bg-amber-900/40 dark:text-amber-300",
+  slate: "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700 dark:bg-slate-800/40 dark:border-slate-700/50 dark:hover:bg-slate-800 dark:text-slate-300",
+} as const;
+
+const LINKS: ActionLink[] = [
+  {
+    href: "/admin/students/register",
+    icon: UserPlus,
+    title: "Register New Student",
+    line: "Admission form — personal, contact, guardian and academic details.",
+    tone: "emerald",
+  },
+  {
+    href: "/admin/students/import",
+    icon: Upload,
+    title: "Bulk Import",
+    line: "Enrol a whole year group from a spreadsheet.",
+    tone: "sky",
+  },
+  {
+    href: "/admin/behavior",
+    icon: ShieldAlert,
+    title: "Record an Incident",
+    line: "Log a behaviour or safeguarding record against a student.",
+    tone: "rose",
+  },
+  {
+    href: "/admin/academic-setup/calendar",
+    icon: CalendarPlus,
+    title: "Add a Calendar Event",
+    line: "Term dates, holidays, IB exam windows.",
+    tone: "amber",
+  },
+  {
+    href: "/admin/fees",
+    icon: Receipt,
+    title: "Generate Fee Invoices",
+    line: "Raise this term's invoices from the fee schedule.",
+    tone: "slate",
+    adminOnly: true,
+  },
+  {
+    href: "/admin/users",
+    icon: UserCog,
+    title: "Manage Accounts",
+    line: "Reset a login, change a role, deactivate a user.",
+    tone: "slate",
+    adminOnly: true,
+  },
+];
+
+export default function QuickActions({ isPrincipal = false }: { isPrincipal?: boolean }) {
   const [audienceTouched, setAudienceTouched] = useState(false);
+  const links = LINKS.filter((l) => !(l.adminOnly && isPrincipal));
 
   return (
-    <div className="space-y-4 mt-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-2">
       <FormModal
         title="Onboard Teacher"
         description="Creates the staff record and a portal login."
@@ -110,6 +202,19 @@ export default function AdminActionModals() {
           )}
         </fieldset>
       </FormModal>
+
+      {links.map((l) => (
+        <Link key={l.href} href={l.href} className={`${tile} ${TONES[l.tone]}`}>
+          <span className="min-w-0 text-left">
+            <span className="flex items-center gap-1 font-semibold text-sm">
+              {l.title}
+              <ArrowUpRight size={13} className="opacity-0 group-hover:opacity-70 transition-opacity" aria-hidden />
+            </span>
+            <span className="block text-[11px] opacity-70 mt-0.5 leading-snug">{l.line}</span>
+          </span>
+          <l.icon className="w-5 h-5 shrink-0 ml-3 group-hover:scale-110 transition-transform" aria-hidden />
+        </Link>
+      ))}
     </div>
   );
 }

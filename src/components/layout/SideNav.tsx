@@ -9,6 +9,7 @@ import {
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
   ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare, MessagesSquare,
+  Home, TrendingUp, Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
@@ -48,13 +49,27 @@ const ADMIN_PEOPLE: NavSection = {
   ],
 };
 
+/**
+ * Overview.
+ *
+ * Four entries that each answer a different question, which the icons should
+ * say before the labels are read. They did the opposite: Live Ops and Analytics
+ * both used Activity, so the two most easily confused items in the sidebar were
+ * the two that looked identical, and Dashboard shared LayoutDashboard with "All
+ * operations" further down.
+ *
+ *   Home       — the front door, where you land.
+ *   Activity   — a pulse. Right now, today.
+ *   TrendingUp — a line over time. The term.
+ *   Sparkles   — the AI index.
+ */
 const ADMIN_OVERVIEW: NavSection = {
   label: "Overview",
   links: [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/admin", icon: Home },
     { name: "Live Ops", href: "/admin/live", icon: Activity },
-    { name: "Analytics", href: "/admin/analytics", icon: Activity },
-    { name: "AI Insights", href: "/admin/ai-insights", icon: BrainCircuit },
+    { name: "Analytics", href: "/admin/analytics", icon: TrendingUp },
+    { name: "AI Insights", href: "/admin/ai-insights", icon: Sparkles },
   ],
 };
 

@@ -2,6 +2,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Sparkles, Send, Bot } from "lucide-react";
+import { firstName } from "@/lib/utils";
 
 export default async function StudentTutorPage() {
   const session = await getSession();
@@ -27,7 +28,7 @@ export default async function StudentTutorPage() {
               <Bot size={18} />
             </div>
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
-              <p>Hi {session.user.name.split(' ')[0]}! I&apos;m your EduSphere AI Tutor. <Sparkles className="inline w-4 h-4 text-indigo-500" /></p>
+              <p>Hi {firstName(session.user.name, "there")}! I&apos;m your EduSphere AI Tutor. <Sparkles className="inline w-4 h-4 text-indigo-500" /></p>
               <p className="mt-2">I noticed you have a Mathematics assignment due tomorrow. Would you like me to explain quadratic equations or help you practice some problems?</p>
             </div>
           </div>
