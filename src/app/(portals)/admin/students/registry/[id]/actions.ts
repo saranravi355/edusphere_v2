@@ -59,6 +59,18 @@ export async function updateStudentProfile(_prev: ActionState, formData: FormDat
       bloodGroup: str(formData, "bloodGroup"),
       learningNeeds: str(formData, "learningNeeds"),
       allergies: str(formData, "allergies"),
+      medicalNotes: str(formData, "medicalNotes"),
+
+      // Mother's occupation was already written here; monthly income and the
+      // five background fields were stored by the importer and by Student
+      // Registration and then editable nowhere, so a typo in an imported file
+      // could only be corrected by another import.
+      motherMonthlyIncome: str(formData, "motherMonthlyIncome"),
+      nationality: str(formData, "nationality"),
+      religion: str(formData, "religion"),
+      community: str(formData, "community"),
+      motherTongue: str(formData, "motherTongue"),
+      medium: str(formData, "medium"),
     },
   });
 

@@ -58,6 +58,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
     motherPhone: student.motherPhone,
     motherEmail: student.motherEmail,
     motherOccupation: student.motherOccupation,
+    motherMonthlyIncome: student.motherMonthlyIncome,
     guardianName: student.parent?.user?.name ?? null,
     guardianPhone: student.parent?.phone ?? null,
     emergencyContactName: student.emergencyContactName,
@@ -68,6 +69,13 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
     bloodGroup: student.bloodGroup,
     learningNeeds: student.learningNeeds,
     allergies: student.allergies,
+    medicalNotes: student.medicalNotes,
+
+    nationality: student.nationality,
+    religion: student.religion,
+    community: student.community,
+    motherTongue: student.motherTongue,
+    medium: student.medium,
 
     attendancePresent: presence?.present ?? 0,
     attendanceTotal: presence?.total ?? 0,

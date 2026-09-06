@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Pencil, X, Camera, Trash2, GraduationCap, Phone,
-  Users, BookOpen, CalendarCheck, HeartHandshake,
+  Users, BookOpen, CalendarCheck, HeartHandshake, Globe2,
 } from "lucide-react";
 import { SubmitButton, FormFeedback } from "@/components/ui/form";
 import { formatDate } from "@/lib/dates";
@@ -274,6 +274,12 @@ export default function StudentProfileClient({ student: s }: { student: StudentP
             ) : (
               <Field term="Mother's Email" value={s.motherEmail} />
             )}
+            {/* Both were already stored, written by the bulk importer and by
+                Student Registration, and read back by nothing. Mother's
+                occupation showed only on the thin duplicate profile under
+                Admin → Users, which is how it came to light. */}
+            <EditableField editing={editing} term="Mother's Occupation" name="motherOccupation" value={s.motherOccupation} />
+            <EditableField editing={editing} term="Mother's Monthly Income" name="motherMonthlyIncome" value={s.motherMonthlyIncome} />
             <Field term="Guardian Name" value={s.guardianName ?? "No portal guardian linked"} />
             <Field term="Guardian Contact Number" value={s.guardianPhone} />
             {editing ? (
@@ -417,6 +423,29 @@ export default function StudentProfileClient({ student: s }: { student: StudentP
             ) : (
               <Field term="Learning Needs / IEP" value={s.learningNeeds} />
             )}
+            <EditableField
+              editing={editing}
+              term="Medical Notes"
+              name="medicalNotes"
+              value={s.medicalNotes}
+              className="sm:col-span-2 lg:col-span-3"
+            />
+          </div>
+        </section>
+
+        {/* Background.
+            Nationality, religion, community, mother tongue and medium of
+            instruction are collected by the bulk importer and filled in for 155
+            of the 173 students on file. Until now no screen read any of them
+            back, so the office could import the data and never see it again. */}
+        <section className={card}>
+          <SectionTitle icon={Globe2} title="Background" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <EditableField editing={editing} term="Nationality" name="nationality" value={s.nationality} />
+            <EditableField editing={editing} term="Mother Tongue" name="motherTongue" value={s.motherTongue} />
+            <EditableField editing={editing} term="Medium of Instruction" name="medium" value={s.medium} />
+            <EditableField editing={editing} term="Religion" name="religion" value={s.religion} />
+            <EditableField editing={editing} term="Community" name="community" value={s.community} />
           </div>
         </section>
 
@@ -431,6 +460,33 @@ export default function StudentProfileClient({ student: s }: { student: StudentP
           </div>
         )}
       </form>
+    </div>
+  );
+}
+
+/**
+ * One field that reads as text and becomes an input while the form is editing.
+ *
+ * The fields above this were each written as an eight-line `editing ? input :
+ * Field` ternary, twenty-odd times over. New fields use this instead; the
+ * existing ones are left alone rather than swept into a rewrite that would bury
+ * the actual change in this commit.
+ */
+function EditableField({
+  editing, term, name, value, type = "text", className,
+}: {
+  editing: boolean;
+  term: string;
+  name: string;
+  value: string | null;
+  type?: string;
+  className?: string;
+}) {
+  if (!editing) return <Field term={term} value={value} />;
+  return (
+    <div className={className}>
+      <label className={label} htmlFor={`f-${name}`}>{term}</label>
+      <input id={`f-${name}`} name={name} type={type} defaultValue={value ?? ""} className={input} />
     </div>
   );
 }

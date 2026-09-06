@@ -27,6 +27,7 @@ export interface StudentProfile {
   motherPhone: string | null;
   motherEmail: string | null;
   motherOccupation: string | null;
+  motherMonthlyIncome: string | null;
   guardianName: string | null;
   guardianPhone: string | null;
   emergencyContactName: string | null;
@@ -37,6 +38,18 @@ export interface StudentProfile {
   bloodGroup: string | null;
   learningNeeds: string | null;
   allergies: string | null;
+  medicalNotes: string | null;
+
+  /**
+   * Background. Collected by the bulk importer and filled in for 155 of the
+   * 173 students on file, and until now displayed nowhere at all — the columns
+   * existed, the import wrote them, and no screen read them back.
+   */
+  nationality: string | null;
+  religion: string | null;
+  community: string | null;
+  motherTongue: string | null;
+  medium: string | null;
 
   attendancePresent: number;
   attendanceTotal: number;
