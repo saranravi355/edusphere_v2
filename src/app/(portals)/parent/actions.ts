@@ -2,19 +2,26 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/session";
+import { guard } from "@/lib/authz";
+import { canMessage } from "@/lib/messaging";
 
 export async function sendMessage(formData: FormData) {
-  const session = await getSession();
-  if (!session) return;
+  // The messages screen offers each child's class teacher. The action used to
+  // accept whatever receiverId arrived and checked only that someone was signed
+  // in, so that list constrained nobody: any account could post into any user's
+  // inbox under their own name. See lib/messaging.ts for the rule.
+  const auth = await guard(["PARENT"]);
+  if (!auth.ok) return;
 
   const receiverId = String(formData.get("receiverId") || "").trim();
   const content = String(formData.get("content") || "").trim();
   if (!receiverId || !content) return;
 
+  if (!(await canMessage(auth.user, receiverId))) return;
+
   await prisma.message.create({
     data: {
-      senderId: session.user.id,
+      senderId: auth.user.id,
       receiverId,
       subject: "Parent message",
       content,
@@ -23,4 +30,5 @@ export async function sendMessage(formData: FormData) {
   });
 
   revalidatePath("/parent/messages");
+  revalidatePath("/parent");
 }

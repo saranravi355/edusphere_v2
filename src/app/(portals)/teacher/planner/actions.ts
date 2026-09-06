@@ -1,13 +1,34 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { guard, TEACHER_ROLES } from "@/lib/authz";
+
+/** Lesson plans move DRAFT -> PLANNED -> DELIVERED; see LessonPlan.status. */
+const STATUSES = ["DRAFT", "PLANNED", "DELIVERED"];
 
 async function getTeacher() {
-  const session = await getSession();
-  if (!session) return null;
-  return prisma.teacher.findUnique({ where: { userId: session.user.id } });
+  const auth = await guard(TEACHER_ROLES);
+  if (!auth.ok) return null;
+  return prisma.teacher.findUnique({ where: { userId: auth.user.id } });
+}
+
+/**
+ * The caller's own plan, or null.
+ *
+ * setLessonStatus, deleteLessonPlan and generateSubPlan took a planId and acted
+ * on it with no check of any kind — not a role, not a session, nothing. A Server
+ * Action is an independently addressable HTTP endpoint, so knowing an id was
+ * enough for an anonymous caller to delete any teacher's lesson plan or rewrite
+ * its substitute cover. Each of the three now resolves the plan through here
+ * first, which both authenticates the caller and confirms the plan is theirs.
+ */
+async function ownPlan(planId: string) {
+  const teacher = await getTeacher();
+  if (!teacher) return null;
+  const plan = await prisma.lessonPlan.findUnique({ where: { id: planId } });
+  if (!plan || plan.teacherId !== teacher.id) return null;
+  return plan;
 }
 
 export async function createLessonPlan(formData: FormData) {
@@ -43,12 +64,23 @@ export async function createLessonPlan(formData: FormData) {
 }
 
 export async function setLessonStatus(planId: string, status: string) {
+  // The status column is a free string, so an unchecked value here would write
+  // anything the caller sent straight into it and the planner's status badge
+  // would fall back to "Planned" for a value it does not recognise.
+  if (!STATUSES.includes(status)) return { error: "Unknown lesson status." };
+
+  const plan = await ownPlan(planId);
+  if (!plan) return { error: "That lesson plan is not yours." };
+
   await prisma.lessonPlan.update({ where: { id: planId }, data: { status } });
   revalidatePath("/teacher/planner");
   return { success: true };
 }
 
 export async function deleteLessonPlan(planId: string) {
+  const plan = await ownPlan(planId);
+  if (!plan) return { error: "That lesson plan is not yours." };
+
   await prisma.lessonPlan.delete({ where: { id: planId } });
   revalidatePath("/teacher/planner");
   return { success: true };
@@ -56,8 +88,8 @@ export async function deleteLessonPlan(planId: string) {
 
 // Generates a structured substitute-teacher plan from the lesson plan content
 export async function generateSubPlan(planId: string) {
-  const plan = await prisma.lessonPlan.findUnique({ where: { id: planId } });
-  if (!plan) return { error: "Plan not found." };
+  const plan = await ownPlan(planId);
+  if (!plan) return { error: "That lesson plan is not yours." };
 
   const lines: string[] = [];
   lines.push(`SUBSTITUTE TEACHER PLAN — ${plan.subjectName}${plan.className ? ` (${plan.className})` : ""}`);
