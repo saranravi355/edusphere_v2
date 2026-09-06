@@ -247,7 +247,9 @@ export default async function StudentRegistryPage({
                   </div>
 
                   <div className="col-span-1 text-right">
-                    <Link href={`/admin/users/${row.id}`} className="text-[11px] font-semibold text-slate-400 hover:text-black transition-colors">
+                    {/* Straight to the one student profile. /admin/users/<id>
+                        still redirects here for older links and bookmarks. */}
+                    <Link href={`/admin/students/registry/${row.id}`} className="text-[11px] font-semibold text-slate-400 hover:text-black transition-colors">
                       Profile
                     </Link>
                   </div>
