@@ -3,13 +3,15 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { FileText, ListChecks, BarChart3 } from "lucide-react";
+import { FileText, ListChecks, BarChart3, GraduationCap } from "lucide-react";
 import Gradebook from "./Gradebook";
 import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import { IB_TERMS } from "@/lib/ib/subjects";
 
 export const dynamic = "force-dynamic";
 
-const TERMS = ["Term 1 2026-27", "Term 2 2026-27", "Term 3 2026-27"];
+// One list, shared with the IB subject records screen next door.
+const TERMS = IB_TERMS;
 const TYPES = [
   { value: "FORMATIVE", label: "Formative" },
   { value: "SUMMATIVE", label: "Summative" },
@@ -59,7 +61,7 @@ export default async function TeacherGradingEngine({
 
   const sp = await searchParams;
   const activeClass = teacher.classes.find((c) => c.id === sp.classId) ?? teacher.classes[0];
-  const term = TERMS.includes(sp.term ?? "") ? sp.term! : TERMS[0];
+  const term = (TERMS as readonly string[]).includes(sp.term ?? "") ? sp.term! : TERMS[0];
   const type = TYPES.some((t) => t.value === sp.type) ? sp.type! : "SUMMATIVE";
 
   const mySubjects = teacher.subjects.split(",").map((s) => s.trim()).filter(Boolean);
@@ -168,6 +170,15 @@ export default async function TeacherGradingEngine({
             className="px-4 py-2.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 font-bold rounded-lg transition-colors flex items-center gap-2 text-sm"
           >
             <FileText size={16} aria-hidden /> AI Exam Grader
+          </Link>
+          {/* The gradebook above writes AssessmentResult - one assessment at a
+              time. The termly IB record is a different row and a different
+              scale, and until now nothing could write it at all. */}
+          <Link
+            href="/teacher/grading/ib-records"
+            className="px-4 py-2.5 bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 font-bold rounded-lg transition-colors flex items-center gap-2 text-sm"
+          >
+            <GraduationCap size={16} aria-hidden /> IB Subject Records
           </Link>
         </div>
       </form>
