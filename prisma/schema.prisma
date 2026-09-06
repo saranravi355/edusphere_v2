@@ -160,6 +160,9 @@ model Student {
   ibCore           IBCoreRecord[]
   assessmentResults AssessmentResult[]
   aiGradingSubmissions AIGradingSubmission[]
+
+  @@index([classroomId])
+  @@index([parentId])
 }
 
 model Classroom {
@@ -175,6 +178,9 @@ model Classroom {
   quizzes     Quiz[]
   schoolId    String?
   school      School?  @relation(fields: [schoolId], references: [id])
+
+  @@index([teacherId])
+  @@index([schoolId])
 }
 
 model Subject {
@@ -207,6 +213,8 @@ model Attendance {
   /// of the IST calendar date by registerDate() in src/lib/attendance.ts, so
   /// this constraint means what it reads like.
   @@unique([studentId, date, session])
+
+  @@index([date])
 }
 
 model Grade {
@@ -219,6 +227,9 @@ model Grade {
   score       Float
   maxScore    Float
   date        DateTime @default(now())
+
+  @@index([studentId, date])
+  @@index([subjectId])
 }
 
 model Homework {
@@ -235,6 +246,10 @@ model Homework {
   attachmentUrl String?
   
   submissions   HomeworkSubmission[]
+
+  @@index([classroomId, dueDate])
+  @@index([teacherId])
+  @@index([subjectId])
 }
 
 model HomeworkSubmission {
@@ -247,6 +262,9 @@ model HomeworkSubmission {
   attachmentUrl String?
   submittedAt   DateTime @default(now())
   grade         Float?
+
+  @@index([homeworkId])
+  @@index([studentId])
 }
 
 model Message {
@@ -259,6 +277,9 @@ model Message {
   content     String
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
+
+  @@index([receiverId, isRead])
+  @@index([senderId])
 }
 
 // PHASE 5: NEW FEATURES
@@ -274,6 +295,9 @@ model BehaviorIncident {
   description String
   points      Int
   date        DateTime @default(now())
+
+  @@index([studentId, date])
+  @@index([teacherId])
 }
 
 model WalletTransaction {
@@ -284,6 +308,8 @@ model WalletTransaction {
   amount      Float
   description String   // e.g., "Lunch - Pizza", "Parent Top-up"
   date        DateTime @default(now())
+
+  @@index([studentId])
 }
 
 model Club {
@@ -294,6 +320,8 @@ model Club {
   teacher     Teacher  @relation(fields: [teacherId], references: [id])
   members     ClubMembership[]
   activities  ClubActivity[]
+
+  @@index([teacherId])
 }
 
 model ClubActivity {
@@ -306,6 +334,8 @@ model ClubActivity {
   location    String?
   description String?
   outcome     String?  // filled in after the activity, e.g. "Won 2nd place"
+
+  @@index([clubId])
 }
 
 model ClubMembership {
@@ -315,6 +345,9 @@ model ClubMembership {
   clubId      String
   club        Club     @relation(fields: [clubId], references: [id])
   joinedAt    DateTime @default(now())
+
+  @@index([studentId])
+  @@index([clubId])
 }
 
 model ClinicVisit {
@@ -325,6 +358,8 @@ model ClinicVisit {
   treatment   String
   notes       String?
   date        DateTime @default(now())
+
+  @@index([studentId])
 }
 
 model LeaveRequest {
@@ -342,6 +377,9 @@ model LeaveRequest {
   substituteTeacher   Teacher?  @relation("SubstituteCover", fields: [substituteTeacherId], references: [id])
   decidedAt           DateTime?
   decidedById         String?   // userId of the approver
+
+  @@index([teacherId, status])
+  @@index([substituteTeacherId])
 }
 
 model TimetableEntry {
@@ -357,6 +395,9 @@ model TimetableEntry {
   startTime   String    // "08:00"
   endTime     String    // "08:45"
   room        String?
+
+  @@index([classroomId])
+  @@index([teacherId])
 }
 
 model FeeInvoice {
@@ -371,6 +412,8 @@ model FeeInvoice {
   createdAt   DateTime @default(now())
 
   transactions PaymentTransaction[]
+
+  @@index([studentId, status])
 }
 
 model PaymentTransaction {
@@ -381,6 +424,8 @@ model PaymentTransaction {
   method      String   // UPI, CARD
   status      String   @default("SUCCESS")
   createdAt   DateTime @default(now())
+
+  @@index([invoiceId])
 }
 
 // PHASE 7: ENTERPRISE MODULES
@@ -394,6 +439,8 @@ model Notification {
   isRead      Boolean  @default(false)
   type        String   @default("INFO") // INFO, ALERT, SUCCESS
   createdAt   DateTime @default(now())
+
+  @@index([userId, isRead])
 }
 
 model Quiz {
@@ -421,6 +468,9 @@ model Quiz {
 
   questions   Question[]
   attempts    QuizAttempt[]
+
+  @@index([classroomId, status])
+  @@index([teacherId])
 }
 
 model Question {
@@ -437,6 +487,8 @@ model Question {
   rubricCriteria String? // JSON array of {criterion, maxPoints} for essay/short answer grading
 
   responses   QuizResponse[]
+
+  @@index([quizId])
 }
 
 model QuizAttempt {
@@ -457,6 +509,9 @@ model QuizAttempt {
   violations     Int       @default(0) // lockdown breaches recorded during the sitting
 
   responses      QuizResponse[]
+
+  @@index([quizId, studentId])
+  @@index([studentId])
 }
 
 model QuizResponse {
@@ -512,6 +567,9 @@ model AssetCheckout {
   checkoutDate DateTime @default(now())
   returnDate  DateTime?
   status      String   @default("ACTIVE") // ACTIVE, RETURNED
+
+  @@index([assetId])
+  @@index([userId])
 }
 
 model HostelRoom {
@@ -533,6 +591,8 @@ model HostelStudent {
   roomId      String
   room        HostelRoom @relation(fields: [roomId], references: [id])
   joinedAt    DateTime @default(now())
+
+  @@index([roomId])
 }
 
 model FeeStructure {
@@ -563,6 +623,9 @@ model ResourceBooking {
   endTime     DateTime
   purpose     String
   status      String   @default("APPROVED") // PENDING, APPROVED, CANCELLED
+
+  @@index([resourceId])
+  @@index([userId])
 }
 
 // Learning Needs & IEP (PRD Module 01)
@@ -582,6 +645,9 @@ model IEPPlan {
   updatedAt      DateTime  @updatedAt
 
   goals          IEPGoal[]
+
+  @@index([studentId])
+  @@index([caseManagerId])
 }
 
 model IEPGoal {
@@ -594,6 +660,8 @@ model IEPGoal {
   status     String    @default("IN_PROGRESS") // IN_PROGRESS, ACHIEVED, AT_RISK
   notes      String?
   createdAt  DateTime  @default(now())
+
+  @@index([planId])
 }
 
 // Teacher Professional Development & Appraisal (PRD Module 02)
@@ -608,6 +676,8 @@ model PDRecord {
   hours         Int
   dateCompleted DateTime @default(now())
   notes         String?
+
+  @@index([teacherId])
 }
 
 model Observation {
@@ -625,6 +695,8 @@ model Observation {
   strengths       String?
   growthAreas     String?
   status          String   @default("FINAL") // DRAFT, FINAL
+
+  @@index([teacherId])
 }
 
 // IB Academic Records (criterion-based assessment, DP/MYP)
@@ -644,6 +716,8 @@ model IBSubjectRecord {
   critD          Int?
   teacherComment String?
   term           String  @default("Term 1 2026-27")
+
+  @@index([studentId])
 }
 
 model IBCoreRecord {
@@ -658,6 +732,8 @@ model IBCoreRecord {
   activityHours   Int     @default(0)
   serviceHours    Int     @default(0)
   reflections     Int     @default(0)
+
+  @@index([studentId])
 }
 
 model IBExamSession {
@@ -671,6 +747,8 @@ model IBExamSession {
   durationMinutes Int
   room            String?
   notes           String?  // e.g. "Calculator allowed"
+
+  @@index([date])
 }
 
 // Lesson planning with IB curriculum alignment (PRD M01)
@@ -694,6 +772,8 @@ model LessonPlan {
   status          String   @default("PLANNED") // DRAFT, PLANNED, DELIVERED
   subPlan         String?  // generated substitute-teacher plan
   createdAt       DateTime @default(now())
+
+  @@index([teacherId, date])
 }
 
 // Academic calendar with national-calendar sync (PRD M01)
@@ -706,6 +786,8 @@ model AcademicEvent {
   endDate   DateTime?
   source    String    @default("SCHOOL") // SCHOOL, NATIONAL, IB
   notes     String?
+
+  @@index([startDate])
 }
 
 // Subject resources and assessment history (student all-in-one subject view)
@@ -720,6 +802,8 @@ model SubjectResource {
   url         String?
   addedBy     String? // teacher name
   createdAt   DateTime @default(now())
+
+  @@index([subjectName, programme])
 }
 
 model AssessmentResult {
@@ -736,6 +820,8 @@ model AssessmentResult {
   term        String   @default("Term 1 2026-27")
 
   aiGradingSubmission AIGradingSubmission?
+
+  @@index([studentId, date])
 }
 
 /// One scanned answer sheet run through the AI grader: the OCR'd text, the
@@ -818,6 +904,8 @@ model HostelLeave {
   contactPhone String?
   status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, RETURNED
   createdAt    DateTime @default(now())
+
+  @@index([studentId])
 }
 
 /// School-wide announcements.
@@ -839,6 +927,8 @@ model Announcement {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+
+  @@index([authorId])
 }
 
 /// A booked parent-teacher consultation.
@@ -865,6 +955,8 @@ model ParentTeacherMeeting {
   /// two parents taking the same fifteen minutes.
   @@unique([teacherId, scheduledAt])
   @@index([parentId])
+
+  @@index([studentId])
 }
 
 /// A campus.
@@ -935,6 +1027,8 @@ model StudentTransport {
   createdAt DateTime       @default(now())
 
   @@index([routeId])
+
+  @@index([stopId])
 }
 
 /// The library catalogue.
@@ -1008,6 +1102,8 @@ model PayrollLine {
   netPay     Float
 
   @@unique([runId, teacherId])
+
+  @@index([teacherId])
 }
 
 /// A PYP unit of inquiry.
