@@ -9,7 +9,7 @@ import {
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
   ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare, MessagesSquare,
-  Home, TrendingUp, Sparkles,
+  Home, TrendingUp, Sparkles, Stethoscope,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
@@ -44,6 +44,11 @@ const ADMIN_PEOPLE: NavSection = {
     { name: "Students", href: "/admin/students", icon: GraduationCap },
     { name: "Data Import", href: "/admin/students/import", icon: Upload },
     { name: "Behavior", href: "/admin/behavior", icon: ShieldAlert },
+    // Health & Clinic had a page, a guard admitting both administrators, and a
+    // panel on Live Operations — but no way in from the sidebar. It was reachable
+    // only by typing the address or clicking through from Live. Pastoral, so it
+    // sits next to Behavior rather than in a section of its own.
+    { name: "Health & Clinic", href: "/admin/clinic", icon: Stethoscope },
     { name: "Clubs", href: "/admin/clubs", icon: Tent },
     { name: "Alumni", href: "/admin/alumni", icon: Award },
   ],
