@@ -1,86 +1,27 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-
-
-
-export async function markAttendance(formData: FormData) {
-  const session = await getSession();
-  if (!session) return;
-
-  const studentId = formData.get("studentId") as string;
-  const status = formData.get("status") as string;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const existing = await prisma.attendance.findFirst({
-    where: {
-      studentId,
-      date: { gte: today }
-    }
-  });
-
-  if (existing) {
-    await prisma.attendance.update({
-      where: { id: existing.id },
-      data: { status }
-    });
-  } else {
-    await prisma.attendance.create({
-      data: {
-        studentId,
-        date: new Date(),
-        status,
-        recordedBy: session.user.id
-      }
-    });
-  }
-
-  revalidatePath("/teacher");
-}
+import { guard, STAFF_ROLES } from "@/lib/authz";
+import { canMessage } from "@/lib/messaging";
 
 /**
- * assignGrade used to live here. It was dead — teacher/page.tsx defines its own
- * inline server action of the same name — and it was demo-shaped: it ignored the
- * subject entirely, looked up "Biology", and wrote a grade called "Midterm
- * Update". The live path writes an AssessmentResult against the real assessment.
+ * markAttendance and bulkMarkPresent used to live here, and both were dead:
+ * teacher/page.tsx defines its own inline server actions of the same names,
+ * with different signatures, and nothing imported these. Dead was not harmless —
+ * a "use server" export is an independently addressable HTTP endpoint whether or
+ * not any page calls it, and these two checked only that the caller held some
+ * session. Neither checked a role, and neither checked that the student or the
+ * class belonged to the caller, so any signed-in account — a parent, or a student
+ * marking their own register — could set attendance for any studentId, or mark an
+ * entire classId present, attributed to themselves.
+ *
+ * The live versions in teacher/page.tsx do it correctly: they resolve the
+ * caller's own classes through guard(TEACHER_ROLES), reject a status outside the
+ * allowed set, and confirm the student is in one of those classes before writing.
+ * There is nothing here worth keeping, so this follows the precedent already set
+ * in this file for assignGrade and uploadAssignment: delete it.
  */
-
-export async function bulkMarkPresent(classId: string) {
-  const session = await getSession();
-  if (!session) return;
-
-  const students = await prisma.student.findMany({ where: { classroomId: classId } });
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (const student of students) {
-    const existing = await prisma.attendance.findFirst({
-      where: { studentId: student.id, date: { gte: today } }
-    });
-
-    if (existing) {
-      await prisma.attendance.update({
-        where: { id: existing.id },
-        data: { status: 'PRESENT' }
-      });
-    } else {
-      await prisma.attendance.create({
-        data: {
-          studentId: student.id,
-          date: new Date(),
-          status: 'PRESENT',
-          recordedBy: session.user.id
-        }
-      });
-    }
-  }
-
-  revalidatePath("/teacher");
-}
 
 /*
  * `uploadAssignment` used to live here: a 1.5-second sleep that returned
@@ -90,16 +31,22 @@ export async function bulkMarkPresent(classId: string) {
  */
 
 export async function sendMessage(formData: FormData) {
-  const session = await getSession();
-  if (!session) return;
+  // The messages screen offers the parents of this teacher's own students. The
+  // action used to accept whatever receiverId arrived, so that list constrained
+  // nobody: any signed-in account could post into any user's inbox under their
+  // own name. See lib/messaging.ts for the rule.
+  const auth = await guard(STAFF_ROLES);
+  if (!auth.ok) return;
 
   const receiverId = String(formData.get("receiverId") || "").trim();
   const content = String(formData.get("content") || "").trim();
   if (!receiverId || !content) return;
 
+  if (!(await canMessage(auth.user, receiverId))) return;
+
   await prisma.message.create({
     data: {
-      senderId: session.user.id,
+      senderId: auth.user.id,
       receiverId,
       subject: "Teacher message",
       content,

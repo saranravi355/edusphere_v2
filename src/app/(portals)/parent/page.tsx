@@ -2,23 +2,20 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, MessageSquare, IndianRupee } from "lucide-react";
 import Link from "next/link";
 
-async function sendMessage(formData: FormData) {
-  "use server";
-  const session = await getSession();
-  if (!session) return;
-  const content = formData.get("content") as string;
-  const receiverId = formData.get("receiverId") as string;
-  await prisma.message.create({
-    data: { senderId: session.user.id, receiverId, content, subject: "Message from Parent Portal", isRead: false }
-  });
-  revalidatePath("/parent");
-}
+/*
+ * `sendMessage` used to live here: a second copy of the parent messaging action
+ * with no caller — this page renders no form — that checked only that someone
+ * was signed in and then wrote a message to whatever receiverId arrived. A
+ * "use server" export is an addressable endpoint whether or not a page calls it,
+ * so an unused copy is still a way for any account to post into any inbox under
+ * its own name. The live one is in parent/actions.ts, which now checks the
+ * sender is a parent of a child the recipient actually teaches.
+ */
 
 export default async function ParentDashboard() {
   const session = await getSession();
