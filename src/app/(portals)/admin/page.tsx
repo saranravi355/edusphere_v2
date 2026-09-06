@@ -1,117 +1,164 @@
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import AdminActionModals from "@/components/ui/AdminActionModals";
-import prisma from "@/lib/prisma";
-import { Users, GraduationCap, AlertTriangle, Plane, BookOpen, HeartPulse, HeartHandshake } from "lucide-react";
-import Link from "next/link";
 import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import { openCounts, waitingItems } from "@/lib/overview";
+import {
+  Activity, ArrowRight, CheckCircle2, HeartHandshake, HeartPulse,
+  Sparkles, TrendingUp,
+} from "lucide-react";
+
+/**
+ * Dashboard — the front door.
+ *
+ * This page had drifted into being a third copy of the same numbers. Directly
+ * above its own cards, SchoolSnapshot was already rendering students, today's
+ * attendance, active incidents, teaching staff and pending leave; the page then
+ * drew an attendance card, a students-and-teachers card and a staff leave queue
+ * underneath, and listed recent behaviour incidents next to a Live Operations
+ * page whose entire job is exactly that list. Four screens in Overview and no
+ * two of them had a job the others did not.
+ *
+ * The division of labour now, written down in lib/overview.ts and honoured here:
+ *
+ *   Dashboard  — the front door. Counts and doors. Never a list of names.
+ *   Live Ops   — today's work. Queues and exceptions. Never a time axis.
+ *   Analytics  — the shape of the term. Trends and distributions. Never a queue.
+ *
+ * So what is left here is what a front door is for: the headline numbers once,
+ * how much is waiting and the way in to it, the handful of things the office
+ * starts from this screen, and a plain statement of which of the other three
+ * pages answers which question — because a sidebar that lists Dashboard, Live
+ * Ops, Analytics and AI Insights explains none of that on its own.
+ *
+ * The counts come from lib/overview.ts, the same module Live Operations reads,
+ * so the front door cannot advertise a number the page behind it disagrees with.
+ */
+
+export const dynamic = "force-dynamic";
+
+const TONES: Record<string, string> = {
+  rose: "border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300",
+  amber: "border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300",
+};
 
 export default async function AdminDashboard() {
   const session = await getSession();
-  if (!session || (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'PRINCIPAL')) {
+  if (!session || (session.user.role !== "SUPER_ADMIN" && session.user.role !== "PRINCIPAL")) {
     redirect("/");
   }
-  const isPrincipal = session.user.role === 'PRINCIPAL';
-
-  const totalStudents = await prisma.student.count();
-  const totalTeachers = await prisma.teacher.count();
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayAttendances = await prisma.attendance.findMany({ where: { date: { gte: today } } });
-  const presentCount = todayAttendances.filter(a => a.status === 'PRESENT').length;
-  const attendanceRate = todayAttendances.length > 0 ? ((presentCount / todayAttendances.length) * 100).toFixed(1) : "0.0";
-
-  const recentIncidents = await prisma.behaviorIncident.findMany({
-    where: { type: 'DEMERIT' },
-    orderBy: { date: 'desc' },
-    take: 5,
-    include: { student: true }
-  });
-
-  // Principal-only: staff leave queue instead of financial quick-actions
-  const pendingLeaveRequests = isPrincipal ? await prisma.leaveRequest.findMany({
-    where: { status: 'PENDING' },
-    orderBy: { appliedAt: 'desc' },
-    take: 5,
-    include: { teacher: { include: { user: true } } }
-  }) : [];
+  const isPrincipal = session.user.role === "PRINCIPAL";
+  const waiting = waitingItems(await openCounts());
 
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
-        title={`Welcome back, ${session.user.name?.split(' ')[0] || 'Admin'}`}
-        description={isPrincipal
-          ? "Here's the academic and pastoral picture across your school today."
-          : "Here's what's happening across your school today."}
+        title={`Welcome back, ${session.user.name?.split(" ")[0] || "Admin"}`}
+        description={
+          isPrincipal
+            ? "Where the school stands, and what is waiting for you. Today's registers and approvals are in Live Operations; the term's trends are in School Analytics."
+            : "Where the school stands, and what is waiting for you. Today's queues are in Live Operations; the term's trends are in School Analytics."
+        }
       />
 
       <SchoolSnapshot />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <AIFeatureLink
-          href="/admin/ai-insights/school-health-score"
-          icon={<HeartPulse size={15} />}
-          title="School Health Score"
-          description="Composite KPI across academics, attendance, staff and finance."
-        />
-        <AIFeatureLink
-          href="/admin/ai-insights/parent-engagement"
-          icon={<HeartHandshake size={15} />}
-          title="Parent Engagement Score"
-          description="Scores family engagement across portal, events and messaging."
-        />
-      </div>
+      {/* Waiting on someone — counts and a way in, never the list itself.
+          The list is Live Operations' job and it does it better. */}
+      <section>
+        <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">Waiting on you</h2>
+        {waiting.length === 0 ? (
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20 p-5">
+            <CheckCircle2 size={20} className="text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden />
+            <div>
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Nothing is outstanding.</p>
+              <p className="text-xs text-emerald-700/70 dark:text-emerald-400/70">
+                Every register is taken, no approvals are pending, and nothing is overdue.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {waiting.map((q) => (
+              <Link
+                key={q.href}
+                href={q.href}
+                className={`flex items-center gap-4 rounded-xl border p-4 transition-colors hover:brightness-95 dark:hover:brightness-125 ${TONES[q.tone]}`}
+              >
+                <span className="text-3xl font-black tabular-nums leading-none">{q.n}</span>
+                <span className="text-xs font-medium leading-snug flex-1">{q.label}</span>
+                <ArrowRight size={15} className="shrink-0 opacity-60" aria-hidden />
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Where to go next. Four entries under "Overview" and nothing in the
+              product ever said how they differ — so this does, in one line each. */}
           <Card>
             <CardHeader>
-              <CardTitle>Today&apos;s Attendance</CardTitle>
+              <CardTitle>Where to look next</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-6">
-                <div className="text-4xl font-semibold text-foreground">{attendanceRate}%</div>
-                <div className="flex-1 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500" style={{ width: `${attendanceRate}%` }} />
-                </div>
-              </div>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                {
+                  href: "/admin/live",
+                  icon: Activity,
+                  title: "Live Operations",
+                  line: "Today. Registers not taken, absences, approvals, anything overdue.",
+                  tone: "text-rose-600 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400",
+                },
+                {
+                  href: "/admin/analytics",
+                  icon: TrendingUp,
+                  title: "School Analytics",
+                  line: "This term. Attendance trends, IB attainment, collection, behaviour.",
+                  tone: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400",
+                },
+                {
+                  href: "/admin/ai-insights",
+                  icon: Sparkles,
+                  title: "AI Insights",
+                  line: "The full index of predictive tools, each also linked from its own page.",
+                  tone: "text-violet-600 bg-violet-100 dark:bg-violet-900/30 dark:text-violet-400",
+                },
+              ].map((d) => (
+                <Link
+                  key={d.href}
+                  href={d.href}
+                  className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${d.tone}`}>
+                    <d.icon size={17} aria-hidden />
+                  </div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{d.title}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">{d.line}</p>
+                </Link>
+              ))}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Behavior Incidents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentIncidents.map((incident) => (
-                  <Link
-                    key={incident.id}
-                    href={`/admin/students/registry/${incident.student.id}`}
-                    className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 -mx-2 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-md bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
-                        <AlertTriangle size={14} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400">{incident.student.name}</p>
-                        <p className="text-xs text-slate-500">{incident.description}</p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-slate-400">{new Date(incident.date).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}</span>
-                  </Link>
-                ))}
-                {recentIncidents.length === 0 && (
-                  <p className="text-sm text-slate-400 py-4 text-center">No recent incidents.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <AIFeatureLink
+              href="/admin/ai-insights/school-health-score"
+              icon={<HeartPulse size={15} />}
+              title="School Health Score"
+              description="Composite KPI across academics, attendance, staff and finance."
+            />
+            <AIFeatureLink
+              href="/admin/ai-insights/parent-engagement"
+              icon={<HeartHandshake size={15} />}
+              title="Parent Engagement Score"
+              description="Scores family engagement across portal, events and messaging."
+            />
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -123,51 +170,6 @@ export default async function AdminDashboard() {
               <AdminActionModals />
             </CardContent>
           </Card>
-
-          <Card>
-            <CardContent className="p-6 grid grid-cols-2 gap-4">
-              <Link href="/admin/students/registry" className="flex flex-col items-center text-center rounded-lg py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <Users className="w-6 h-6 text-blue-500 mb-1" />
-                <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalStudents}</p>
-                <p className="text-xs text-slate-500">Students</p>
-              </Link>
-              <Link href="/admin/staff" className="flex flex-col items-center text-center rounded-lg py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <GraduationCap className="w-6 h-6 text-purple-500 mb-1" />
-                <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalTeachers}</p>
-                <p className="text-xs text-slate-500">Teachers</p>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {isPrincipal && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Staff Leave Queue</CardTitle>
-                <Plane className="w-4 h-4 text-orange-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {pendingLeaveRequests.map((lr) => (
-                    <div key={lr.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{lr.teacher.user.name}</p>
-                        <p className="text-xs text-slate-500">{new Date(lr.startDate).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })} – {new Date(lr.endDate).toLocaleDateString('en-GB', { timeZone: "Asia/Kolkata" })}</p>
-                      </div>
-                      <span className="text-xs font-semibold px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-                        Pending
-                      </span>
-                    </div>
-                  ))}
-                  {pendingLeaveRequests.length === 0 && (
-                    <p className="text-sm text-slate-400 py-4 text-center">No pending leave requests.</p>
-                  )}
-                </div>
-                <Link href="/admin/staff/leave" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700">
-                  <BookOpen size={14} /> Review all
-                </Link>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

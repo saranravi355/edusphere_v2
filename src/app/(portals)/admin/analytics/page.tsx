@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import AnalyticsBoard from "@/components/admin/AnalyticsBoard";
 import { TrendingDown, Users, IndianRupee, GraduationCap, Award, AlertTriangle, ScanLine } from "lucide-react";
 import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import { currentTerm } from "@/lib/overview";
 
 /**
  * School Analytics — the school over an academic year.
@@ -53,11 +54,9 @@ export default async function AdminAnalyticsPage() {
 
   const now = new Date();
 
-  /** The school's own calendar decides the window — not the calendar year. */
-  const term = await prisma.academicEvent.findFirst({
-    where: { type: "TERM", startDate: { lte: now }, endDate: { gte: now } },
-    orderBy: { startDate: "desc" },
-  });
+  /** The school's own calendar decides the window — not the calendar year.
+   *  Defined once in lib/overview.ts; Live Operations reads the same one. */
+  const term = await currentTerm(now);
   const termStart = term ? new Date(term.startDate) : new Date(now.getFullYear(), 5, 1);
 
   const [attendance, ibRecords, students, invoices, incidents, coreRecords] = await Promise.all([

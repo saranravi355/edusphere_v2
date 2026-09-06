@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import LiveRefresh from "./LiveRefresh";
 import Link from "next/link";
 import { formatDate, schoolDay } from "@/lib/dates";
+import { currentTerm, openCounts, waitingItems } from "@/lib/overview";
 import {
   CheckCircle2, ClipboardList, UserX, Stethoscope, Bus, BookOpen, IndianRupee,
   ShieldAlert, CalendarClock, Inbox, AlertTriangle,
@@ -57,16 +58,13 @@ export default async function LiveOperationsPage() {
    * are a year old — which buries the seventeen families who have actually
    * missed this term's payment.
    */
-  const term = await prisma.academicEvent.findFirst({
-    where: { type: "TERM", startDate: { lte: now }, endDate: { gte: now } },
-    orderBy: { startDate: "desc" },
-  });
+  const term = await currentTerm(now);
   const termStart = term ? new Date(term.startDate) : new Date(now.getFullYear(), 0, 1);
   const isWeekend = [0, 6].includes(now.getDay());
 
   const [
     classrooms, todayAttendance, absentToday, clinicToday, pendingLeave,
-    overdueBooks, overdueInvoices, examsSoon, incidentsToday, routes, enrolled, olderArrears,
+    overdueBooks, examsSoon, incidentsToday, routes, enrolled, olderArrears,
   ] = await Promise.all([
     prisma.classroom.findMany({ select: { id: true, name: true, _count: { select: { students: true } } }, orderBy: { name: "asc" } }),
     prisma.attendance.findMany({
@@ -94,11 +92,6 @@ export default async function LiveOperationsPage() {
       where: { status: "ACTIVE", dueDate: { lt: now } },
       select: { id: true, dueDate: true, book: { select: { title: true } }, user: { select: { name: true } } },
       orderBy: { dueDate: "asc" }, take: 6,
-    }),
-    prisma.feeInvoice.findMany({
-      where: { status: { in: ["OVERDUE", "PENDING"] }, dueDate: { lt: now, gte: termStart } },
-      select: { id: true, amount: true, dueDate: true, student: { select: { name: true } } },
-      orderBy: { dueDate: "asc" },
     }),
     prisma.iBExamSession.findMany({
       where: { date: { gte: dayStart, lte: in48h } }, orderBy: { date: "asc" }, take: 5,
@@ -135,15 +128,24 @@ export default async function LiveOperationsPage() {
   const partial = registers.filter((r) => r.marked > 0 && !r.complete);
   const presentToday = todayAttendance.filter((a) => a.status === "PRESENT").length;
 
-  const overdueTotal = overdueInvoices.reduce((n, i) => n + i.amount, 0);
-
-  /** Everything that has somebody waiting at the other end of it. */
-  const queues = [
-    { n: pendingLeave.length, label: "Leave requests awaiting a decision", icon: Inbox, href: "/admin/staff", tone: "amber" },
-    { n: overdueInvoices.length, label: `Invoices overdue this term · ${inr(Math.round(overdueTotal))}`, icon: IndianRupee, href: "/admin/finance/invoices", tone: "rose" },
-    { n: overdueBooks.length, label: "Library books overdue", icon: BookOpen, href: "/operations/resources", tone: "amber" },
-    { n: untouched.length, label: "Classes with no register taken today", icon: ClipboardList, href: "#register", tone: "rose" },
-  ].filter((q) => q.n > 0);
+  /**
+   * Everything that has somebody waiting at the other end of it.
+   *
+   * These were derived from the lists above, which carry `take: 6` so the page
+   * stays readable — so the badge read "6 library books overdue" when there
+   * were thirty-six, and would have said "6 leave requests" whether there were
+   * six or sixty. The number was silently the page size. It now comes from
+   * openCounts(), which counts in the database, and which the Dashboard reads
+   * too so the two screens cannot quote different figures for the same thing.
+   */
+  const counts = await openCounts(now);
+  const queues = waitingItems(counts);
+  const QUEUE_ICONS: Record<string, typeof Inbox> = {
+    "/admin/live#register": ClipboardList,
+    "/admin/staff/leave": Inbox,
+    "/admin/finance/invoices": IndianRupee,
+    "/admin/library": BookOpen,
+  };
 
   const TONES: Record<string, string> = {
     amber: "border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300",
@@ -166,7 +168,7 @@ export default async function LiveOperationsPage() {
           {queues.map((q) => (
             <Link key={q.label} href={q.href}
                   className={`flex items-center gap-4 border rounded-xl px-5 py-4 transition-opacity hover:opacity-80 ${TONES[q.tone]}`}>
-              <q.icon size={20} className="shrink-0" />
+              {(() => { const Icon = QUEUE_ICONS[q.href] ?? Inbox; return <Icon size={20} className="shrink-0" aria-hidden />; })()}
               <div className="min-w-0">
                 <p className="text-2xl font-black leading-none">{q.n}</p>
                 <p className="text-xs font-medium mt-1">{q.label}</p>
@@ -266,7 +268,7 @@ export default async function LiveOperationsPage() {
         </Card>
 
         {/* ------------------------------------------ approvals waiting */}
-        <Card icon={Inbox} tone="text-amber-600" title={`Awaiting the Principal (${pendingLeave.length})`}>
+        <Card icon={Inbox} tone="text-amber-600" title={`Awaiting the Principal (${counts.pendingLeave})`}>
           {pendingLeave.length === 0 ? (
             <Empty>No leave requests are waiting.</Empty>
           ) : (
@@ -302,7 +304,7 @@ export default async function LiveOperationsPage() {
         </Card>
 
         {/* -------------------------------------------------- library chase */}
-        <Card icon={BookOpen} tone="text-blue-600" title={`Books overdue (${overdueBooks.length})`}>
+        <Card icon={BookOpen} tone="text-blue-600" title={`Books overdue (${counts.overdueBooks})`}>
           {overdueBooks.length === 0 ? (
             <Empty>Nothing is overdue.</Empty>
           ) : (

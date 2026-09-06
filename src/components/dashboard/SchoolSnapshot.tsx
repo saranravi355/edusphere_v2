@@ -2,6 +2,7 @@ import { Users, Clock, ShieldAlert, GraduationCap, IndianRupee, MessageSquare, P
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
+import { todayRegister } from "@/lib/overview";
 
 export default async function SchoolSnapshot() {
   const session = await getSession();
@@ -28,12 +29,15 @@ export default async function SchoolSnapshot() {
   if (role === 'SUPER_ADMIN' || role === 'PRINCIPAL') {
     const totalStudents = await prisma.student.count();
 
-    const todayAttendances = await prisma.attendance.findMany({
-      where: { date: { gte: today } }
-    });
-    const presentCount = todayAttendances.filter(a => a.status === 'PRESENT').length;
-    const totalMarked = todayAttendances.length;
-    const attendanceRate = totalMarked > 0 ? ((presentCount / totalMarked) * 100).toFixed(1) + '%' : "0.0%";
+    // Was: count today's rows, divide, and render "0.0%" when there were none.
+    // On any morning before first period — or a weekend, or a holiday — that is
+    // a divide by zero drawn as a number, and a school of 173 reads as though
+    // not one child turned up. todayRegister() returns a null rate for "nothing
+    // marked yet", which is a different fact and is shown as one. It also uses
+    // the school's midnight rather than the server's: on a UTC host, setHours(0)
+    // is 05:30 IST, so first period landed in the previous day's register.
+    const register = await todayRegister();
+    const attendanceRate = register.rate === null ? "Not taken" : `${register.rate}%`;
 
     const activeIncidents = await prisma.behaviorIncident.count({
       where: { type: 'DEMERIT', date: { gte: startOfMonth } }
