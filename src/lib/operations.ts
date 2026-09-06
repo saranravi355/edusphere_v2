@@ -36,10 +36,18 @@ export const DEPARTMENTS: readonly Department[] = [
 export const OPERATIONS_ROLES: readonly string[] = DEPARTMENTS.map((d) => d.role);
 
 /**
- * Administrators keep full access to every department, so that removing a
+ * Management keeps full access to every department, so that removing a
  * manager's account never locks the school out of its own canteen menu.
+ *
+ * The Principal is deliberately not here. Their sidebar has never offered
+ * Operations — running the canteen, the buses and the hostel stores is a
+ * business function, not an academic one — but this constant admitted them to
+ * all five departments and to every server action guarded by
+ * rolesForDepartment(), so the omission from the sidebar was cosmetic. It is
+ * real now. See canOpenAdminPath() in lib/authz.ts for the same split applied
+ * to /admin.
  */
-export const OPERATIONS_ADMIN_ROLES: readonly string[] = ["SUPER_ADMIN", "PRINCIPAL"];
+export const OPERATIONS_ADMIN_ROLES: readonly string[] = ["SUPER_ADMIN"];
 
 /** Anyone who may load the portal shell at all. */
 export const OPERATIONS_PORTAL_ROLES: readonly string[] = [

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
+import { firstName } from "@/lib/utils";
 
 
 
@@ -28,7 +29,7 @@ export default async function StudentDashboard() {
     <div className="space-y-6 pb-12 max-w-6xl">
       <SchoolSnapshot />
       <PageHeader
-        title={`Welcome back, ${session?.user.name.split(' ')[0]}!`}
+        title={`Welcome back, ${firstName(session?.user.name, "there")}!`}
         description="Here is your academic progress and daily tasks."
       />
 

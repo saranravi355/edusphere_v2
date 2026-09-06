@@ -100,22 +100,32 @@ export async function openCounts(now: Date = new Date()): Promise<OpenCounts> {
 }
 
 /**
- * The same counts as the strip of cards both Overview pages draw, with the
- * settled ones dropped. Presentation only — the numbers are already decided.
+ * The same strip of cards both Overview pages draw, with the settled ones
+ * dropped. Presentation only — the numbers are already decided.
+ *
+ * Every card is a link, so a card a given role cannot open is worse than no
+ * card: it looks like a door, and middleware turns them round at it. Fees are
+ * management's, not the Principal's — their sidebar has no Finance section and
+ * /admin/finance is closed to them — so the invoice card is theirs alone. It is
+ * dropped rather than shown unlinked because there is nothing a Principal can
+ * do about an overdue invoice anyway.
  */
-export function waitingItems(c: OpenCounts): OpenItem[] {
+export function waitingItems(c: OpenCounts, role?: string | null): OpenItem[] {
+  const canOpenFinance = role === "SUPER_ADMIN";
   return (
     [
       { n: c.registersNotTaken, label: "classes have not had a register taken today", href: "/admin/live#register", tone: "rose" },
       { n: c.pendingLeave, label: "leave requests awaiting a decision", href: "/admin/staff/leave", tone: "amber" },
-      {
-        n: c.overdueInvoices,
-        label: `invoices overdue this term · ₹${c.overdueInvoiceTotal.toLocaleString("en-IN")}`,
-        href: "/admin/finance/invoices",
-        tone: "rose",
-      },
+      canOpenFinance
+        ? {
+            n: c.overdueInvoices,
+            label: `invoices overdue this term · ₹${c.overdueInvoiceTotal.toLocaleString("en-IN")}`,
+            href: "/admin/finance/invoices",
+            tone: "rose",
+          }
+        : null,
       { n: c.overdueBooks, label: "library books overdue", href: "/admin/library", tone: "amber" },
-    ] as OpenItem[]
+    ].filter((q): q is OpenItem => q !== null)
   ).filter((q) => q.n > 0);
 }
 

@@ -139,7 +139,7 @@ export default async function LiveOperationsPage() {
    * too so the two screens cannot quote different figures for the same thing.
    */
   const counts = await openCounts(now);
-  const queues = waitingItems(counts);
+  const queues = waitingItems(counts, session.user.role);
   const QUEUE_ICONS: Record<string, typeof Inbox> = {
     "/admin/live#register": ClipboardList,
     "/admin/staff/leave": Inbox,
@@ -188,7 +188,9 @@ export default async function LiveOperationsPage() {
           Separately, {olderArrears._count} invoices from before {term?.title ?? "this term"} remain unpaid
           ({inr(Math.round(olderArrears._sum.amount ?? 0))}). Older arrears are a finance job rather than a
           today job, so they are counted here and chased from{" "}
-          <Link href="/admin/finance/invoices" className="underline hover:text-slate-600">Finance</Link>.
+          {session.user.role === "SUPER_ADMIN"
+            ? <Link href="/admin/finance/invoices" className="underline hover:text-slate-600">Finance</Link>
+            : "Finance"}.
         </p>
       )}
 

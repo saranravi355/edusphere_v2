@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { decrypt, SESSION_VERSION } from '@/lib/session';
 import { OPERATIONS_PORTAL_ROLES, isOperationsRole } from '@/lib/operations';
+import { canOpenAdminPath } from '@/lib/authz';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -72,6 +73,14 @@ export async function middleware(request: NextRequest) {
     if (path.startsWith('/admin') && role !== 'SUPER_ADMIN' && role !== 'PRINCIPAL') {
       return NextResponse.redirect(new URL('/', request.url));
     }
+    // Management and Principal are both administrators, but not the same one.
+    // Management sees everything; a Principal gets the academic and pastoral
+    // half and is sent back to their dashboard rather than the landing page,
+    // which would look like being signed out. The remit itself lives in
+    // lib/authz.ts, next to the guards that enforce it on server actions.
+    if (path.startsWith('/admin') && !canOpenAdminPath(role, path)) {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
     if (path.startsWith('/teacher') && role !== 'CLASS_TEACHER' && role !== 'SUBJECT_TEACHER') {
       return NextResponse.redirect(new URL('/', request.url));
     }
@@ -81,11 +90,15 @@ export async function middleware(request: NextRequest) {
     if (path.startsWith('/student') && role !== 'STUDENT') {
       return NextResponse.redirect(new URL('/', request.url));
     }
-    // The operations portal: administrators plus the five department managers.
+    // The operations portal: management plus the five department managers.
     // Which department each manager may open is decided by the layouts and by
     // every server action, not here — middleware cannot see an action call.
+    // A Principal is no longer among them, and bouncing them to the landing
+    // page would read as having been signed out, so administrators go back to
+    // their own dashboard instead.
     if (path.startsWith('/operations') && !OPERATIONS_PORTAL_ROLES.includes(role)) {
-      return NextResponse.redirect(new URL('/', request.url));
+      const home = role === 'PRINCIPAL' || role === 'SUPER_ADMIN' ? '/admin' : '/';
+      return NextResponse.redirect(new URL(home, request.url));
     }
     // A manager has no business anywhere else in the app, and their portal is
     // not /admin, so send them home rather than leaving them on a blank page.

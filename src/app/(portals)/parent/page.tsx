@@ -7,6 +7,7 @@ import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, MessageSquare, IndianRupee } from "lucide-react";
 import Link from "next/link";
+import { firstName } from "@/lib/utils";
 
 async function sendMessage(formData: FormData) {
   "use server";
@@ -36,7 +37,7 @@ export default async function ParentDashboard() {
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
-        title={`Welcome back, ${session.user.name?.split(' ')[0] || 'Parent'}`}
+        title={`Welcome back, ${firstName(session.user.name, "Parent")}`}
         description="Stay up to date with your children's school activities."
       />
 

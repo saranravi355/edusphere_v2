@@ -4,9 +4,10 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
-import AdminActionModals from "@/components/ui/AdminActionModals";
+import QuickActions from "@/components/admin/QuickActions";
 import AIFeatureLink from "@/components/ai/AIFeatureLink";
 import { openCounts, waitingItems } from "@/lib/overview";
+import { firstName } from "@/lib/utils";
 import {
   Activity, ArrowRight, CheckCircle2, HeartHandshake, HeartPulse,
   Sparkles, TrendingUp,
@@ -52,12 +53,12 @@ export default async function AdminDashboard() {
     redirect("/");
   }
   const isPrincipal = session.user.role === "PRINCIPAL";
-  const waiting = waitingItems(await openCounts());
+  const waiting = waitingItems(await openCounts(), session.user.role);
 
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
-        title={`Welcome back, ${session.user.name?.split(" ")[0] || "Admin"}`}
+        title={`Welcome back, ${firstName(session.user.name, "Admin")}`}
         description={
           isPrincipal
             ? "Where the school stands, and what is waiting for you. Today's registers and approvals are in Live Operations; the term's trends are in School Analytics."
@@ -98,8 +99,19 @@ export default async function AdminDashboard() {
         )}
       </section>
 
+      {/* Quick actions run the full width: there are now seven of them, and in a
+          third-column sidebar they became a single tall stack you had to scroll. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QuickActions isPrincipal={isPrincipal} />
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-3 space-y-6">
           {/* Where to go next. Four entries under "Overview" and nothing in the
               product ever said how they differ — so this does, in one line each. */}
           <Card>
@@ -159,17 +171,6 @@ export default async function AdminDashboard() {
               description="Scores family engagement across portal, events and messaging."
             />
           </div>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminActionModals />
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

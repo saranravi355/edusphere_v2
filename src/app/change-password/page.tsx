@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import ChangePasswordForm from "./ChangePasswordForm";
+import { firstName } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function ChangePasswordPage() {
 
   return (
     <ChangePasswordForm
-      name={user.name.split(" ")[0]}
+      name={firstName(user.name)}
       firstTime={user.passwordChangedAt === null}
     />
   );
