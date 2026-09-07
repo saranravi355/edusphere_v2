@@ -56,7 +56,9 @@ longer reads it. See `MIGRATION_POSTGRES.md`.
 **Scripts** (`package.json`):
 
 - `npm run dev` — dev server
-- `npm run build` — `prisma generate && next build`
+- `npm run build` — `prisma generate`, then `scripts/migrate-deploy.mjs`, then `next build`.
+  The middle step migrates only on a production deploy; see Deployment below.
+- `npm run db:migrate` — apply pending migrations deliberately, from anywhere.
 - `npm run start` — production server
 - `npm run lint` — ESLint
 
@@ -206,7 +208,7 @@ npx prisma generate                                  # regenerates the typed cli
 # 3. commit prisma/schema.prisma AND the new prisma/migrations/ folder
 ```
 
-Deploying applies pending migrations with `npx prisma migrate deploy`.
+Deploying `main` applies pending migrations. A preview build does not — it prints what is pending and leaves the database alone.
 
 **Seeding data:** the data already lives in the database. To add records, use the app UI or write a script
 against the Prisma client. Note that dates are real `timestamp(3)` columns now — pass `Date` objects, not the
@@ -263,7 +265,9 @@ Example — a "Library returns" page for the teacher portal:
 ## 10. Deployment
 
 - Hosted on **Vercel**, auto-deploys from `main`.
-- Build command: `prisma generate && prisma migrate deploy && next build` (already the `build` script).
+- Build command: the `build` script. It migrates only when `VERCEL_ENV=production`,
+  so preview builds of a branch cannot write to the production database — which is
+  what they did until 7 Sep 2026, on every push, before review.
   Every deploy applies pending migrations, so the schema can never drift behind the code. Note that all
   environments share one database, so a preview branch carrying a new migration applies it to that shared
   database — worth remembering before merging schema changes.
@@ -271,7 +275,7 @@ Example — a "Library returns" page for the teacher portal:
 - Set **`DATABASE_URL`** (transaction pooler, port 6543, `?pgbouncer=true&connection_limit=1`) and
   **`DIRECT_URL`** (session pooler, port 5432) in Vercel → Settings → Environment Variables, for Production,
   Preview and Development.
-- Apply pending migrations with `npx prisma migrate deploy` before or during release.
+- Apply pending migrations with `npm run db:migrate`, or let the production deploy do it.
 
 ---
 
