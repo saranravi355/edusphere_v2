@@ -79,7 +79,16 @@ The sandbox has **no stored GitHub credentials** (the user's Windows credential 
 
 ## 7. Known gaps / sensible next steps
 
-- **Committed but NOT applied to Mumbai:** `prisma/migrations/20260827120000_attendance_one_row_per_register`. It deletes duplicate Attendance rows before adding the unique index, so it needs a deliberate go-ahead. Until it runs, `markManyPresent`'s `skipDuplicates` has no index to work against and duplicates can still appear.
+- **Migrations are applied on production deploys only.** `build` runs
+  `scripts/migrate-deploy.mjs`, which migrates when `VERCEL_ENV=production` — the
+  deploy of `main`, after review — and does nothing on a preview build or a local
+  build, where it just prints what is pending. It used to run `prisma migrate
+  deploy` unconditionally, and because Vercel builds every branch with the
+  production environment variables, every `git push` migrated the live database
+  before anyone had opened the pull request. Apply by hand with `npm run db:migrate`.
+- `20260827120000_attendance_one_row_per_register` **was** applied, on 28 Aug 2026.
+  An earlier version of this file said it was outstanding; that was wrong, and the
+  claim was checked against `_prisma_migrations` on 7 Sep 2026.
 - The Tokyo Supabase project `mypgubeimwwsjcuzzujm` was paused on 28 Aug 2026 — a July snapshot of all 365 accounts and 173 students. `.env` keeps its URL commented as `ROLLBACK_TOKYO_*`. Delete it from the Supabase dashboard when you no longer want the snapshot.
 
 - All 25 PRD AI features except auto-grading and the timetable generator are **scripted PREVIEW mocks** — wiring them to a real LLM endpoint is the biggest upgrade (UI is ready).
