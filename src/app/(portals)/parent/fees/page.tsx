@@ -2,7 +2,9 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { CheckCircle2, Clock, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Info, ReceiptText } from "lucide-react";
+import { formatDate } from "@/lib/dates";
+import { methodLabel, receiptNo, settlingPayment } from "@/lib/fees";
 
 export default async function ParentFeesPage() {
   const session = await getSession();
@@ -19,9 +21,18 @@ export default async function ParentFeesPage() {
 
   const invoices = await prisma.feeInvoice.findMany({
     where: { studentId: { in: studentIds } },
-    include: { student: true },
+    // The payment is what makes "PAID" mean anything: when, how, and a
+    // reference to quote. The rows have always been here; nothing read them.
+    include: { student: true, transactions: true },
     orderBy: { dueDate: 'asc' }
   });
+
+  const paidTotal = invoices
+    .filter((i) => i.status === "PAID")
+    .reduce((sum, i) => sum + i.amount, 0);
+  const outstandingTotal = invoices
+    .filter((i) => i.status !== "PAID")
+    .reduce((sum, i) => sum + i.amount, 0);
 
   // Applicable fee structure for the child's grade band (from the loaded fee items).
   const gradeLevel = parent?.students[0]?.classroom?.gradeLevel ?? 0;
@@ -84,6 +95,29 @@ export default async function ParentFeesPage() {
         </div>
       )}
 
+      {/* What has actually been paid, which the page could not say before. */}
+      {invoices.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20 p-4">
+            <p className="text-xs font-semibold text-emerald-800/70 dark:text-emerald-400/70">Paid to date</p>
+            <p className="text-2xl font-bold text-emerald-800 dark:text-emerald-300 tabular-nums">{inr(paidTotal)}</p>
+            <p className="text-[11px] text-emerald-700/70 dark:text-emerald-400/60 mt-0.5">
+              across {invoices.filter((i) => i.status === "PAID").length} invoice
+              {invoices.filter((i) => i.status === "PAID").length === 1 ? "" : "s"}
+            </p>
+          </div>
+          <div className={`rounded-xl border p-4 ${outstandingTotal > 0
+            ? "border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20"
+            : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900"}`}>
+            <p className={`text-xs font-semibold ${outstandingTotal > 0 ? "text-amber-800/70 dark:text-amber-400/70" : "text-slate-500"}`}>Outstanding</p>
+            <p className={`text-2xl font-bold tabular-nums ${outstandingTotal > 0 ? "text-amber-800 dark:text-amber-300" : "text-slate-500"}`}>{inr(outstandingTotal)}</p>
+            <p className={`text-[11px] mt-0.5 ${outstandingTotal > 0 ? "text-amber-700/70 dark:text-amber-400/60" : "text-slate-400"}`}>
+              {outstandingTotal > 0 ? "payable at the school office" : "nothing due"}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto"><table className="w-full text-left">
           <thead>
@@ -93,13 +127,14 @@ export default async function ParentFeesPage() {
               <th className="py-3 px-6">Due Date</th>
               <th className="py-3 px-6 text-right">Amount</th>
               <th className="py-3 px-6 text-center">Status</th>
-              <th className="py-3 px-6 text-right">Action</th>
+              <th className="py-3 px-6 text-right">Payment</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {invoices.map((invoice) => {
               const config = statusConfig[invoice.status] || statusConfig.PENDING;
               const Icon = config.icon;
+              const payment = settlingPayment(invoice.transactions);
               return (
                 <tr key={invoice.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="py-4 px-6 font-medium text-slate-800 dark:text-slate-200">{invoice.student.name}</td>
@@ -112,7 +147,23 @@ export default async function ParentFeesPage() {
                     </span>
                   </td>
                   <td className="py-4 px-6 text-right">
-                    {invoice.status !== 'PAID' && (
+                    {invoice.status === 'PAID' ? (
+                      payment ? (
+                        <div className="text-xs leading-relaxed">
+                          <p className="font-medium text-slate-700 dark:text-slate-300">
+                            {formatDate(payment.createdAt, "dMonYyyy")} &middot; {methodLabel(payment.method)}
+                          </p>
+                          <p className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-400">
+                            <ReceiptText size={11} aria-hidden /> {receiptNo(payment.id)}
+                          </p>
+                        </div>
+                      ) : (
+                        /* Marked paid with no payment recorded against it. Say so
+                           rather than inventing a date — it is the office's cue
+                           that something was settled outside the system. */
+                        <span className="text-xs text-slate-400">Paid &middot; no record of how</span>
+                      )
+                    ) : (
                       /*
                        * Online payment is not implemented — there is no gateway
                        * integrated (see MIGRATION/PRD gap list). This previously
