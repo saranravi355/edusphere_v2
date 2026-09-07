@@ -27,8 +27,11 @@ function roomFor(name: string, index: number): string {
   if (n.includes("physics")) return "Physics Lab";
   if (n.includes("chemistry")) return "Chemistry Lab";
   if (n.includes("biology")) return "Biology Lab";
-  if (n.includes("science")) return "Science Lab";
+  // Before "science", not after. "Computer Science" contains both, and with
+  // science first the Computing Lab branch could never be reached by the one
+  // subject it exists for — computer scientists were being sent to a wet lab.
   if (n.includes("computer")) return "Computing Lab";
+  if (n.includes("science")) return "Science Lab";
   if (n.includes("art")) return "Art Studio";
   if (n.includes("music")) return "Music Room";
   if (n.includes("theatre") || n.includes("dance") || n.includes("film")) return "Drama Studio";
