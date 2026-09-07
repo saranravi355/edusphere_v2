@@ -398,6 +398,7 @@ model TimetableEntry {
 
   @@index([classroomId])
   @@index([teacherId])
+  @@index([subjectId])
 }
 
 model FeeInvoice {
@@ -471,6 +472,8 @@ model Quiz {
 
   @@index([classroomId, status])
   @@index([teacherId])
+  @@index([subjectId])
+  @@index([moderatedByTeacherId])
 }
 
 model Question {
@@ -528,6 +531,7 @@ model QuizResponse {
   gradedByTeacherId String?
 
   @@unique([attemptId, questionId])
+  @@index([questionId])
 }
 
 model Alumni {
