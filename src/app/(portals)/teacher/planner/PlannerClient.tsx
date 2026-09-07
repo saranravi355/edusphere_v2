@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import {
-  Plus, X, BookOpen, CheckCircle2, Clock, FileText, Sparkles, Loader2,
-  Trash2, Globe2, ChevronDown, ChevronUp, Printer,
-} from "lucide-react";
+import { Plus, X, BookOpen, CheckCircle2, FileText, Sparkles, Loader2, Trash2, Globe2, ChevronDown, ChevronUp, Printer } from "lucide-react";
 import { createLessonPlan, setLessonStatus, deleteLessonPlan, generateSubPlan } from "./actions";
 import { formatDate } from "@/lib/dates";
 import { ConfirmIconButton } from "@/components/ui/form";

@@ -3,12 +3,9 @@
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import PageHeader from "@/components/ui/PageHeader";
-import { BrainCircuit, TrendingUp, TrendingDown, AlertTriangle, Sparkles, ArrowLeft } from "lucide-react";
+import { BrainCircuit, TrendingUp, AlertTriangle, Sparkles, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend
-} from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 
 function hashStringToInt(str: string) {
   let hash = 0;

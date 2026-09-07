@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, MessageSquare, IndianRupee } from "lucide-react";
+import { Clock } from "lucide-react";
 import Link from "next/link";
 import { firstName } from "@/lib/utils";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import PageHeader from "@/components/ui/PageHeader";
-import { BrainCircuit, PackageOpen, TrendingDown, ShoppingCart, CheckCircle2, Box } from "lucide-react";
+import { BrainCircuit, PackageOpen, TrendingDown, ShoppingCart, Box } from "lucide-react";
 import { useState } from "react";
 
 export default function PredictiveResourceAI() {

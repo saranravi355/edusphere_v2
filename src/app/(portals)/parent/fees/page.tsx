@@ -2,8 +2,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { CreditCard, CheckCircle2, Clock, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Info } from "lucide-react";
 
 export default async function ParentFeesPage() {
   const session = await getSession();

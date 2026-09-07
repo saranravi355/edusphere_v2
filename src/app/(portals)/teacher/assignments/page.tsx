@@ -5,8 +5,8 @@ import { formatDate } from "@/lib/dates";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Users, CheckCircle2, Clock, BookOpen, FileEdit } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Users, CheckCircle2, Clock, BookOpen, FileEdit } from "lucide-react";
 import Link from "next/link";
 import AIFeatureLink from "@/components/ai/AIFeatureLink";
 

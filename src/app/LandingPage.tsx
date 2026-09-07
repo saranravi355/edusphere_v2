@@ -2,7 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
-import { GraduationCap, Users, UserCircle, School, Bell, ChevronRight, Building, Briefcase, Boxes, LogIn } from "lucide-react";
+import { GraduationCap, Users, UserCircle, Bell, Building, Briefcase, Boxes, LogIn } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LogoFull } from "@/components/ui/Logo";
 

@@ -87,7 +87,6 @@ async function bulkMarkPresent(studentIds: string[]) {
   });
   if (!mine.length) return;
 
-  const { start, end } = schoolDay();
   await markManyPresent({ studentIds: mine.map((s) => s.id), session: "FULL_DAY", recordedBy: ctx.userId });
   revalidatePath("/teacher");
   revalidatePath("/teacher/attendance");
