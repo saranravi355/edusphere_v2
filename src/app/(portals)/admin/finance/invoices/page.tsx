@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { guard, ADMIN_ROLES } from "@/lib/authz";
+import { formatDate } from "@/lib/dates";
+import { methodLabel, receiptNo, settlingPayment } from "@/lib/fees";
 
 export default async function FeeInvoicesPage() {
   const session = await getSession();
@@ -18,7 +20,10 @@ export default async function FeeInvoicesPage() {
   const recentInvoices = await prisma.feeInvoice.findMany({
     take: 10,
     orderBy: { createdAt: 'desc' },
-    include: { student: true }
+    // How each invoice was settled. The ledger showed a PAID badge and nothing
+    // behind it, so the office could not answer "when, and by what method?"
+    // without going to the database.
+    include: { student: true, transactions: true }
   });
 
   async function generateInvoices(formData: FormData) {
@@ -105,7 +110,19 @@ export default async function FeeInvoicesPage() {
   const pendingTotal = pending._sum.amount ?? 0;
   const overdueTotal = overdue._sum.amount ?? 0;
 
-  const exportRows = recentInvoices.map((inv) => ({ Student: inv.student.name, Title: inv.title, Amount: inv.amount, Status: inv.status, DueDate: inv.dueDate.toISOString().slice(0, 10), PaidAt: inv.paidAt ? inv.paidAt.toISOString().slice(0, 10) : "" }));
+  const exportRows = recentInvoices.map((inv) => {
+    const payment = settlingPayment(inv.transactions);
+    return {
+      Student: inv.student.name,
+      Title: inv.title,
+      Amount: inv.amount,
+      Status: inv.status,
+      DueDate: inv.dueDate.toISOString().slice(0, 10),
+      PaidAt: inv.paidAt ? inv.paidAt.toISOString().slice(0, 10) : "",
+      Method: payment ? methodLabel(payment.method) : "",
+      Receipt: payment ? receiptNo(payment.id) : "",
+    };
+  });
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
@@ -187,6 +204,7 @@ export default async function FeeInvoicesPage() {
                   <th className="p-4 font-medium">Description</th>
                   <th className="p-4 font-medium">Amount</th>
                   <th className="p-4 font-medium">Status</th>
+                  <th className="p-4 font-medium">Payment</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -217,10 +235,30 @@ export default async function FeeInvoicesPage() {
                         {inv.status}
                       </span>
                     </td>
+                    <td className="p-4 text-xs">
+                      {(() => {
+                        const payment = settlingPayment(inv.transactions);
+                        if (!payment) {
+                          return inv.status === 'PAID'
+                            // Settled outside the system, or settled before the
+                            // payment was recorded. Worth showing, not hiding.
+                            ? <span className="text-amber-600 dark:text-amber-500">no payment recorded</span>
+                            : <span className="text-slate-400">&mdash;</span>;
+                        }
+                        return (
+                          <div className="leading-relaxed">
+                            <p className="font-medium text-slate-700 dark:text-slate-300">
+                              {formatDate(payment.createdAt, "dMonYyyy")} &middot; {methodLabel(payment.method)}
+                            </p>
+                            <p className="font-mono text-[11px] text-slate-400">{receiptNo(payment.id)}</p>
+                          </div>
+                        );
+                      })()}
+                    </td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-slate-500 dark:text-slate-400">
+                    <td colSpan={6} className="p-8 text-center text-slate-500 dark:text-slate-400">
                       <Receipt className="mx-auto mb-2 opacity-20" size={32} />
                       No invoices have been generated yet.
                     </td>
