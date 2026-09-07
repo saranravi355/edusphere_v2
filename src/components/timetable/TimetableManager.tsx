@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { Classroom, Subject, Teacher, User } from "@prisma/client";
-import { CalendarDays, BrainCircuit, Wand2, CheckCircle2, AlertTriangle, Plus, X } from "lucide-react";
+import { BrainCircuit, Wand2, CheckCircle2, AlertTriangle, X } from "lucide-react";
 import TimetableGrid from "./TimetableGrid";
-import { getTimetable, autoGenerateSchedule, allocateSlot, removeSlot } from "@/app/(portals)/admin/academic-setup/timetable/actions";
+import { getTimetable, autoGenerateSchedule, allocateSlot } from "@/app/(portals)/admin/academic-setup/timetable/actions";
 
 type TeacherWithUser = Teacher & { user: User };
 

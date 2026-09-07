@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
-import { Search, GraduationCap, BrainCircuit, ExternalLink, Activity } from "lucide-react";
+import { Search, GraduationCap, BrainCircuit, Activity } from "lucide-react";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";

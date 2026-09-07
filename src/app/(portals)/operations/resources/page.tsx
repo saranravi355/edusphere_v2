@@ -36,15 +36,6 @@ export default async function ResourcesPage({
     orderBy: { name: 'asc' }
   });
 
-  const getTypeIcon = (type: string) => {
-    switch(type) {
-      case 'LIBRARY_BOOK': return <BookOpen className="text-blue-500" />;
-      case 'EQUIPMENT': return <Monitor className="text-purple-500" />;
-      case 'FACILITY': return <MapPin className="text-emerald-500" />;
-      default: return <MapPin className="text-slate-500" />;
-    }
-  };
-
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
       <PageHeader 

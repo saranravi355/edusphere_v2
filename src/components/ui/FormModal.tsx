@@ -69,6 +69,11 @@ export default function FormModal({
   useEffect(() => {
     if (!open) return;
     const panel = panelRef.current;
+    // Captured now, while the dialog is opening. Reading openerRef.current in
+    // the cleanup instead would read whatever it points at when the dialog
+    // closes, which is not necessarily the button that opened it — so focus
+    // could return to the wrong control, or to nothing.
+    const opener = openerRef.current;
     panel?.querySelector<HTMLElement>(
       'input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])',
     )?.focus();
@@ -91,7 +96,7 @@ export default function FormModal({
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      openerRef.current?.focus();
+      opener?.focus();
     };
   }, [open]);
 

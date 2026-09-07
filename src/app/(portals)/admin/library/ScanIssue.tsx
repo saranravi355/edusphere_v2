@@ -75,13 +75,29 @@ export default function ScanIssue({ isbnCoverage }: { isbnCoverage: { withIsbn: 
 
   // Clear the fields after a successful issue so the next book can be scanned
   // straight away — a counter does these in a run, not one at a time.
+  //
+  // The state half is done during render rather than in an effect. Setting state
+  // inside an effect queues a second render pass for something React can settle
+  // in the first, which is what react-hooks/set-state-in-effect objects to.
+  // Comparing the whole result object rather than the message means two
+  // identical success strings in a row still count as two separate issues.
+  const [handledResult, setHandledResult] = useState(state);
+  if (state !== handledResult) {
+    setHandledResult(state);
+    if (state?.success) {
+      setBookHit(null);
+      setBorrowerHit(null);
+    }
+  }
+
+  // The DOM half of the same reset. This has to be an effect because it touches
+  // nodes that must already exist, but it sets no state, so it cannot cascade.
   useEffect(() => {
     if (state?.success) {
-      setBookHit(null); setBorrowerHit(null);
       formRef.current?.reset();
       bookRef.current?.focus();
     }
-  }, [state?.success]);
+  }, [state]);
 
   async function lookup(which: "book" | "borrower", value: string) {
     const set = which === "book" ? setBookHit : setBorrowerHit;

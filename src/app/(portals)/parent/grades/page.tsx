@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, TrendingUp, Award, Download } from "lucide-react";
+import { Award } from "lucide-react";
 import PrintButton from "@/app/(portals)/student/report-card/PrintButton";
 import { formatDate } from "@/lib/dates";
 
