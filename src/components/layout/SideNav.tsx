@@ -9,7 +9,7 @@ import {
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
   ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare, MessagesSquare,
-  Home, TrendingUp, Sparkles, Stethoscope, Star, Fingerprint, Images,
+  Home, TrendingUp, Sparkles, Stethoscope, Star, Fingerprint, Images, Ticket,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
@@ -201,6 +201,7 @@ const SECTIONS: Record<string, NavSection[]> = {
         { name: "Alumni", href: "/student/alumni-wall", icon: Award },
         { name: "Wallet", href: "/student/wallet", icon: Wallet },
         { name: "Teacher Feedback", href: "/student/teacher-feedback", icon: Star },
+        { name: "Ask a Teacher", href: "/student/query-tickets", icon: Ticket },
       ],
     },
   ],
@@ -232,6 +233,7 @@ const TEACHER_SECTIONS: NavSection[] = [
       { name: "IEP", href: "/teacher/learning-needs", icon: HeartHandshake },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldAlert },
       { name: "Messages", href: "/teacher/messages", icon: MessageSquare },
+      { name: "Student Tickets", href: "/teacher/query-tickets", icon: Ticket },
       { name: "Allergies", href: "/teacher/allergies", icon: UtensilsCrossed },
     ],
   },
