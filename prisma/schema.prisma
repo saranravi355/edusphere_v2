@@ -76,6 +76,7 @@ model Teacher {
   baseSalary       Float?         /// monthly gross, in rupees
   payrollLines     PayrollLine[]
   aiGradingSubmissions AIGradingSubmission[]
+  feedbackReceived TeacherFeedback[]
 }
 
 model Parent {
@@ -160,6 +161,7 @@ model Student {
   ibCore           IBCoreRecord[]
   assessmentResults AssessmentResult[]
   aiGradingSubmissions AIGradingSubmission[]
+  teacherFeedbacks TeacherFeedback[]
 
   @@index([classroomId])
   @@index([parentId])
@@ -700,6 +702,33 @@ model Observation {
   growthAreas     String?
   status          String   @default("FINAL") // DRAFT, FINAL
 
+  @@index([teacherId])
+}
+
+/// Student -> teacher feedback.
+///
+/// One row per (student, teacher) pair, upserted on resubmission rather than
+/// appended - a student refining their answer replaces it rather than filing a
+/// second opinion the teacher has to weigh against the first. Anonymous by
+/// design on the teacher's side: studentId exists only to enforce "one
+/// response per student" and to let the student re-open their own submission
+/// to edit it - teacher-facing views and queries never expose which student
+/// wrote which entry.
+model TeacherFeedback {
+  id                   String   @id @default(cuid())
+  studentId            String
+  student              Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacherId            String
+  teacher              Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classConductRating   Int      // 1-5: how the teacher runs the classroom
+  explanationRating    Int      // 1-5: how clearly concepts are explained
+  communicationRating  Int      // 1-5: communication with students
+  supportRating        Int      // 1-5: support given to students
+  comment              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([studentId, teacherId])
   @@index([teacherId])
 }
 

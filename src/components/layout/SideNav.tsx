@@ -9,7 +9,7 @@ import {
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
   ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare, MessagesSquare,
-  Home, TrendingUp, Sparkles, Stethoscope,
+  Home, TrendingUp, Sparkles, Stethoscope, Star,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
@@ -191,6 +191,7 @@ const SECTIONS: Record<string, NavSection[]> = {
         { name: "Clubs", href: "/student/clubs", icon: Tent },
         { name: "Alumni", href: "/student/alumni-wall", icon: Award },
         { name: "Wallet", href: "/student/wallet", icon: Wallet },
+        { name: "Teacher Feedback", href: "/student/teacher-feedback", icon: Star },
       ],
     },
   ],
@@ -231,6 +232,7 @@ const TEACHER_SECTIONS: NavSection[] = [
     label: "Me",
     links: [
       { name: "My PD", href: "/teacher/pd", icon: GraduationCap },
+      { name: "Student Feedback", href: "/teacher/feedback", icon: Star },
       { name: "Leave", href: "/teacher/leave", icon: Plane },
     ],
   },
