@@ -13,7 +13,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "EduSphere 360 Alpha2",
   description: "AI-Powered International School Management Platform",
-  icons: { icon: "/logo.png", apple: "/logo.png" },
+  icons: { icon: "/favicon.ico", apple: "/logo.png" },
 };
 
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
