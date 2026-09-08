@@ -60,6 +60,7 @@ const PRINCIPAL_ADMIN_PATHS = [
   "/admin/clubs",
   "/admin/alumni",
   "/admin/clinic",
+  "/admin/teacher-feedback",
 ] as const;
 
 /**

@@ -51,6 +51,7 @@ const ADMIN_PEOPLE: NavSection = {
     { name: "Health & Clinic", href: "/admin/clinic", icon: Stethoscope },
     { name: "Clubs", href: "/admin/clubs", icon: Tent },
     { name: "Alumni", href: "/admin/alumni", icon: Award },
+    { name: "Teacher Feedback", href: "/admin/teacher-feedback", icon: Star },
   ],
 };
 
