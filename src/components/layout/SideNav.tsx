@@ -9,7 +9,7 @@ import {
   Plane, Video, Monitor, Bed, HelpCircle, Receipt, BrainCircuit, Book,
   ShieldAlert, Navigation, Target, UtensilsCrossed, Package, Award,
   ClipboardCheck, HeartHandshake, Search, ChevronsLeft, ChevronsRight, X, Globe2, Upload, MessageSquare, MessagesSquare,
-  Home, TrendingUp, Sparkles, Stethoscope, Star,
+  Home, TrendingUp, Sparkles, Stethoscope, Star, Fingerprint, Images,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
@@ -186,6 +186,14 @@ const SECTIONS: Record<string, NavSection[]> = {
       ],
     },
     {
+      label: "IB Diploma",
+      links: [
+        { name: "IB Core", href: "/student/ib-core", icon: Sparkles },
+        { name: "My Growth", href: "/student/growth", icon: Fingerprint },
+        { name: "Portfolio", href: "/student/portfolio", icon: Images },
+      ],
+    },
+    {
       label: "School Life",
       links: [
         { name: "Clubs", href: "/student/clubs", icon: Tent },
@@ -218,6 +226,8 @@ const TEACHER_SECTIONS: NavSection[] = [
     label: "Students",
     links: [
       { name: "Directory", href: "/teacher/students", icon: Search },
+      { name: "IB Core", href: "/teacher/ib-core", icon: Sparkles },
+      { name: "Student Growth", href: "/teacher/growth", icon: Fingerprint },
       { name: "IEP", href: "/teacher/learning-needs", icon: HeartHandshake },
       { name: "Discipline", href: "/teacher/discipline", icon: ShieldAlert },
       { name: "Messages", href: "/teacher/messages", icon: MessageSquare },

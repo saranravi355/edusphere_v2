@@ -77,6 +77,8 @@ model Teacher {
   payrollLines     PayrollLine[]
   aiGradingSubmissions AIGradingSubmission[]
   feedbackReceived TeacherFeedback[]
+  learnerProfileEvidenceGiven LearnerProfileEvidence[] @relation("LearnerProfileRecorder")
+  atlSkillRecordsGiven ATLSkillRecord[] @relation("ATLSkillRecorder")
 }
 
 model Parent {
@@ -162,6 +164,9 @@ model Student {
   assessmentResults AssessmentResult[]
   aiGradingSubmissions AIGradingSubmission[]
   teacherFeedbacks TeacherFeedback[]
+  learnerProfileEvidence LearnerProfileEvidence[]
+  atlSkillRecords  ATLSkillRecord[]
+  portfolioItems   PortfolioItem[]
 
   @@index([classroomId])
   @@index([parentId])
@@ -765,6 +770,78 @@ model IBCoreRecord {
   activityHours   Int     @default(0)
   serviceHours    Int     @default(0)
   reflections     Int     @default(0)
+  entries         IBCoreEntry[]
+
+  @@unique([studentId, element])
+  @@index([studentId])
+}
+
+// The journal behind an IBCoreRecord — CAS activity reflections, EE
+// milestones, and TOK journal entries are all "the student logs something, a
+// teacher may comment on it" against one of the three core elements, so one
+// shared entry log serves all three rather than three near-identical tables.
+// strand/hours are only meaningful on a CAS REFLECTION; when present, the
+// submitting action also adds hours onto the matching strand total on the
+// parent record so the existing CAS Coordinator dashboard
+// (admin/programmes/cas) keeps summing the same three columns it always has.
+model IBCoreEntry {
+  id           String       @id @default(cuid())
+  coreRecordId String
+  coreRecord   IBCoreRecord @relation(fields: [coreRecordId], references: [id], onDelete: Cascade)
+  authorRole   String       // STUDENT, TEACHER
+  kind         String       // REFLECTION, MILESTONE, COMMENT
+  strand       String?      // CREATIVITY, ACTIVITY, SERVICE — CAS reflections only
+  hours        Int?         // hours logged with a CAS reflection
+  text         String
+  approved     Boolean?     // supervisor sign-off; meaningful for CAS reflections only
+  createdAt    DateTime     @default(now())
+
+  @@index([coreRecordId])
+}
+
+// Evidence of an IB Learner Profile attribute, logged by a teacher against a student.
+model LearnerProfileEvidence {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  attribute    String   // INQUIRER, KNOWLEDGEABLE, THINKER, COMMUNICATOR, PRINCIPLED, OPEN_MINDED, CARING, RISK_TAKER, BALANCED, REFLECTIVE
+  evidence     String
+  recordedById String
+  recordedBy   Teacher  @relation("LearnerProfileRecorder", fields: [recordedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([studentId])
+  @@index([recordedById])
+}
+
+// A teacher's rating of a student's growth in one ATL (Approaches to Learning) skill cluster.
+model ATLSkillRecord {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  category     String   // RESEARCH, COMMUNICATION, SOCIAL, SELF_MANAGEMENT, THINKING
+  rating       Int      // 1-4: Novice, Learner, Practitioner, Expert
+  note         String?
+  recordedById String
+  recordedBy   Teacher  @relation("ATLSkillRecorder", fields: [recordedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([studentId])
+  @@index([recordedById])
+}
+
+// A piece of student work kept across the years — a file plus context, owned and managed by the student.
+model PortfolioItem {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  subject      String?
+  academicYear String?
+  fileUrl      String
+  fileType     String?
+  createdAt    DateTime @default(now())
 
   @@index([studentId])
 }

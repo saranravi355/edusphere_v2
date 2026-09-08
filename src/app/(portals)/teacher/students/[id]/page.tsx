@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { presenceByStudent } from "@/lib/attendance";
-import { ArrowLeft, User as UserIcon, BrainCircuit } from "lucide-react";
+import { ArrowLeft, User as UserIcon, BrainCircuit, Fingerprint } from "lucide-react";
 import Link from "next/link";
 
 export default async function TeacherStudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,12 +39,20 @@ export default async function TeacherStudentProfilePage({ params }: { params: Pr
         title={student.name || "Student Profile"}
         description={`Grade ${student.classroom?.gradeLevel ?? "—"} • ${student.classroom?.name || "Unassigned"}`}
         action={
-          <Link href={`/teacher/students/${student.id}/ai-analysis`}>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-medium rounded-lg transition-colors text-sm">
-              <BrainCircuit size={16} />
-              AI Insights
-            </button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href={`/teacher/growth?studentId=${student.id}`}>
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 font-medium rounded-lg transition-colors text-sm">
+                <Fingerprint size={16} />
+                Record Growth
+              </button>
+            </Link>
+            <Link href={`/teacher/students/${student.id}/ai-analysis`}>
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-medium rounded-lg transition-colors text-sm">
+                <BrainCircuit size={16} />
+                AI Insights
+              </button>
+            </Link>
+          </div>
         }
       />
 

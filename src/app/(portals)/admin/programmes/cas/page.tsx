@@ -3,11 +3,12 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import CASClient from "./CASClient";
+import { CAS_STRAND_TARGET_HOURS, CAS_REFLECTION_TARGET } from "@/lib/ib";
 
 export const dynamic = "force-dynamic";
 
-const TARGET_PER_STRAND = 50; // school benchmark hours per strand over the DP
-const REFLECTION_TARGET = 15;
+const TARGET_PER_STRAND = CAS_STRAND_TARGET_HOURS;
+const REFLECTION_TARGET = CAS_REFLECTION_TARGET;
 
 export default async function CASCoordinatorPage() {
   const session = await getSession();
