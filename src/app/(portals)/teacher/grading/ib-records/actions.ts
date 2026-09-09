@@ -8,6 +8,7 @@ import {
   CRITERIA, CRITERION_MAX, CRITERION_MIN, GRADE_MAX, GRADE_MIN,
   IB_TERMS, findSubject,
 } from "@/lib/ib/subjects";
+import { gradeToStore } from "@/lib/ib/mypGrade";
 
 /**
  * Writing the IB subject record.
@@ -136,11 +137,25 @@ export async function saveIbRecords(_prev: ActionState, formData: FormData): Pro
     // empty record for every student in the class the first time this is saved.
     if (!recordId && empty) continue;
 
+    // For a MYP student with all four criteria marked, the grade is the IB
+    // table's answer rather than whatever was in the grade box — the two used
+    // to be saved as unrelated numbers, which is how 214 records ended up
+    // holding a grade their own criteria contradict. Programme comes from the
+    // Student row read above, not the form.
+    const currentGrade = gradeToStore({
+      curriculum: s.curriculum,
+      typed: current,
+      critA: crit.critA,
+      critB: crit.critB,
+      critC: crit.critC,
+      critD: crit.critD,
+    });
+
     writes.push({
       studentId: s.id,
       recordId,
       data: {
-        currentGrade: current,
+        currentGrade,
         predictedGrade: predicted,
         teacherComment: comment,
         ...crit,
