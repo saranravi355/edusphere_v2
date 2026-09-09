@@ -18,6 +18,8 @@ export type Portal = {
   /** Higher-contrast inks, used while the card is lit. */
   inkHi: string;
   inkDarkHi: string;
+  /** The ink's own hue. The sheen stays within +/-25 degrees of it. */
+  hue: number;
 };
 
 /**
@@ -41,9 +43,13 @@ export type Portal = {
  * The tilt is applied to an inner wrapper rather than the <a>, so the link's
  * own hit area stays a plain rectangle no matter how far the card rotates.
  */
-export function PortalCard({ portal, variants, index }: { portal: Portal; variants: Variants; index: number }) {
-  const { slug, label, blurb, Icon, tint, tintDark, ink, inkDark, inkHi, inkDarkHi } = portal;
-  const { ref, onPointerMove, onPointerLeave } = usePointerGlow<HTMLDivElement>({ tilt: 11 });
+export function PortalCard({ portal, variants }: { portal: Portal; variants: Variants }) {
+  const { slug, label, blurb, Icon, tint, tintDark, ink, inkDark, inkHi, inkDarkHi, hue } = portal;
+  const { ref, onPointerMove, onPointerLeave } = usePointerGlow<HTMLDivElement>({
+    tilt: 11,
+    hueStart: hue - 25,
+    hueRange: 50,
+  });
 
   return (
     <motion.div variants={variants} className="h-full [perspective:1100px]">
@@ -69,15 +75,15 @@ export function PortalCard({ portal, variants, index }: { portal: Portal; varian
             "--glow": "0",
             "--rx": "0deg",
             "--ry": "0deg",
-            "--h1": "190",
-            "--h2": "245",
-            "--h3": "305",
+            "--h1": String(hue),
+            "--h2": String(hue + 17),
+            "--h3": String(hue + 38),
 
             // Iridescent field. Translucent colour over the card on normal
             // blending, so it behaves the same on a pale tint as on a dark one
             // - no dodge that bleaches, no multiply that muddies.
             "--iris":
-              "radial-gradient(320px circle at var(--mx) var(--my), hsl(var(--h1) 95% 66% / 0.44) 0%, hsl(var(--h2) 92% 62% / 0.30) 34%, hsl(var(--h3) 90% 60% / 0.16) 55%, transparent 76%)",
+              "radial-gradient(320px circle at var(--mx) var(--my), hsl(var(--h1) 82% 62% / 0.38) 0%, hsl(var(--h2) 76% 58% / 0.24) 36%, hsl(var(--h3) 70% 56% / 0.12) 58%, transparent 78%)",
 
             // Tight specular core - the "glossy surface" cue.
             "--spec":
@@ -91,7 +97,7 @@ export function PortalCard({ portal, variants, index }: { portal: Portal; varian
               "radial-gradient(240px circle at var(--mx) var(--my), #000 0%, rgb(0 0 0 / 0.45) 45%, transparent 72%)",
 
             "--rim":
-              "radial-gradient(260px circle at var(--mx) var(--my), hsl(var(--h1) 95% 62%) 0%, hsl(var(--h2) 90% 60% / 0.55) 45%, transparent 70%)",
+              "radial-gradient(260px circle at var(--mx) var(--my), hsl(var(--h1) 85% 60%) 0%, hsl(var(--h2) 78% 58% / 0.5) 45%, transparent 70%)",
 
             transform: "rotateX(var(--rx)) rotateY(var(--ry))",
           } as CSSProperties}
@@ -131,22 +137,27 @@ export function PortalCard({ portal, variants, index }: { portal: Portal; varian
             }}
           />
 
-          {/* Static decorative blob, kept from the approved design */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[var(--ink)] opacity-30 blur-[2px] transition-transform duration-500 group-hover:scale-150 dark:bg-[var(--ink-dark)] dark:opacity-15"
-          />
+          {/*
+            Corner treatment. This was an 80px circle under blur-[2px] - a
+            blur radius far too small for the shape, which left a hard edge
+            with a haze on it and read as a compression artefact. A radial
+            gradient has no edge to give away, and the two hairline arcs echo
+            the orbit rings in the hero.
+          */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+            <div className="absolute -right-8 -top-8 h-32 w-32 bg-[radial-gradient(circle,var(--ink)_0%,transparent_68%)] opacity-[0.22] transition-opacity duration-500 group-hover:opacity-[0.32] dark:bg-[radial-gradient(circle,var(--ink-dark)_0%,transparent_68%)] dark:opacity-[0.14] dark:group-hover:opacity-[0.2]" />
+            <svg
+              viewBox="0 0 120 120"
+              className="absolute -right-7 -top-7 h-28 w-28 text-[var(--ink)] opacity-[0.28] transition-transform duration-700 group-hover:scale-110 dark:text-[var(--ink-dark)] dark:opacity-[0.18]"
+              fill="none"
+            >
+              <circle cx="86" cy="34" r="30" stroke="currentColor" strokeWidth="1" />
+              <circle cx="86" cy="34" r="46" stroke="currentColor" strokeWidth="1" />
+            </svg>
+          </div>
 
           {/* Content sits above the light layers, and is pushed forward in 3D
               so the tilt gives it a little parallax against the card face. */}
-          {/* Index numeral. Absolute, so it adds structure without height. */}
-          <span
-            aria-hidden
-            className="absolute right-4 top-4 z-10 font-mono text-[11px] font-bold tracking-widest text-[var(--ink)] opacity-30 transition-opacity duration-300 group-hover:opacity-70 dark:text-[var(--ink-dark)]"
-          >
-            {String(index + 1).padStart(2, "0")}
-          </span>
-
           <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/80 text-[var(--ink)] shadow-sm transition-[transform,color,background-color] duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:bg-white group-hover:text-[var(--ink-hi)] dark:bg-white/[0.08] dark:text-[var(--ink-dark)] dark:group-hover:bg-white/[0.16] dark:group-hover:text-[var(--ink-dark-hi)] [transform:translateZ(38px)]">
             <Icon size={24} aria-hidden />
           </span>

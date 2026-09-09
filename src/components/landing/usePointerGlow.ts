@@ -4,6 +4,9 @@ import { useCallback, useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
+/** Normalise to 0-360; callers pass hueStart below zero to centre a range. */
+const wrap = (deg: number) => ((deg % 360) + 360) % 360;
+
 /**
  * Tracks the pointer across an element and publishes its position as CSS
  * custom properties, so the holographic effects can be driven entirely in CSS.
@@ -59,12 +62,15 @@ export function usePointerGlow<T extends HTMLElement>({
         el.style.setProperty("--my", `${(py * 100).toFixed(2)}%`);
         el.style.setProperty("--glow", "1");
 
-        // Diagonal travel across the card sweeps the spectrum, so moving in
-        // any direction shifts the colour.
-        const hue = (hueStart + (px * 0.65 + py * 0.35) * hueRange) % 360;
+        // Diagonal travel across the surface shifts the colour. The range is
+        // supplied by the caller and is deliberately narrow for the cards: a
+        // wide sweep puts green on the pink tile, which reads as a fault
+        // rather than as a sheen. The two companion hues are spaced as a
+        // fraction of that range so they stay inside the same family.
+        const hue = wrap(hueStart + (px * 0.65 + py * 0.35) * hueRange);
         el.style.setProperty("--h1", hue.toFixed(1));
-        el.style.setProperty("--h2", ((hue + 55) % 360).toFixed(1));
-        el.style.setProperty("--h3", ((hue + 115) % 360).toFixed(1));
+        el.style.setProperty("--h2", wrap(hue + hueRange * 0.35).toFixed(1));
+        el.style.setProperty("--h3", wrap(hue + hueRange * 0.75).toFixed(1));
 
         if (tilt && !reduce) {
           el.style.setProperty("--rx", `${((0.5 - py) * tilt).toFixed(2)}deg`);

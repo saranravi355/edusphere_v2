@@ -42,12 +42,12 @@ export type PublicNotice = {
  * the heading and the prefilled address.
  */
 const PORTALS: Portal[] = [
-  { slug: "admin",      label: "Management", blurb: "Strategic control for better outcomes", Icon: SchoolIcon,    tint: "#F3EEFF", tintDark: "#241B3A", ink: "#7C3AED", inkDark: "#C4B5FD", inkHi: "#5B21B6", inkDarkHi: "#EDE9FE" },
-  { slug: "principal",  label: "Principal",  blurb: "Lead with insight and efficiency",      Icon: PrincipalIcon, tint: "#FFEBF3", tintDark: "#3A1A28", ink: "#DB2777", inkDark: "#F9A8D4", inkHi: "#9D174D", inkDarkHi: "#FCE7F3" },
-  { slug: "teacher",    label: "Teacher",    blurb: "Inspire. Teach. Make a difference.",    Icon: TeacherIcon,   tint: "#FFF4E0", tintDark: "#3A2A12", ink: "#D97706", inkDark: "#FCD34D", inkHi: "#92400E", inkDarkHi: "#FEF3C7" },
-  { slug: "student",    label: "Student",    blurb: "Learn today. Lead tomorrow.",           Icon: GraduateIcon,  tint: "#E8F0FF", tintDark: "#16233F", ink: "#2563EB", inkDark: "#93C5FD", inkHi: "#1E40AF", inkDarkHi: "#DBEAFE" },
-  { slug: "parent",     label: "Parent",     blurb: "Stay connected. Be involved.",          Icon: FamilyIcon,    tint: "#E6F7EC", tintDark: "#12301D", ink: "#16A34A", inkDark: "#86EFAC", inkHi: "#14532D", inkDarkHi: "#DCFCE7" },
-  { slug: "operations", label: "Operations", blurb: "Ensure smooth and smart operations",    Icon: GearIcon,      tint: "#E0F7F5", tintDark: "#0E2E2C", ink: "#0D9488", inkDark: "#5EEAD4", inkHi: "#115E59", inkDarkHi: "#CCFBF1" },
+  { slug: "admin",      label: "Management", blurb: "Strategic control for better outcomes", Icon: SchoolIcon,    tint: "#F3EEFF", tintDark: "#241B3A", ink: "#7C3AED", inkDark: "#C4B5FD", inkHi: "#5B21B6", inkDarkHi: "#EDE9FE" , hue: 262 },
+  { slug: "principal",  label: "Principal",  blurb: "Lead with insight and efficiency",      Icon: PrincipalIcon, tint: "#FFEBF3", tintDark: "#3A1A28", ink: "#DB2777", inkDark: "#F9A8D4", inkHi: "#9D174D", inkDarkHi: "#FCE7F3" , hue: 333 },
+  { slug: "teacher",    label: "Teacher",    blurb: "Inspire. Teach. Make a difference.",    Icon: TeacherIcon,   tint: "#FFF4E0", tintDark: "#3A2A12", ink: "#D97706", inkDark: "#FCD34D", inkHi: "#92400E", inkDarkHi: "#FEF3C7" , hue: 33 },
+  { slug: "student",    label: "Student",    blurb: "Learn today. Lead tomorrow.",           Icon: GraduateIcon,  tint: "#E8F0FF", tintDark: "#16233F", ink: "#2563EB", inkDark: "#93C5FD", inkHi: "#1E40AF", inkDarkHi: "#DBEAFE" , hue: 221 },
+  { slug: "parent",     label: "Parent",     blurb: "Stay connected. Be involved.",          Icon: FamilyIcon,    tint: "#E6F7EC", tintDark: "#12301D", ink: "#16A34A", inkDark: "#86EFAC", inkHi: "#14532D", inkDarkHi: "#DCFCE7" , hue: 142 },
+  { slug: "operations", label: "Operations", blurb: "Ensure smooth and smart operations",    Icon: GearIcon,      tint: "#E0F7F5", tintDark: "#0E2E2C", ink: "#0D9488", inkDark: "#5EEAD4", inkHi: "#115E59", inkDarkHi: "#CCFBF1" , hue: 175 },
 ];
 
 type Tone = { bg: string; fg: string; bgDark: string; fgDark: string };
@@ -352,8 +352,8 @@ export default function LandingPage({
             viewport={{ once: true, margin: "-80px" }}
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
           >
-            {PORTALS.map((p, i) => (
-              <PortalCard key={p.slug} portal={p} variants={rise} index={i} />
+            {PORTALS.map((p) => (
+              <PortalCard key={p.slug} portal={p} variants={rise} />
             ))}
           </motion.div>
         </section>
