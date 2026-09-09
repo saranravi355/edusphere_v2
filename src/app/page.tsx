@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import LandingPage from "./LandingPage";
 import { formatDate } from "@/lib/dates";
+import { learnerProfileOfTheDay } from "@/lib/ib";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export default async function Home() {
 
   return (
     <LandingPage
+      attribute={learnerProfileOfTheDay(now)}
       notices={events.map((e) => ({
         id: e.id,
         title: e.title,

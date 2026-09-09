@@ -87,7 +87,15 @@ const REVEAL = {
   transition: { duration: 0.6, ease: "easeOut" as const },
 };
 
-export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
+export type LearnerAttribute = { value: string; label: string; descriptor: string };
+
+export default function LandingPage({
+  notices,
+  attribute,
+}: {
+  notices: PublicNotice[];
+  attribute: LearnerAttribute;
+}) {
   const stagger: Variants = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
@@ -431,11 +439,11 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
           <motion.div
             {...REVEAL}
             transition={{ duration: 0.6, delay: 0.12, ease: "easeOut" }}
-            className="landing-drift relative overflow-hidden rounded-2xl p-8 text-white"
+            className="landing-drift relative overflow-hidden rounded-2xl p-8 pb-24 text-white"
             style={{ backgroundImage: "linear-gradient(150deg,#0F2747 0%,#1E3A6E 45%,#2563EB 75%,#5B3FBF 100%)" }}
           >
             <div aria-hidden className="landing-float-slow pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-            <CampusScene className="pointer-events-none absolute inset-x-0 bottom-0 h-32 w-full" />
+            <CampusScene className="pointer-events-none absolute inset-x-0 bottom-0 h-20 w-full" />
             <Quote size={40} className="landing-float relative opacity-25" aria-hidden />
             <p className="relative mt-4 font-heading text-2xl font-bold leading-snug">
               A brighter future begins here.
@@ -443,8 +451,31 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
             <p className="relative mt-4 text-sm leading-relaxed text-white/75">
               Education is not preparation for life; education is life itself.
             </p>
-            <div className="relative mt-8 h-px w-full bg-white/15" />
-            <p className="relative mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
+            <p className="relative mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
+              John Dewey
+            </p>
+
+            <div className="relative mt-7 h-px w-full bg-white/15" />
+
+            {/*
+              The IB learner profile attribute for today, rotated on the IST
+              calendar day. It fills a panel that otherwise stretched to match
+              the calendar card beside it, and it does so with real curriculum
+              content rather than decoration.
+            */}
+            <div className="relative mt-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">
+                IB Learner Profile &middot; Today
+              </p>
+              <p className="mt-3 font-heading text-3xl font-bold leading-tight text-white">
+                {attribute.label}
+              </p>
+              <p className="mt-2.5 max-w-sm text-sm leading-relaxed text-white/70">
+                {attribute.descriptor}
+              </p>
+            </div>
+
+            <p className="relative mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
               People &middot; Process &middot; Progress &middot; Together
             </p>
           </motion.div>
