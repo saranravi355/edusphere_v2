@@ -3,13 +3,15 @@
 import type { CSSProperties } from "react";
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
-import {
-  GraduationCap, Users, UserCircle, Building, Briefcase, Boxes,
-  CalendarDays, Quote, LogIn,
-} from "lucide-react";
+import { CalendarDays, Quote, LogIn } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { LogoFull, LogoMark } from "@/components/ui/Logo";
+import { LogoMark } from "@/components/ui/Logo";
+import { HeroScene } from "@/components/landing/HeroScene";
+import { CampusScene } from "@/components/landing/CampusScene";
 import { PortalCard, type Portal } from "@/components/landing/PortalCard";
+import {
+  SchoolIcon, PrincipalIcon, TeacherIcon, GraduateIcon, FamilyIcon, GearIcon,
+} from "@/components/landing/PortalIcons";
 import { usePointerGlow } from "@/components/landing/usePointerGlow";
 
 export type PublicNotice = {
@@ -40,12 +42,12 @@ export type PublicNotice = {
  * the heading and the prefilled address.
  */
 const PORTALS: Portal[] = [
-  { slug: "admin",      label: "Management", blurb: "Strategic control for better outcomes", Icon: Building,      tint: "#F3EEFF", tintDark: "#241B3A", ink: "#7C3AED", inkDark: "#C4B5FD", inkHi: "#5B21B6", inkDarkHi: "#EDE9FE" },
-  { slug: "principal",  label: "Principal",  blurb: "Lead with insight and efficiency",      Icon: Briefcase,     tint: "#FFEBF3", tintDark: "#3A1A28", ink: "#DB2777", inkDark: "#F9A8D4", inkHi: "#9D174D", inkDarkHi: "#FCE7F3" },
-  { slug: "teacher",    label: "Teacher",    blurb: "Inspire. Teach. Make a difference.",    Icon: Users,         tint: "#FFF4E0", tintDark: "#3A2A12", ink: "#D97706", inkDark: "#FCD34D", inkHi: "#92400E", inkDarkHi: "#FEF3C7" },
-  { slug: "student",    label: "Student",    blurb: "Learn today. Lead tomorrow.",           Icon: GraduationCap, tint: "#E8F0FF", tintDark: "#16233F", ink: "#2563EB", inkDark: "#93C5FD", inkHi: "#1E40AF", inkDarkHi: "#DBEAFE" },
-  { slug: "parent",     label: "Parent",     blurb: "Stay connected. Be involved.",          Icon: UserCircle,    tint: "#E6F7EC", tintDark: "#12301D", ink: "#16A34A", inkDark: "#86EFAC", inkHi: "#14532D", inkDarkHi: "#DCFCE7" },
-  { slug: "operations", label: "Operations", blurb: "Ensure smooth and smart operations",    Icon: Boxes,         tint: "#E0F7F5", tintDark: "#0E2E2C", ink: "#0D9488", inkDark: "#5EEAD4", inkHi: "#115E59", inkDarkHi: "#CCFBF1" },
+  { slug: "admin",      label: "Management", blurb: "Strategic control for better outcomes", Icon: SchoolIcon,    tint: "#F3EEFF", tintDark: "#241B3A", ink: "#7C3AED", inkDark: "#C4B5FD", inkHi: "#5B21B6", inkDarkHi: "#EDE9FE" },
+  { slug: "principal",  label: "Principal",  blurb: "Lead with insight and efficiency",      Icon: PrincipalIcon, tint: "#FFEBF3", tintDark: "#3A1A28", ink: "#DB2777", inkDark: "#F9A8D4", inkHi: "#9D174D", inkDarkHi: "#FCE7F3" },
+  { slug: "teacher",    label: "Teacher",    blurb: "Inspire. Teach. Make a difference.",    Icon: TeacherIcon,   tint: "#FFF4E0", tintDark: "#3A2A12", ink: "#D97706", inkDark: "#FCD34D", inkHi: "#92400E", inkDarkHi: "#FEF3C7" },
+  { slug: "student",    label: "Student",    blurb: "Learn today. Lead tomorrow.",           Icon: GraduateIcon,  tint: "#E8F0FF", tintDark: "#16233F", ink: "#2563EB", inkDark: "#93C5FD", inkHi: "#1E40AF", inkDarkHi: "#DBEAFE" },
+  { slug: "parent",     label: "Parent",     blurb: "Stay connected. Be involved.",          Icon: FamilyIcon,    tint: "#E6F7EC", tintDark: "#12301D", ink: "#16A34A", inkDark: "#86EFAC", inkHi: "#14532D", inkDarkHi: "#DCFCE7" },
+  { slug: "operations", label: "Operations", blurb: "Ensure smooth and smart operations",    Icon: GearIcon,      tint: "#E0F7F5", tintDark: "#0E2E2C", ink: "#0D9488", inkDark: "#5EEAD4", inkHi: "#115E59", inkDarkHi: "#CCFBF1" },
 ];
 
 type Tone = { bg: string; fg: string; bgDark: string; fgDark: string };
@@ -308,15 +310,16 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
               </span>
 
               {/*
-                logo.png carries its own light background, so on a dark hero it
-                needs a plate under it rather than being left to float.
+                The illustration stands in for the mark here. The header
+                already carries the logo, so repeating it spends the one place
+                on the page with room for an image on something already shown.
               */}
-              <div className="landing-float relative rounded-2xl dark:bg-white/90 dark:p-4">
+              <div className="landing-float relative">
                 <span
                   aria-hidden
                   className="landing-pulse-ring absolute inset-0 -z-10 rounded-full bg-[#2563EB]/10 blur-2xl dark:bg-[#93C5FD]/20"
                 />
-                <LogoFull className="h-32 w-auto object-contain drop-shadow-sm xl:h-36" />
+                <HeroScene className="h-[13.5rem] w-auto xl:h-[15rem]" />
               </div>
             </motion.div>
           </div>
@@ -432,6 +435,7 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
             style={{ backgroundImage: "linear-gradient(150deg,#0F2747 0%,#1E3A6E 45%,#2563EB 75%,#5B3FBF 100%)" }}
           >
             <div aria-hidden className="landing-float-slow pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+            <CampusScene className="pointer-events-none absolute inset-x-0 bottom-0 h-32 w-full" />
             <Quote size={40} className="landing-float relative opacity-25" aria-hidden />
             <p className="relative mt-4 font-heading text-2xl font-bold leading-snug">
               A brighter future begins here.
