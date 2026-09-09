@@ -23,12 +23,16 @@ export type Portal = {
 /**
  * A portal tile with a holographic response to the cursor.
  *
- * The two themes need opposite blend modes, which is the whole trick here.
- * On a dark card, `color-dodge` over a white-ish gradient reads as light
- * catching foil. On a pale card the same gradient saturates to flat white
- * almost immediately - the effect vanishes and the label washes out with it -
- * so light mode instead uses `multiply` with saturated chroma, which tints the
- * card toward cyan/violet/pink rather than bleaching it.
+ * What sells it is that the hue tracks the pointer, not just the highlight's
+ * position: real foil shifts colour as the angle changes, so a fixed gradient
+ * being dragged around reads as a coloured blob instead. usePointerGlow
+ * publishes the hues; the four layers below consume them.
+ *
+ * Deliberately no blend modes. `color-dodge` bleaches a pale card to flat
+ * white and `multiply` muddies it, so an earlier version needed a separate
+ * treatment per theme and broke in light mode. Translucent colour on normal
+ * blending behaves the same over any backdrop, leaving opacity as the only
+ * thing the two themes differ on.
  *
  * Text follows suit: each portal carries a high-contrast ink that the label,
  * blurb and icon switch to while the card is lit, so nothing loses legibility
@@ -37,7 +41,7 @@ export type Portal = {
  * The tilt is applied to an inner wrapper rather than the <a>, so the link's
  * own hit area stays a plain rectangle no matter how far the card rotates.
  */
-export function PortalCard({ portal, variants }: { portal: Portal; variants: Variants }) {
+export function PortalCard({ portal, variants, index }: { portal: Portal; variants: Variants; index: number }) {
   const { slug, label, blurb, Icon, tint, tintDark, ink, inkDark, inkHi, inkDarkHi } = portal;
   const { ref, onPointerMove, onPointerLeave } = usePointerGlow<HTMLDivElement>({ tilt: 11 });
 
@@ -91,7 +95,7 @@ export function PortalCard({ portal, variants }: { portal: Portal; variants: Var
 
             transform: "rotateX(var(--rx)) rotateY(var(--ry))",
           } as CSSProperties}
-          className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-[var(--tint)] p-5 shadow-sm transition-[transform,box-shadow] duration-200 ease-out [transform-style:preserve-3d] group-hover:shadow-2xl dark:bg-[var(--tint-dark)] dark:shadow-none dark:group-hover:shadow-black/50"
+          className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-[var(--tint)] p-4 shadow-sm transition-[transform,box-shadow] duration-200 ease-out [transform-style:preserve-3d] group-hover:shadow-2xl dark:bg-[var(--tint-dark)] dark:shadow-none dark:group-hover:shadow-black/50"
         >
           {/* 1. Iridescent field - hue follows the cursor */}
           <div
@@ -135,18 +139,26 @@ export function PortalCard({ portal, variants }: { portal: Portal; variants: Var
 
           {/* Content sits above the light layers, and is pushed forward in 3D
               so the tilt gives it a little parallax against the card face. */}
-          <span className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white/80 text-[var(--ink)] shadow-sm transition-[transform,color,background-color] duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:bg-white group-hover:text-[var(--ink-hi)] dark:bg-white/[0.08] dark:text-[var(--ink-dark)] dark:group-hover:bg-white/[0.16] dark:group-hover:text-[var(--ink-dark-hi)] [transform:translateZ(38px)]">
+          {/* Index numeral. Absolute, so it adds structure without height. */}
+          <span
+            aria-hidden
+            className="absolute right-4 top-4 z-10 font-mono text-[11px] font-bold tracking-widest text-[var(--ink)] opacity-30 transition-opacity duration-300 group-hover:opacity-70 dark:text-[var(--ink-dark)]"
+          >
+            {String(index + 1).padStart(2, "0")}
+          </span>
+
+          <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/80 text-[var(--ink)] shadow-sm transition-[transform,color,background-color] duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:bg-white group-hover:text-[var(--ink-hi)] dark:bg-white/[0.08] dark:text-[var(--ink-dark)] dark:group-hover:bg-white/[0.16] dark:group-hover:text-[var(--ink-dark-hi)] [transform:translateZ(38px)]">
             <Icon size={24} aria-hidden />
           </span>
 
-          <p className="relative mt-6 text-lg font-extrabold tracking-tight text-[var(--ink)] transition-colors duration-300 group-hover:text-[var(--ink-hi)] dark:text-[var(--ink-dark)] dark:group-hover:text-[var(--ink-dark-hi)] [transform:translateZ(26px)]">
+          <p className="relative mt-4 text-lg font-extrabold tracking-tight text-[var(--ink)] transition-colors duration-300 group-hover:text-[var(--ink-hi)] dark:text-[var(--ink-dark)] dark:group-hover:text-[var(--ink-dark-hi)] [transform:translateZ(26px)]">
             {label}
           </p>
           <p className="relative mt-1 flex-1 text-sm leading-snug text-[#4B5563] transition-colors duration-300 group-hover:text-[#111827] dark:text-zinc-400 dark:group-hover:text-zinc-100 [transform:translateZ(16px)]">
             {blurb}
           </p>
 
-          <span className="relative mt-4 inline-flex h-9 w-9 items-center justify-center self-end overflow-hidden rounded-lg bg-[var(--ink)] text-white shadow-sm transition-[transform,background-color] duration-300 group-hover:translate-x-1 group-hover:bg-[var(--ink-hi)] dark:bg-[var(--ink-dark)] dark:text-zinc-900 dark:group-hover:bg-[var(--ink-dark-hi)] [transform:translateZ(30px)]">
+          <span className="relative mt-3 inline-flex h-9 w-9 items-center justify-center self-end overflow-hidden rounded-lg bg-[var(--ink)] text-white shadow-sm transition-[transform,background-color] duration-300 group-hover:translate-x-1 group-hover:bg-[var(--ink-hi)] dark:bg-[var(--ink-dark)] dark:text-zinc-900 dark:group-hover:bg-[var(--ink-dark-hi)] [transform:translateZ(30px)]">
             <ArrowRight size={16} aria-hidden />
             <span
               aria-hidden

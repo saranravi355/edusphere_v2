@@ -63,6 +63,20 @@ const PROGRAMMES = ["Primary Years Programme", "Middle Years Programme", "Diplom
 const HEADLINE = ["Empowering", "Education", "for", "a"];
 const HEADLINE_ACCENT = ["Brighter", "Tomorrow"];
 
+/**
+ * Orbit rings behind the mark. Each ring carries one node, coloured from the
+ * portal palette so the decoration is drawn from the same six inks as the
+ * cards rather than introducing a seventh colour.
+ */
+const ORBITS = [
+  { inset: "0",     dur: "42s", dot: "#7C3AED", top: "6%",  left: "50%" },
+  { inset: "13%",   dur: "31s", dot: "#2563EB", top: "50%", left: "2%"  },
+  { inset: "26%",   dur: "23s", dot: "#0D9488", top: "88%", left: "62%" },
+];
+
+/** The six portal inks, used as a spectrum rule under the header. */
+const SPECTRUM = "linear-gradient(90deg,#7C3AED,#DB2777,#D97706,#2563EB,#16A34A,#0D9488)";
+
 /** Reveal a section the first time it scrolls into view. */
 const REVEAL = {
   initial: { opacity: 0, y: 28 },
@@ -130,6 +144,19 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
             </Link>
           </motion.div>
         </div>
+
+        {/*
+          A hairline of the six portal inks, in the order the cards appear.
+          It ties the header to the palette without adding another surface.
+        */}
+        <motion.div
+          aria-hidden
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.9, delay: 0.25, ease: "easeOut" }}
+          className="h-px w-full origin-left opacity-70"
+          style={{ backgroundImage: SPECTRUM }}
+        />
       </header>
 
       <main className="relative z-10 mx-auto max-w-[88rem] px-6">
@@ -160,7 +187,7 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
             "--hero-spec":
               "radial-gradient(260px circle at var(--mx) var(--my), rgb(255 255 255 / 0.55) 0%, rgb(255 255 255 / 0.12) 50%, transparent 75%)",
           } as CSSProperties}
-          className="landing-drift relative mt-6 overflow-hidden rounded-3xl border border-black/5 bg-[image:var(--hero)] dark:border-white/10 dark:bg-[image:var(--hero-dark)]"
+          className="landing-drift relative mt-4 overflow-hidden rounded-3xl border border-black/5 bg-[image:var(--hero)] dark:border-white/10 dark:bg-[image:var(--hero-dark)]"
         >
           {/* Cursor light */}
           <div
@@ -175,13 +202,13 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
           <div aria-hidden className="landing-float pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-white/50 blur-2xl dark:bg-white/[0.05]" />
           <div aria-hidden className="landing-float-slow pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-[#BFE3D0]/40 blur-3xl dark:bg-[#1E4E6B]/30" />
 
-          <div className="relative grid items-center gap-8 p-8 md:p-12 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="relative grid items-center gap-6 p-6 md:p-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div>
               <motion.h1
                 variants={{ show: { transition: { staggerChildren: 0.07, delayChildren: 0.2 } } }}
                 initial="hidden"
                 animate="show"
-                className="font-heading text-4xl font-black leading-[1.08] tracking-tight text-[#0F2747] dark:text-[#F1F5F9] md:text-6xl"
+                className="font-heading text-[2.15rem] font-black leading-[1.06] tracking-tight text-[#0F2747] dark:text-[#F1F5F9] sm:text-[2.6rem] xl:text-[3rem]"
               >
                 {HEADLINE.map((w) => (
                   <motion.span key={w} variants={word} className="mr-[0.28em] inline-block">
@@ -189,11 +216,16 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
                   </motion.span>
                 ))}
                 <br />
+                {/*
+                  Gradient per word rather than across the line: the words
+                  animate in separately, so a line-wide gradient would slide
+                  under them as each one lands.
+                */}
                 {HEADLINE_ACCENT.map((w) => (
                   <motion.span
                     key={w}
                     variants={word}
-                    className="mr-[0.28em] inline-block text-[#2563EB] dark:text-[#93C5FD]"
+                    className="mr-[0.28em] inline-block bg-gradient-to-br from-[#2563EB] via-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent dark:from-[#93C5FD] dark:via-[#A5B4FC] dark:to-[#C4B5FD]"
                   >
                     {w}
                   </motion.span>
@@ -204,7 +236,7 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.62 }}
-                className="mt-5 max-w-xl text-base leading-relaxed text-[#3C4A5A] dark:text-[#9FB0C4] md:text-lg"
+                className="mt-3 max-w-xl text-base leading-relaxed text-[#3C4A5A] dark:text-[#9FB0C4] md:text-lg"
               >
                 Connecting management, teachers, students, parents and operations
                 on a single intelligent platform.
@@ -214,7 +246,7 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.74 }}
-                className="mt-7 flex items-center gap-3 text-sm font-bold tracking-wide text-[#0F2747] dark:text-[#CBD5E1]"
+                className="mt-5 flex items-center gap-3 text-sm font-bold tracking-wide text-[#0F2747] dark:text-[#CBD5E1]"
               >
                 <span>Learn</span>
                 <span className="text-[#9FB3C8] dark:text-[#475569]">|</span>
@@ -227,7 +259,7 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
                 variants={{ show: { transition: { staggerChildren: 0.08, delayChildren: 0.82 } } }}
                 initial="hidden"
                 animate="show"
-                className="mt-8 flex flex-wrap gap-2"
+                className="mt-5 flex flex-wrap gap-2"
               >
                 {PROGRAMMES.map((p) => (
                   <motion.span
@@ -249,22 +281,50 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-              className="hidden justify-center lg:flex"
+              className="relative hidden items-center justify-center lg:flex"
             >
+              {/*
+                Concentric orbits with a node riding each ring. The mark is a
+                globe wrapped in a network and the product is called 360, so
+                rings are the motif the brand already implies - and each node
+                takes one of the six portal inks, which is where the rest of
+                the page gets its colour from.
+              */}
+              <span aria-hidden className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <span className="relative block h-[17rem] w-[17rem] xl:h-[19rem] xl:w-[19rem]">
+                  {ORBITS.map(({ inset, dur, dot, top, left }) => (
+                    <span
+                      key={inset}
+                      className="landing-orbit absolute rounded-full border border-[#0F2747]/[0.07] dark:border-white/[0.07]"
+                      style={{ inset, animationDuration: dur } as CSSProperties}
+                    >
+                      <span
+                        className="absolute h-1.5 w-1.5 rounded-full"
+                        style={{ background: dot, top, left, boxShadow: `0 0 10px 1px ${dot}` }}
+                      />
+                    </span>
+                  ))}
+                </span>
+              </span>
+
+              {/*
+                logo.png carries its own light background, so on a dark hero it
+                needs a plate under it rather than being left to float.
+              */}
               <div className="landing-float relative rounded-2xl dark:bg-white/90 dark:p-4">
                 <span
                   aria-hidden
                   className="landing-pulse-ring absolute inset-0 -z-10 rounded-full bg-[#2563EB]/10 blur-2xl dark:bg-[#93C5FD]/20"
                 />
-                <LogoFull className="h-56 w-auto object-contain drop-shadow-sm" />
+                <LogoFull className="h-32 w-auto object-contain drop-shadow-sm xl:h-36" />
               </div>
             </motion.div>
           </div>
         </motion.section>
 
         {/* Portal chooser */}
-        <section className="mt-12">
-          <motion.div {...REVEAL} className="mb-5 flex items-end justify-between">
+        <section className="mt-6">
+          <motion.div {...REVEAL} className="mb-3 flex items-end justify-between">
             <div>
               <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Choose your portal</h2>
               <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">Six front doors, one platform</p>
@@ -281,8 +341,8 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
             viewport={{ once: true, margin: "-80px" }}
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
           >
-            {PORTALS.map((p) => (
-              <PortalCard key={p.slug} portal={p} variants={rise} />
+            {PORTALS.map((p, i) => (
+              <PortalCard key={p.slug} portal={p} variants={rise} index={i} />
             ))}
           </motion.div>
         </section>
@@ -295,7 +355,7 @@ export default function LandingPage({ notices }: { notices: PublicNotice[] }) {
           - each styled as clickable with no handler. What a visitor can
           legitimately be shown is the school's own published calendar.
         */}
-        <section className="mt-10 grid gap-5 lg:grid-cols-[1.55fr_1fr]">
+        <section className="mt-8 grid gap-5 lg:grid-cols-[1.55fr_1fr]">
           <motion.div
             {...REVEAL}
             className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-zinc-900"
