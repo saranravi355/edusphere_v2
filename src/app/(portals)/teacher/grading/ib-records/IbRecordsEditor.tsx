@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import { Save, TrendingUp } from "lucide-react";
 import { SubmitButton, FormFeedback } from "@/components/ui/form";
 import { CRITERIA, CRITERION_MAX, CRITERION_MIN, GRADE_MAX, GRADE_MIN, findSubject, type Programme } from "@/lib/ib/subjects";
+import { criterionTotal, mypGradeFromCriteria } from "@/lib/ib/mypGrade";
 import { saveIbRecords } from "./actions";
 
 export interface IbRow {
@@ -46,9 +47,36 @@ export default function IbRecordsEditor({
   const [current, setCurrent] = useState<Record<string, string>>(
     () => Object.fromEntries(rows.map((r) => [r.id, r.currentGrade === null ? "" : String(r.currentGrade)])),
   );
+  // Criteria are held here too, because for a MYP student they now decide the
+  // grade: the cell next to them has to move as they are typed.
+  const [crit, setCrit] = useState<Record<string, Record<string, string>>>(
+    () => Object.fromEntries(rows.map((r) => [
+      r.id,
+      Object.fromEntries(CRITERIA.map((k) => {
+        const v = r[`crit${k}` as "critA"];
+        return [k, v === null ? "" : String(v)];
+      })),
+    ])),
+  );
 
   const levels = findSubject(subjectName)?.levels ?? (programme === "DP" ? ["HL", "SL"] : ["MYP"]);
   const showCriteria = rows.some((r) => r.curriculum === "MYP");
+
+  /** The four criterion levels a row currently holds, as numbers or null. */
+  const levelsOf = (id: string) =>
+    CRITERIA.map((k) => {
+      const raw = crit[id]?.[k] ?? "";
+      return raw === "" ? null : Number(raw);
+    }) as [number | null, number | null, number | null, number | null];
+
+  /** The grade the IB table gives this row, or null while it is incomplete. */
+  const derivedOf = (id: string) => mypGradeFromCriteria(...levelsOf(id));
+
+  /** What will actually be stored — the same rule the save action applies. */
+  const effectiveOf = (r: IbRow) => {
+    if (r.curriculum !== "MYP") return Number(current[r.id]);
+    return derivedOf(r.id) ?? Number(current[r.id]);
+  };
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,7 +84,7 @@ export default function IbRecordsEditor({
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.registrationNo.toLowerCase().includes(q));
   }, [rows, query]);
 
-  const entered = Object.values(current).map(Number).filter((n) => n >= GRADE_MIN && n <= GRADE_MAX);
+  const entered = rows.map(effectiveOf).filter((n) => n >= GRADE_MIN && n <= GRADE_MAX);
   const average = entered.length ? (entered.reduce((a, b) => a + b, 0) / entered.length).toFixed(1) : null;
   const withRecord = rows.filter((r) => r.hasRecord).length;
 
@@ -113,8 +141,10 @@ export default function IbRecordsEditor({
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
             {visible.map((r) => {
-              const g = Number(current[r.id]);
               const isMyp = r.curriculum === "MYP";
+              const derived = isMyp ? derivedOf(r.id) : null;
+              const total = isMyp ? criterionTotal(...levelsOf(r.id)) : null;
+              const g = effectiveOf(r);
               return (
                 <tr key={r.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/30">
                   <td className="py-2 px-4">
@@ -130,22 +160,37 @@ export default function IbRecordsEditor({
                     </select>
                   </td>
                   <td className="py-2 px-2 text-center">
-                    <div className="inline-flex items-center gap-2">
-                      <input
-                        name={`current.${r.id}`}
-                        type="number"
-                        min={GRADE_MIN}
-                        max={GRADE_MAX}
-                        step={1}
-                        value={current[r.id] ?? ""}
-                        onChange={(e) => setCurrent((p) => ({ ...p, [r.id]: e.target.value }))}
-                        aria-label={`Current grade for ${r.name}`}
-                        className={cell}
-                      />
-                      {g >= GRADE_MIN && g <= GRADE_MAX && (
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${band(g)}`}>{g}</span>
-                      )}
-                    </div>
+                    {derived !== null ? (
+                      // Marked in full: the grade is the IB table's answer, so
+                      // it is shown rather than asked for. Typing a different
+                      // number here would not have survived the save anyway.
+                      <div className="inline-flex items-center gap-2">
+                        <span
+                          className={`w-14 py-1.5 rounded text-sm font-bold ${band(derived)}`}
+                          title={`Criterion total ${total} of 32 converts to grade ${derived}`}
+                        >
+                          {derived}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">{total}/32</span>
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-2">
+                        <input
+                          name={`current.${r.id}`}
+                          type="number"
+                          min={GRADE_MIN}
+                          max={GRADE_MAX}
+                          step={1}
+                          value={current[r.id] ?? ""}
+                          onChange={(e) => setCurrent((p) => ({ ...p, [r.id]: e.target.value }))}
+                          aria-label={`Current grade for ${r.name}`}
+                          className={cell}
+                        />
+                        {g >= GRADE_MIN && g <= GRADE_MAX && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${band(g)}`}>{g}</span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="py-2 px-2 text-center">
                     <input
@@ -168,7 +213,10 @@ export default function IbRecordsEditor({
                           min={CRITERION_MIN}
                           max={CRITERION_MAX}
                           step={1}
-                          defaultValue={(r[`crit${k}` as "critA"] ?? "") as number | ""}
+                          value={crit[r.id]?.[k] ?? ""}
+                          onChange={(e) =>
+                            setCrit((p) => ({ ...p, [r.id]: { ...p[r.id], [k]: e.target.value } }))
+                          }
                           aria-label={`Criterion ${k} for ${r.name}`}
                           className={cell}
                         />
@@ -209,6 +257,9 @@ export default function IbRecordsEditor({
             <Save size={16} aria-hidden /> Save IB records
           </SubmitButton>
           <p className="text-xs text-slate-400">
+            {showCriteria
+              ? "For MYP students the 1–7 grade is the IB conversion of the four criterion totals, so it is shown rather than typed. Mark all four criteria and the grade follows; until then you can enter one by hand. "
+              : ""}
             Saved records appear on the student profile, the report card and the predicted-grade analysis.
             A student with nothing entered is skipped rather than given an empty record.
           </p>
