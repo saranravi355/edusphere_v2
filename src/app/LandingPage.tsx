@@ -335,14 +335,8 @@ export default function LandingPage({
 
         {/* Portal chooser */}
         <section className="mt-6">
-          <motion.div {...REVEAL} className="mb-3 flex items-end justify-between">
-            <div>
-              <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Choose your portal</h2>
-              <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">Six front doors, one platform</p>
-            </div>
-            <p className="hidden text-xs font-medium text-zinc-400 sm:block dark:text-zinc-500">
-              Hover a card to light it up
-            </p>
+          <motion.div {...REVEAL} className="mb-3">
+            <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Choose your portal</h2>
           </motion.div>
 
           <motion.div
