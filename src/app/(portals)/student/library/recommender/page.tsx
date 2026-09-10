@@ -4,19 +4,28 @@ import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
+import { useProgramme } from "@/components/students/ProgrammeProvider";
 import { Sparkles, BookOpen, Star } from "lucide-react";
 
-// Every title below is in the school library's catalogue, which the page says it
-// draws from. The old third pick was not in the catalogue, and was justified by
-// a "Lexile band" — an American reading scale this school does not use.
-const books = [
-  { title: "The God of Small Things", author: "Arundhati Roy", reason: "In the library, and overlaps with your English A: Language & Literature unit on identity and power", match: 94 },
-  { title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", reason: "Strong fit for your TOK exhibition theme on knowledge and history", match: 88 },
-  { title: "Development as Freedom", author: "Amartya Sen", reason: "Pairs with the development economics unit in Economics HL; heavier going, so worth starting early", match: 81 },
-];
+type Book = { title: string; author: string; reason: string; match: number };
+
+// Every title, for either programme, is in the school library's catalogue.
+const BOOKS: Record<"DP" | "MYP", Book[]> = {
+  DP: [
+    { title: "The God of Small Things", author: "Arundhati Roy", reason: "In the library, and overlaps with your English A: Language & Literature unit on identity and power", match: 94 },
+    { title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", reason: "Strong fit for your TOK exhibition theme on knowledge and history", match: 88 },
+    { title: "Development as Freedom", author: "Amartya Sen", reason: "Pairs with the development economics unit in Economics HL; heavier going, so worth starting early", match: 81 },
+  ],
+  MYP: [
+    { title: "Persepolis", author: "Marjane Satrapi", reason: "A graphic memoir for your Language & Literature unit on identity and perspective", match: 92 },
+    { title: "Factfulness", author: "Hans Rosling", reason: "Pairs with your Individuals & Societies unit on development and inequality", match: 86 },
+    { title: "The Man Who Knew Infinity", author: "Robert Kanigel", reason: "Ramanujan's life, for the Mathematics interest you listed; a longer read, so worth starting early", match: 79 },
+  ],
+};
 
 export default function ReadingRecommenderPage() {
   const { running, complete, run } = useAIScan(2200);
+  const books = BOOKS[useProgramme()];
 
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">

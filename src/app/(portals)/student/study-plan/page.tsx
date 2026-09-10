@@ -4,28 +4,45 @@ import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
+import { useProgramme } from "@/components/students/ProgrammeProvider";
 import { CalendarRange, Sparkles, CheckCircle2 } from "lucide-react";
 
-// Built around the same student's week as the other previews: the Vectors gap,
-// the Physics IA and the Extended Essay draft flagged by the deadline monitor.
-const plan = [
-  { day: "Mon", focus: "Mathematics AA HL — Vectors practice set", duration: "40 min" },
-  { day: "Tue", focus: "Physics HL — IA data analysis draft", duration: "50 min" },
-  { day: "Wed", focus: "Economics HL — Paper 2 data-response practice", duration: "35 min" },
-  { day: "Thu", focus: "TOK — Prepare exhibition commentary notes", duration: "30 min" },
-  { day: "Fri", focus: "CAS — Log reflection for this week's activity", duration: "15 min" },
-  { day: "Sat", focus: "Extended Essay — Draft the next 800 words", duration: "45 min" },
-];
+type Day = { day: string; focus: string; duration: string };
+
+// Each week is built from the same student's other previews: the gaps, the
+// deadlines and the assessments they point at.
+const CONTENT: Record<"DP" | "MYP", { description: string; plan: Day[] }> = {
+  DP: {
+    description: "Builds a personalized weekly study schedule from your timetable, upcoming IA/EE deadlines, and learning-gap map.",
+    plan: [
+      { day: "Mon", focus: "Mathematics AA HL — Vectors practice set", duration: "40 min" },
+      { day: "Tue", focus: "Physics HL — IA data analysis draft", duration: "50 min" },
+      { day: "Wed", focus: "Economics HL — Paper 2 data-response practice", duration: "35 min" },
+      { day: "Thu", focus: "TOK — Prepare exhibition commentary notes", duration: "30 min" },
+      { day: "Fri", focus: "CAS — Log reflection for this week's activity", duration: "15 min" },
+      { day: "Sat", focus: "Extended Essay — Draft the next 800 words", duration: "45 min" },
+    ],
+  },
+  MYP: {
+    description: "Builds a personalized weekly study schedule from your timetable, upcoming assessments, Personal Project milestones and learning-gap map.",
+    plan: [
+      { day: "Mon", focus: "Mathematics — Probability practice set before the criterion A test", duration: "30 min" },
+      { day: "Tue", focus: "Sciences — Write the method evaluation for the lab report (criterion C)", duration: "40 min" },
+      { day: "Wed", focus: "Language Acquisition: Spanish — Preterite and imperfect practice", duration: "25 min" },
+      { day: "Thu", focus: "Personal Project — Journal entry, then draft the report's reflecting section", duration: "45 min" },
+      { day: "Fri", focus: "Service as Action — Reflect on this week's tutoring session", duration: "15 min" },
+      { day: "Sat", focus: "Individuals & Societies — Essay plan with a counter-argument", duration: "30 min" },
+    ],
+  },
+};
 
 export default function StudyPlanPage() {
   const { running, complete, run } = useAIScan(2400);
+  const c = CONTENT[useProgramme()];
 
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
-      <PageHeader
-        title="AI Study Plan Generator"
-        description="Builds a personalized weekly study schedule from your timetable, upcoming IA/EE deadlines, and learning-gap map."
-      />
+      <PageHeader title="AI Study Plan Generator" description={c.description} />
 
       <AIPreviewNotice />
 
@@ -44,7 +61,7 @@ export default function StudyPlanPage() {
 
       {complete ? (
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl divide-y divide-slate-100 dark:divide-zinc-800 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {plan.map((p, i) => (
+          {c.plan.map((p, i) => (
             <div key={i} className="p-4 flex items-center gap-4">
               <span className="w-12 text-sm font-bold text-slate-400 shrink-0">{p.day}</span>
               <CheckCircle2 size={16} className="text-sky-400 shrink-0" />
