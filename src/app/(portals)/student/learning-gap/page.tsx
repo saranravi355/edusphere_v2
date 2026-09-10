@@ -4,20 +4,30 @@ import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
+import { useProgramme } from "@/components/students/ProgrammeProvider";
 import { Sparkles, Map, BookOpen } from "lucide-react";
 
-// Topics from the current syllabi, for the same DP student as the other student
-// previews. The old first row pointed at "Topic 7.1", a section number from the
-// Chemistry syllabus the 2025 guide replaced — for a subject this student does
-// not take, at a level the school does not offer.
-const gaps = [
-  { topic: "Physics HL — Gravitational fields", mastery: 42, action: "Review theme D.1 notes, then retry the formative quiz" },
-  { topic: "Mathematics AA HL — Vectors: scalar product", mastery: 58, action: "Rework practice set 4; the perpendicular-vector questions are where marks are lost" },
-  { topic: "Economics HL — Elasticity calculations", mastery: 70, action: "Redo the PED and YED worked examples, then try one Paper 2 data-response question" },
-];
+type Gap = { topic: string; mastery: number; action: string };
+
+// DP: topics from the current syllabi for the same DP student as the other
+// previews. MYP: an MYP5 student's subject groups, pointed at the criterion each
+// gap would cost marks in.
+const GAPS: Record<"DP" | "MYP", Gap[]> = {
+  DP: [
+    { topic: "Physics HL — Gravitational fields", mastery: 42, action: "Review theme D.1 notes, then retry the formative quiz" },
+    { topic: "Mathematics AA HL — Vectors: scalar product", mastery: 58, action: "Rework practice set 4; the perpendicular-vector questions are where marks are lost" },
+    { topic: "Economics HL — Elasticity calculations", mastery: 70, action: "Redo the PED and YED worked examples, then try one Paper 2 data-response question" },
+  ],
+  MYP: [
+    { topic: "Sciences — Balancing chemical equations", mastery: 45, action: "Rework the balancing practice sheet, then retry the criterion A formative quiz" },
+    { topic: "Mathematics — Probability of combined events", mastery: 60, action: "Draw a tree diagram for each practice question; most lost marks come from adding along the branches instead of multiplying" },
+    { topic: "Language Acquisition: Spanish — Preterite or imperfect", mastery: 68, action: "Sort the ten sentences from last week's reading into completed actions and background description" },
+  ],
+};
 
 export default function LearningGapPage() {
   const { running, complete, run } = useAIScan(2300);
+  const gaps = GAPS[useProgramme()];
 
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
@@ -45,9 +55,9 @@ export default function LearningGapPage() {
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {gaps.map((g, i) => (
             <div key={i} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between gap-3 text-sm mb-1">
                 <span className="font-semibold text-slate-700 dark:text-slate-200">{g.topic}</span>
-                <span className={`font-mono font-bold ${g.mastery >= 70 ? "text-emerald-500" : g.mastery >= 50 ? "text-amber-500" : "text-rose-500"}`}>{g.mastery}% mastery</span>
+                <span className={`font-mono font-bold shrink-0 ${g.mastery >= 70 ? "text-emerald-500" : g.mastery >= 50 ? "text-amber-500" : "text-rose-500"}`}>{g.mastery}% mastery</span>
               </div>
               <div className="w-full h-2 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden mb-3">
                 <div className={`h-full rounded-full ${g.mastery >= 70 ? "bg-emerald-500" : g.mastery >= 50 ? "bg-amber-500" : "bg-rose-500"}`} style={{ width: `${g.mastery}%` }} />
