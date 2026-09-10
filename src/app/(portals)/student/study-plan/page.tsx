@@ -3,15 +3,18 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import { CalendarRange, Sparkles, CheckCircle2 } from "lucide-react";
 
+// Built around the same student's week as the other previews: the Vectors gap,
+// the Physics IA and the Extended Essay draft flagged by the deadline monitor.
 const plan = [
-  { day: "Mon", focus: "Mathematics AA — Differentiation practice set", duration: "40 min" },
-  { day: "Tue", focus: "Chemistry SL — IA data analysis draft", duration: "50 min" },
-  { day: "Wed", focus: "English A — Comparative essay outline", duration: "35 min" },
+  { day: "Mon", focus: "Mathematics AA HL — Vectors practice set", duration: "40 min" },
+  { day: "Tue", focus: "Physics HL — IA data analysis draft", duration: "50 min" },
+  { day: "Wed", focus: "Economics HL — Paper 2 data-response practice", duration: "35 min" },
   { day: "Thu", focus: "TOK — Prepare exhibition commentary notes", duration: "30 min" },
   { day: "Fri", focus: "CAS — Log reflection for this week's activity", duration: "15 min" },
-  { day: "Sat", focus: "Mathematics AA — Review formative mistakes", duration: "30 min" },
+  { day: "Sat", focus: "Extended Essay — Draft the next 800 words", duration: "45 min" },
 ];
 
 export default function StudyPlanPage() {
@@ -23,6 +26,8 @@ export default function StudyPlanPage() {
         title="AI Study Plan Generator"
         description="Builds a personalized weekly study schedule from your timetable, upcoming IA/EE deadlines, and learning-gap map."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-sky-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><CalendarRange size={150} /></div>

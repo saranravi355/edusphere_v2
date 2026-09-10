@@ -1,6 +1,7 @@
 "use client";
 
 import PageHeader from "@/components/ui/PageHeader";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import { BrainCircuit, PackageOpen, TrendingDown, ShoppingCart, Box } from "lucide-react";
 import { useState } from "react";
 
@@ -18,13 +19,15 @@ export default function PredictiveResourceAI() {
 
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
-      <PageHeader 
-        title="Predictive Resource Allocation" 
+      <PageHeader
+        title="Predictive Resource Allocation"
         description="Machine Learning forecasts for inventory depletion and automated purchase ordering."
       />
 
+      <AIPreviewNotice />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Forecast Engine */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
@@ -32,13 +35,14 @@ export default function PredictiveResourceAI() {
               <BrainCircuit size={18} className="text-emerald-500" />
               Forecast Engine
             </h3>
-            
+
+            {/* The school tracks 92 assets, not the "1,200+" this used to claim. */}
             <p className="text-sm text-slate-500 mb-6">
-              Analyze historical consumption rates across 1,200+ school assets to predict upcoming shortages.
+              Analyses consumption across the school&apos;s 92 tracked assets and its consumables to predict upcoming shortages.
             </p>
 
             {!complete ? (
-              <button 
+              <button
                 onClick={runPrediction}
                 disabled={analyzing}
                 className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold rounded-xl transition-colors flex justify-center items-center gap-2 shadow-md"
@@ -48,7 +52,7 @@ export default function PredictiveResourceAI() {
             ) : (
               <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/50 p-4 rounded-xl text-center">
                 <p className="font-bold text-green-700 dark:text-green-400 text-sm mb-1">Forecast Complete</p>
-                <p className="text-xs text-green-600 dark:text-green-500">Identified 2 critical shortages.</p>
+                <p className="text-xs text-green-600 dark:text-green-500">Identified 1 critical shortage.</p>
               </div>
             )}
           </div>
@@ -62,7 +66,6 @@ export default function PredictiveResourceAI() {
                 <TrendingDown className="text-orange-500" size={18} /> Predicted Shortages (Next 30 Days)
               </h3>
 
-              {/* Prediction 1 */}
               <div className="bg-white dark:bg-zinc-900 border border-orange-200 dark:border-orange-900/50 rounded-2xl p-6 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
                 <div className="flex justify-between items-start mb-4">
@@ -79,9 +82,9 @@ export default function PredictiveResourceAI() {
                     Depletion Date: Nov 18
                   </span>
                 </div>
-                
+
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-zinc-800/50 p-3 rounded-lg border border-slate-100 dark:border-zinc-700/50">
-                  <strong className="text-slate-800 dark:text-slate-200">AI Logic:</strong> Historical data shows a 40% increase in projector bulb burnouts during midterm presentation weeks (Nov 15-30). Current inventory (3 units) is insufficient to cover the predicted failure rate (8 units).
+                  <strong className="text-slate-800 dark:text-slate-200">AI Logic:</strong> Historical data shows a 40% increase in projector bulb burnouts during the November mock-exam weeks (Nov 15-30). Current inventory (3 units) is insufficient to cover the predicted failure rate (8 units).
                 </p>
 
                 <div className="flex gap-3">

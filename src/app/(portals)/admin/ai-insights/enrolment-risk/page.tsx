@@ -10,8 +10,9 @@ import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const students = [
   { name: "Vikram Choudhary", grade: "DP1", risk: "high" as const, reason: "Parent fee-payment delays (2 cycles) + predicted grades down in 3 of 6 subjects; comparable profile pattern matches past withdrawals." },
-  { name: "Meera Krishnan", grade: "MYP5", risk: "medium" as const, reason: "Family relocation flagged in front-office notes; siblings' enquiry to other schools logged via support ticket." },
-  { name: "Arjun Desai", grade: "DP2", risk: "medium" as const, reason: "Considering dropping to Diploma Course route after EE/IA stress; subject-change request submitted." },
+  // Was "Meera Krishnan" — one letter from the Principal, Dr. Meena Krishnan.
+  { name: "Zoya Qureshi", grade: "MYP5", risk: "medium" as const, reason: "Family relocation flagged in front-office notes; siblings' enquiry to other schools logged via support ticket." },
+  { name: "Arjun Desai", grade: "DP2", risk: "medium" as const, reason: "Considering moving from the full Diploma to DP courses after EE/IA stress; subject-change request submitted." },
 ];
 
 export default function EnrolmentRiskPage() {

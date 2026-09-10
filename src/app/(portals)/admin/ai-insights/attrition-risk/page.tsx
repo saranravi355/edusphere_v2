@@ -9,9 +9,12 @@ import { UserMinus, TrendingDown } from "lucide-react";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const staff = [
-  { name: "Mr. D. Clark", tenure: "4 yrs", role: "MYP Coordinator", risk: "high" as const, signals: ["Workload index at 88% for 3 consecutive terms", "Declined CPD/IB training nomination", "Below-average engagement in staff pulse survey"] },
-  { name: "Ms. P. Menon", tenure: "1.5 yrs", role: "DP Visual Arts", risk: "medium" as const, signals: ["No salary review logged in 14 months", "Two late leave requests flagged as stress-related"] },
-  { name: "Mr. K. Iyer", tenure: "6 yrs", role: "MYP Sciences", risk: "low" as const, signals: ["Stable workload, positive sentiment trend"] },
+  // Fictional staff, checked against the roster: no real teacher shares these
+  // surnames, so an attrition flag here cannot be read as one about a colleague.
+  // The same cast appears on the workload and substitute pages.
+  { name: "Mr. R. Ghosh", tenure: "4 yrs", role: "MYP Coordinator", risk: "high" as const, signals: ["Workload index at 88% for 3 consecutive terms", "Declined CPD/IB training nomination", "Below-average engagement in staff pulse survey"] },
+  { name: "Ms. P. Deshpande", tenure: "1.5 yrs", role: "DP Visual Arts", risk: "medium" as const, signals: ["No salary review logged in 14 months", "Two late leave requests flagged as stress-related"] },
+  { name: "Mr. K. Bhandari", tenure: "6 yrs", role: "MYP Sciences", risk: "low" as const, signals: ["Stable workload, positive sentiment trend"] },
 ];
 
 export default function AttritionRiskPage() {

@@ -24,7 +24,7 @@ export default function AdmissionsConversionPage() {
         items: [
           {
             title: "14 applications",
-            meta: "Grade 6 and Grade 9 intake",
+            meta: "MYP1 and MYP4 intake",
             tone: "low",
             badgeLabel: "Likely to accept",
             body: "Sibling already enrolled, campus visit attended, and replies within a day. This group converts at 85% historically and needs no chasing.",

@@ -3,6 +3,9 @@
 import AIDemoPage from "@/components/ai/AIDemoPage";
 import { Layers } from "lucide-react";
 
+// MYP4B Sciences, a class of 11 — this school's actual section size. The same
+// reactivity lesson the Lesson Plan Co-Pilot preview drafts. The old version
+// grouped a class of 28.
 export default function DifferentiationPage() {
   return (
     <AIDemoPage
@@ -15,29 +18,29 @@ export default function DifferentiationPage() {
       runLabel="Suggest Adaptations"
       runningLabel="Grouping The Class..."
       completeLabel="Suggestions Ready"
-      completeSubLabel="3 groups from 28 students"
+      completeSubLabel="3 groups from 11 students"
       emptyTitle="No Suggestions Yet"
       emptySubtitle="Generate adapted versions of a task for the range in your class."
       result={{
         kind: "findings",
-        heading: "Suggested adaptations",
+        heading: "Suggested adaptations — MYP4B Sciences",
         items: [
           {
-            title: "Group A — 7 students",
+            title: "Group A — 3 students",
             meta: "Secure on the prerequisite",
             tone: "low",
             badgeLabel: "Extend",
             body: "Give the unknowns without the results table, so they design the recording method themselves. Adds criterion B without extra preparation.",
           },
           {
-            title: "Group B — 15 students",
+            title: "Group B — 6 students",
             meta: "At the expected level",
             tone: "low",
             badgeLabel: "Core task",
             body: "Run the task as planned. The prepared table gives enough scaffold without doing the thinking for them.",
           },
           {
-            title: "Group C — 6 students",
+            title: "Group C — 2 students",
             meta: "Prerequisite not yet secure",
             tone: "medium",
             badgeLabel: "Scaffold",

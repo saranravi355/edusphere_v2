@@ -7,10 +7,11 @@ import { useAIScan } from "@/lib/useAIScan";
 import { UserCheck, Star } from "lucide-react";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
+// Fictional staff, the same cast as the workload and attrition pages.
 const candidates = [
-  { name: "Mr. K. Iyer", match: 96, reason: "Currently teaches MYP Sciences; free Periods 3-4 today; previously covered this exact unit", load: "Low" },
-  { name: "Ms. P. Menon", match: 81, reason: "DP Visual Arts background overlaps with cross-disciplinary unit content; free Period 4", load: "Low" },
-  { name: "Mrs. A. Davis", match: 64, reason: "Available but currently at 95% workload index — not recommended unless urgent", load: "High" },
+  { name: "Mr. K. Bhandari", match: 96, reason: "Teaches MYP Sciences; free Periods 3-4 today; covered this MYP4 unit last term", load: "Low" },
+  { name: "Ms. P. Deshpande", match: 81, reason: "DP Visual Arts; the unit's interdisciplinary task overlaps with her MYP Arts teaching; free Period 3", load: "Low" },
+  { name: "Mrs. A. Siddiqui", match: 64, reason: "Available but at a 95% workload index — not recommended unless urgent", load: "High" },
 ];
 
 export default function SubstituteRecommenderPage() {
@@ -29,11 +30,11 @@ export default function SubstituteRecommenderPage() {
           <AIControlPanel
             icon={UserCheck}
             title="Cover Finder"
-            description="Open absence: Mr. D. Clark, MYP4 Individuals & Societies, Period 3 today. Find the best available substitute."
+            description="Open absence: Mr. R. Ghosh, MYP4 Individuals & Societies, Period 3 today. Find the best available substitute."
             runLabel="Find Best Substitute"
             runningLabel="Matching Staff..."
             completeLabel="Match Found"
-            completeSubLabel="Top candidate: Mr. K. Iyer (96% match)"
+            completeSubLabel="Top candidate: Mr. K. Bhandari (96% match)"
             running={running}
             complete={complete}
             onRun={run}

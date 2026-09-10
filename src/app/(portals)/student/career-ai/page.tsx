@@ -4,24 +4,28 @@ import { useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import { Target, Sparkles, TrendingUp, Briefcase, Award, Landmark } from "lucide-react";
 import AIFeatureLink from "@/components/ai/AIFeatureLink";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
+
+// Pathways that follow from the DP subject package most students here take —
+// Economics, Physics and Mathematics AA at Higher Level, Visual Arts at Standard.
+// The old list led with Software Engineering (the school teaches no Computer
+// Science) and awarded "+5 pts Leadership", a score with no meaning in the IB.
+const strengths = ["Mathematics AA HL", "Physics HL", "Economics HL"];
 
 const careerPaths = [
-  { title: "Software Engineering", match: 92, skills: ["Mathematics", "Logical Reasoning", "Problem Solving"] },
-  { title: "Data Science", match: 87, skills: ["Statistics", "Mathematics", "Pattern Recognition"] },
-  { title: "Mechanical Engineering", match: 78, skills: ["Physics", "Spatial Reasoning", "Design"] },
+  { title: "Mechanical & Aerospace Engineering", match: 88, skills: ["Physics HL", "Mathematics AA HL", "Robotics Club"] },
+  { title: "Economics & Finance", match: 84, skills: ["Economics HL", "Mathematics AA HL", "Data analysis"] },
+  { title: "Architecture & Design", match: 76, skills: ["Visual Arts SL", "Physics HL", "Spatial reasoning"] },
 ];
 
 export default function CareerAIPage() {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const [points, setPoints] = useState<string[]>([]);
 
   const runPrediction = () => {
     setGenerating(true);
     setGenerated(false);
-    setPoints([]);
     setTimeout(() => {
-      setPoints(["+5 pts Leadership", "+3 pts Analytical Thinking", "+2 pts Creativity"]);
       setGenerated(true);
       setGenerating(false);
     }, 2200);
@@ -31,8 +35,10 @@ export default function CareerAIPage() {
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       <PageHeader
         title="AI Career Predictor"
-        description="Discover career paths aligned with your academic strengths."
+        description="Discover career paths aligned with your IB subjects and strengths."
       />
+
+      <AIPreviewNotice />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <AIFeatureLink
@@ -58,7 +64,7 @@ export default function CareerAIPage() {
             <Sparkles size={18} className="text-emerald-300" /> Career Match Engine
           </h2>
           <p className="text-emerald-200 text-sm mb-6 max-w-lg leading-relaxed">
-            Our AI analyzes your grades, interests, and extracurricular activities to suggest career paths where you&apos;re likely to excel.
+            Looks at your IB subject choices, predicted grades and activities to suggest pathways where you are likely to do well.
           </p>
           <button
             onClick={runPrediction}
@@ -77,9 +83,9 @@ export default function CareerAIPage() {
       {generated && (
         <>
           <div className="flex flex-wrap gap-2">
-            {points.map((p, i) => (
+            {strengths.map((s, i) => (
               <span key={i} className="text-xs font-bold px-3 py-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full">
-                {p}
+                Strength: {s}
               </span>
             ))}
           </div>

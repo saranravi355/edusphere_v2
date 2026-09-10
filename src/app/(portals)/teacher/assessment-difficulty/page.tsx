@@ -3,6 +3,8 @@
 import AIDemoPage from "@/components/ai/AIDemoPage";
 import { BarChart3 } from "lucide-react";
 
+// A DP1 Physics HL test — the school's largest DP1 teaching group, 17 students.
+// The old analysis described a class of 28; no class here is larger than 12.
 export default function AssessmentDifficultyPage() {
   return (
     <AIDemoPage
@@ -20,17 +22,17 @@ export default function AssessmentDifficultyPage() {
       emptySubtitle="Analyse an assessment to see which questions carried the grade distribution."
       result={{
         kind: "findings",
-        heading: "Item analysis",
+        heading: "Item analysis — DP1 Physics HL unit test",
         items: [
           {
-            title: "Question 7 — Energetics calculation",
+            title: "Question 7 — Circular motion calculation",
             meta: "Mean 1.8 of 6",
             tone: "high",
             badgeLabel: "Too hard",
-            body: "Only 4 of 28 students scored above half marks, including students who scored well everywhere else. That pattern usually means the question, not the cohort.",
+            body: "Only 4 of 17 students scored above half marks, including students who scored well everywhere else. That pattern usually means the question, not the cohort.",
           },
           {
-            title: "Question 3 — Define enthalpy",
+            title: "Question 3 — Define impulse",
             meta: "Mean 1.9 of 2",
             tone: "medium",
             badgeLabel: "Too easy",
@@ -45,7 +47,7 @@ export default function AssessmentDifficultyPage() {
           },
           {
             title: "Grade distribution",
-            meta: "28 students",
+            meta: "17 students",
             tone: "low",
             badgeLabel: "Summary",
             body: "Median 5, range 2-7. Removing question 7 would move the median to 6 — worth knowing before comparing this cohort with last year's.",

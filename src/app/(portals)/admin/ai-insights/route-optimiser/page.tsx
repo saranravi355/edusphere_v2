@@ -7,10 +7,14 @@ import { useAIScan } from "@/lib/useAIScan";
 import { Route, Clock, Fuel } from "lucide-react";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
+// The school's own routes and stop counts. The campus is in Whitefield, so the
+// long north and south routes are where re-sequencing pays; Route 1 is local.
+// The old list numbered routes that do not match the fleet ("Route 4 —
+// Whitefield Loop" is Koramangala & HSR Layout here) and checked 3 of 8.
 const routes = [
-  { name: "Route 4 — Whitefield Loop", before: "52 min", after: "39 min", saving: "25% time, ₹1,240/wk fuel", stops: 14 },
-  { name: "Route 7 — Koramangala Express", before: "44 min", after: "38 min", saving: "14% time, ₹680/wk fuel", stops: 9 },
-  { name: "Route 2 — HSR Layout", before: "35 min", after: "35 min", saving: "Already optimal", stops: 7 },
+  { name: "Route 7 — Hebbal & Yelahanka", before: "68 min", after: "54 min", saving: "21% time, ₹1,480/wk fuel", stops: 6 },
+  { name: "Route 6 — Electronic City & BTM", before: "61 min", after: "55 min", saving: "10% time, ₹620/wk fuel", stops: 5 },
+  { name: "Route 1 — Whitefield & Hope Farm", before: "22 min", after: "22 min", saving: "Already optimal", stops: 5 },
 ];
 
 export default function RouteOptimiserPage() {
@@ -33,7 +37,7 @@ export default function RouteOptimiserPage() {
             runLabel="Optimise All Routes"
             runningLabel="Recomputing Routes..."
             completeLabel="Optimisation Complete"
-            completeSubLabel="2 of 3 routes improved"
+            completeSubLabel="8 routes checked · 2 improved"
             running={running}
             complete={complete}
             onRun={run}

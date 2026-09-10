@@ -21,30 +21,34 @@ export default function AccreditationEvidencePage() {
       result={{
         kind: "findings",
         heading: "Evidence coverage by standard",
+        // Labelled by the four categories of the IB Programme standards and
+        // practices (2020) — Purpose, Environment, Culture, Learning. The old
+        // labels filed Purpose and Environment under Culture, and Assessment
+        // under Lifelong learners.
         items: [
           {
-            title: "Culture 1 — Purpose",
+            title: "Purpose — Mission and philosophy",
             meta: "4 documents",
             tone: "low",
             badgeLabel: "Well evidenced",
             body: "Mission statement, board minutes adopting it, the staff handbook section and this year's strategic plan all align and are current.",
           },
           {
-            title: "Culture 2 — Environment",
+            title: "Culture — Language, inclusion and safeguarding policies",
             meta: "6 documents",
             tone: "low",
             badgeLabel: "Well evidenced",
             body: "Safeguarding, inclusion and language policies are present, dated within the review cycle, and show recorded consultation.",
           },
           {
-            title: "Learning 3 — Approaches to teaching",
+            title: "Learning — Approaches to teaching",
             meta: "1 document",
             tone: "high",
             badgeLabel: "Thin",
             body: "Only the curriculum overview maps to this standard. There is no lesson-observation record or professional development log evidencing it in practice.",
           },
           {
-            title: "Lifelong learners 2 — Assessment",
+            title: "Learning — Assessment",
             meta: "0 documents",
             tone: "critical",
             badgeLabel: "Gap",

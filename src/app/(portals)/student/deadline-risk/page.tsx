@@ -30,7 +30,7 @@ export default function DeadlineRiskPage() {
             body: "No draft uploaded, and your last supervisor meeting was five weeks ago. Similar tasks have taken you nine days from first draft to submission.",
           },
           {
-            title: "Chemistry IA — final report",
+            title: "Physics IA — final report",
             meta: "Due in 11 days",
             tone: "high",
             badgeLabel: "Tight",

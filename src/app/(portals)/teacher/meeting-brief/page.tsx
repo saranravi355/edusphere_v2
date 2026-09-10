@@ -33,7 +33,7 @@ export default function MeetingBriefPage() {
           {
             heading: "What is going well",
             lines: [
-              "Practical work is consistently strong — three criterion B scores at level 7-8.",
+              "Practical work is consistently strong — top band on the last three practical write-ups.",
               "Has started submitting drafts ahead of the deadline rather than on it.",
             ],
           },
