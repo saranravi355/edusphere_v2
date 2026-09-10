@@ -19,8 +19,8 @@ const tools = [
   { href: "/student/deadline-risk", icon: <AlarmClock size={18} />, title: "Deadline Risk Monitor", description: "Flags the deadlines you are most likely to miss, and why." },
   { href: "/student/scholarships", icon: <Award size={18} />, title: "Scholarship Matcher", description: "Scholarships you would actually be eligible for, ranked by fit." },
   { href: "/student/university-fit", icon: <Landmark size={18} />, title: "University Fit Analyzer", description: "Maps your predicted grades onto realistic university offers." },
-  { href: "/student/tutor", icon: <MessageSquare size={18} />, title: "AI Tutor", description: "Ask questions and get help on any subject.", badge: "Existing" },
-  { href: "/student/career-ai", icon: <Target size={18} />, title: "Career AI", description: "Explore university and career pathways suited to you.", badge: "Existing" },
+  { href: "/student/tutor", icon: <MessageSquare size={18} />, title: "AI Tutor", description: "Ask questions and get help on any subject." },
+  { href: "/student/career-ai", icon: <Target size={18} />, title: "Career AI", description: "Explore university and career pathways suited to you." },
 ];
 
 export default function StudentAIToolsHub() {

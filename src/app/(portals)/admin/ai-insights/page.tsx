@@ -28,7 +28,7 @@ const tools: { href: string; icon: React.ReactNode; title: string; description: 
   { href: "/admin/ai-insights/ib-policy", icon: <BookMarked size={18} />, title: "IB Policy Assistant", description: "Answers IB requirement questions, quoting the handbook passage.", audience: "both" },
   { href: "/admin/ai-insights/accreditation-evidence", icon: <FolderSearch size={18} />, title: "Accreditation Evidence Finder", description: "Locates the evidence for each standard, and where it is thin.", audience: "both" },
   { href: "/admin/ai-insights/meeting-minutes", icon: <FileSearch size={18} />, title: "Meeting Minutes Intelligence", description: "Searches minutes by meaning and tracks whether decisions happened.", audience: "both" },
-  { href: "/admin/students/sentiment-ai", icon: <BrainCircuit size={18} />, title: "Behavioral Sentiment AI", description: "Scans teacher notes to flag early signs of student distress.", badge: "Existing", audience: "both" },
+  { href: "/admin/students/sentiment-ai", icon: <BrainCircuit size={18} />, title: "Behavioral Sentiment AI", description: "Scans teacher notes to flag early signs of student distress.", audience: "both" },
   { href: "/admin/ai-insights/route-optimiser", icon: <Route size={18} />, title: "Transport Route Optimiser", description: "Re-sequences bus stops to cut commute time and fuel cost.", audience: "admin" },
   { href: "/admin/finance/payment-predictor", icon: <Wallet size={18} />, title: "Fee Payment Predictor", description: "Predicts which families are likely to pay the next invoice late.", audience: "admin" },
   { href: "/admin/finance/cashflow-forecast", icon: <LineChart size={18} />, title: "AI Cash Flow Forecast", description: "Projects 6-month cash position against the payroll calendar.", audience: "admin" },
@@ -36,7 +36,7 @@ const tools: { href: string; icon: React.ReactNode; title: string; description: 
   { href: "/admin/ai-insights/admissions-conversion", icon: <UserPlus size={18} />, title: "Admissions Conversion Predictor", description: "Estimates which applicants are most likely to accept a place.", audience: "admin" },
   { href: "/admin/ai-insights/hiring-match", icon: <Users size={18} />, title: "Teacher Hiring Match", description: "Ranks applicants against what the role actually needs.", audience: "admin" },
   { href: "/admin/ai-insights/budget-variance", icon: <IndianRupee size={18} />, title: "Budget Variance Analyzer", description: "Explains why actual spend differs from budget, line by line.", audience: "admin" },
-  { href: "/operations/resources/predictive-ai", icon: <PackageOpen size={18} />, title: "Predictive Resource Allocation", description: "Forecasts inventory depletion and drafts purchase orders.", badge: "Existing", audience: "admin" },
+  { href: "/operations/resources/predictive-ai", icon: <PackageOpen size={18} />, title: "Predictive Resource Allocation", description: "Forecasts inventory depletion and drafts purchase orders.", audience: "admin" },
 ];
 
 export default async function AdminAIInsightsHub() {

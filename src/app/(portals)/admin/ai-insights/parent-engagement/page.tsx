@@ -8,9 +8,12 @@ import { HeartHandshake, MailWarning } from "lucide-react";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const families = [
-  { name: "Patel Family", child: "Rohan Verma · DP2", score: 38, signals: "Missed last 2 parent-teacher conferences; portal login 0x in 30 days" },
-  { name: "Reddy Family", child: "Diya Reddy · MYP3", score: 91, signals: "Active in CAS volunteering portal, attended 3/3 events this term" },
-  { name: "Krishnan Family", child: "Meera Krishnan · MYP5", score: 52, signals: "Read receipts on messages but no replies in 6 weeks" },
+  // Fictional families. Rohan Verma and Diya Reddy are real students, and the
+  // "Patel Family" was listed as Rohan Verma's. An MYP family volunteers for
+  // Service as Action; CAS is the Diploma Programme's.
+  { name: "Bhatia Family", child: "Ishaan Bhatia · DP2", score: 38, signals: "Missed last 2 parent-teacher conferences; portal login 0x in 30 days" },
+  { name: "Kulkarni Family", child: "Tara Kulkarni · MYP3", score: 91, signals: "Volunteers for Service as Action projects; attended 3/3 events this term" },
+  { name: "Qureshi Family", child: "Zoya Qureshi · MYP5", score: 52, signals: "Read receipts on messages but no replies in 6 weeks" },
 ];
 
 export default function ParentEngagementPage() {

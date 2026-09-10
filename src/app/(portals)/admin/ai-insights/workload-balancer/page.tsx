@@ -8,11 +8,13 @@ import { Scale, Users } from "lucide-react";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const teachers = [
-  { name: "Ms. R. Sharma", role: "DP Mathematics HL/SL", load: 92, ia: 38, cas: 2 },
-  { name: "Mr. D. Clark", role: "MYP Individuals & Societies", load: 88, ia: 0, cas: 1 },
-  { name: "Mrs. A. Davis", role: "DP English A Lit, TOK Coordinator", load: 95, ia: 31, cas: 3 },
-  { name: "Mr. K. Iyer", role: "MYP Sciences", load: 61, ia: 0, cas: 0 },
-  { name: "Ms. P. Menon", role: "DP Visual Arts", load: 58, ia: 22, cas: 1 },
+  // Fictional staff (see attrition-risk). IA counts match the real DP2 cohort:
+  // 22 in Mathematics (19 AA HL + 3 AI SL), 22 English A orals, 19 Visual Arts.
+  { name: "Ms. R. Arora", role: "DP Mathematics AA HL / AI SL", load: 92, ia: 22, cas: 2 },
+  { name: "Mr. R. Ghosh", role: "MYP Individuals & Societies, MYP Coordinator", load: 88, ia: 0, cas: 1 },
+  { name: "Mrs. A. Siddiqui", role: "DP English A, TOK Coordinator", load: 95, ia: 22, cas: 3 },
+  { name: "Mr. K. Bhandari", role: "MYP Sciences", load: 61, ia: 0, cas: 0 },
+  { name: "Ms. P. Deshpande", role: "DP Visual Arts", load: 58, ia: 19, cas: 1 },
 ];
 
 export default function WorkloadBalancerPage() {

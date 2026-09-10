@@ -27,6 +27,7 @@ export default function LessonCopilotPage() {
             lines: [
               "Patterns in the behaviour of matter allow us to predict how substances will interact.",
               "Key concept: Relationships. Related concepts: Patterns, Evidence.",
+              "Global context: Scientific and technical innovation.",
             ],
           },
           {

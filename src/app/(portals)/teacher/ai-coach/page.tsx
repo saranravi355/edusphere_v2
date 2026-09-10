@@ -3,13 +3,17 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import { Sparkles, GraduationCap, Lightbulb } from "lucide-react";
 
+// One sciences teacher's week, at this school's real group sizes. The old
+// second nudge described "a 22-point spread" in criterion B scores; MYP criteria
+// run from 0 to 8, so no spread can exceed 8.
 const nudges = [
-  { title: "ATL Skill Gap: Self-Management", detail: "3 of your DP1 Chemistry students missed formative deadlines twice this unit. Consider a short ATL mini-lesson on time-management before the next IA checkpoint.", tag: "ATL" },
-  { title: "Differentiation Opportunity", detail: "Your last unit's Criterion B scores show a 22-point spread. Two students may benefit from scaffolded worksheets in the next formative task.", tag: "Assessment" },
-  { title: "CAS Supervision Reminder", detail: "Your CAS group's reflection log hasn't been updated in 3 weeks — IB requires regular reflection evidence for the CAS portfolio.", tag: "CAS" },
-  { title: "Positive Trend", detail: "Engagement in your MYP4 Individuals & Societies class is up 14% since introducing inquiry-based starters — keep it up!", tag: "Praise" },
+  { title: "ATL Skill Gap: Self-Management", detail: "3 of your 8 DP1 Chemistry HL students missed formative deadlines twice this unit. A short ATL session on planning before the next IA checkpoint would reach all of them.", tag: "ATL" },
+  { title: "Differentiation Opportunity", detail: "In your last MYP4 Sciences unit, criterion B levels ranged from 2 to 8. The two students at level 2 may need a scaffolded planning sheet for the next investigation.", tag: "Assessment" },
+  { title: "CAS Supervision Reminder", detail: "Your CAS group's reflection log hasn't been updated in 3 weeks. The CAS portfolio needs reflections spread across the 18 months, not collected at the end.", tag: "CAS" },
+  { title: "Positive Trend", detail: "Criterion A levels in your MYP4 Sciences class are up since you introduced retrieval starters — four students moved up a band this unit.", tag: "Praise" },
 ];
 
 export default function AICoachPage() {
@@ -21,6 +25,8 @@ export default function AICoachPage() {
         title="AI Coaching Nudges"
         description="Personalized, weekly teaching insights drawn from your gradebook, attendance and ATL/CAS records — built for IB pedagogy."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><GraduationCap size={150} /></div>

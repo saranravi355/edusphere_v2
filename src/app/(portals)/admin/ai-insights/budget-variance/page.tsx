@@ -27,7 +27,7 @@ export default function BudgetVariancePage() {
             meta: "Year to date",
             tone: "high",
             badgeLabel: "Will repeat",
-            body: "Volume, not price: 34 more riders than budgeted across two routes. Fuel cost per kilometre is within 2% of plan, so this recurs every month until the route plan changes.",
+            body: "Volume, not price: 9 more riders than budgeted on Route 2 (Marathahalli & Brookefield) and Route 5 (Sarjapur Road & Bellandur). Fuel cost per kilometre is within 2% of plan, so this recurs every month until the route plan changes.",
           },
           {
             title: "Salaries — under by 4%",

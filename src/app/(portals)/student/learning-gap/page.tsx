@@ -3,12 +3,17 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import { Sparkles, Map, BookOpen } from "lucide-react";
 
+// Topics from the current syllabi, for the same DP student as the other student
+// previews. The old first row pointed at "Topic 7.1", a section number from the
+// Chemistry syllabus the 2025 guide replaced — for a subject this student does
+// not take, at a level the school does not offer.
 const gaps = [
-  { topic: "Chemistry SL — Equilibrium Constants", mastery: 42, action: "Review Topic 7.1 notes, then retry the formative quiz" },
-  { topic: "Mathematics AA — Differentiation Rules", mastery: 58, action: "Watch the chain-rule walkthrough video; complete practice set 4" },
-  { topic: "English A — Unreliable Narration", mastery: 70, action: "Re-read pages 110–140; annotate 3 examples for your next Paper 1" },
+  { topic: "Physics HL — Gravitational fields", mastery: 42, action: "Review theme D.1 notes, then retry the formative quiz" },
+  { topic: "Mathematics AA HL — Vectors: scalar product", mastery: 58, action: "Rework practice set 4; the perpendicular-vector questions are where marks are lost" },
+  { topic: "Economics HL — Elasticity calculations", mastery: 70, action: "Redo the PED and YED worked examples, then try one Paper 2 data-response question" },
 ];
 
 export default function LearningGapPage() {
@@ -20,6 +25,8 @@ export default function LearningGapPage() {
         title="Learning Gap Map"
         description="After each formative assessment, see exactly which sub-topics you're weakest on and what to review next."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-rose-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><Map size={150} /></div>

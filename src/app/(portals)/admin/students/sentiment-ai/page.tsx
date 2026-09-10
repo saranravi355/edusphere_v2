@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import { BrainCircuit, Sparkles, AlertTriangle, Smile, Frown, Meh } from "lucide-react";
 
+// Fictional students and staff, checked against the register. This page used to
+// flag Aarav Patel — a real DP1 student — as "withdrawn", with no label saying
+// the note was invented, and attributed it to near-copies of real teachers'
+// names. The notes are plain text now rather than HTML-escaped strings pushed
+// through dangerouslySetInnerHTML.
 const mockNotes = [
-  { student: "Aarav Patel", note: "&quot;Seemed withdrawn during group activities today, didn't participate much.&quot;", sentiment: "negative", teacher: "Ms. Sharma" },
-  { student: "Diya Reddy", note: "&quot;Bright and enthusiastic in class discussions, asked great questions.&quot;", sentiment: "positive", teacher: "Mr. Venkatesh" },
-  { student: "Kabir Singh", note: "&quot;Average engagement, completed assignments but seemed distracted.&quot;", sentiment: "neutral", teacher: "Mrs. Lakshmi Rajan" },
+  { student: "Advik Thakur", note: "Seemed withdrawn during group activities today, didn't participate much.", sentiment: "negative", teacher: "Ms. Mathur" },
+  { student: "Tara Kulkarni", note: "Bright and enthusiastic in class discussions, asked great questions.", sentiment: "positive", teacher: "Mr. Pandey" },
+  { student: "Kabir Singh", note: "Average engagement, completed assignments but seemed distracted.", sentiment: "neutral", teacher: "Mrs. Rajan" },
 ];
 
 export default function SentimentAIPage() {
@@ -34,6 +40,8 @@ export default function SentimentAIPage() {
         title="Smart Behavioral Sentiment AI"
         description="Scan teacher notes and behavior logs to flag at-risk students early."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -78,10 +86,7 @@ export default function SentimentAIPage() {
                     <p className="font-semibold text-slate-800 dark:text-slate-200">{item.student}</p>
                     <span className="text-xs text-slate-400">{item.teacher}</span>
                   </div>
-                  <p
-                    className="text-sm text-slate-600 dark:text-slate-400 italic"
-                    dangerouslySetInnerHTML={{ __html: item.note }}
-                  />
+                  <p className="text-sm text-slate-600 dark:text-slate-400 italic">&ldquo;{item.note}&rdquo;</p>
                 </div>
               </div>
             );

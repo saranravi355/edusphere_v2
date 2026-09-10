@@ -3,14 +3,20 @@
 import PageHeader from "@/components/ui/PageHeader";
 import AIControlPanel from "@/components/ai/AIControlPanel";
 import AIEmptyState from "@/components/ai/AIEmptyState";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import RiskBadge from "@/components/ai/RiskBadge";
 import { useAIScan } from "@/lib/useAIScan";
 import { Wallet, CalendarClock } from "lucide-react";
 
+// The school's next instalment: Term 2 tuition, due 14 November, ₹1,02,000 for a
+// DP student and ₹85,500 for MYP. The old figures were whole-year fees presented
+// as one invoice, due on a July date the school does not bill on. Families are
+// fictional; the Qureshi family's relocation is the one flagged on the
+// enrolment-risk preview.
 const invoices = [
-  { family: "Choudhary Family", child: "Vikram Choudhary · DP1", amount: "₹2,85,000", due: "Jul 10", risk: "high" as const, reason: "Last 2 cycles paid 18+ days late; auto-pay mandate failed twice" },
-  { family: "Fernandes Family", child: "Ethan Fernandes · MYP4", amount: "₹1,95,000", due: "Jul 10", risk: "medium" as const, reason: "Requested installment split last term" },
-  { family: "Nair Family", child: "Priya Nair · DP2", amount: "₹2,85,000", due: "Jul 10", risk: "low" as const, reason: "100% on-time payment history over 6 terms" },
+  { family: "Choudhary Family", child: "Vikram Choudhary · DP1", amount: "₹1,02,000", due: "14 Nov", risk: "high" as const, reason: "Last 2 instalments paid 18+ days late; UPI AutoPay mandate failed twice" },
+  { family: "Qureshi Family", child: "Zoya Qureshi · MYP5", amount: "₹85,500", due: "14 Nov", risk: "medium" as const, reason: "Asked to split an instalment last term" },
+  { family: "Nair Family", child: "Priya Nair · DP2", amount: "₹1,02,000", due: "14 Nov", risk: "low" as const, reason: "Every instalment paid on time for six terms" },
 ];
 
 export default function PaymentPredictorPage() {
@@ -22,6 +28,12 @@ export default function PaymentPredictorPage() {
         title="Fee Payment Predictor"
         description="Predicts which families are likely to pay late or default on the upcoming term fee invoice, based on historical payment behaviour."
       />
+
+      <AIPreviewNotice>
+        Sample output. The instalment — Term 2 tuition, due 14 November, at this school&rsquo;s DP and MYP amounts —
+        is real; the families and their risk ratings are illustrative, and nothing here is sent to anyone.
+      </AIPreviewNotice>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <AIControlPanel

@@ -8,7 +8,7 @@ import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 const anomalies = [
   { name: "Kabir Singh", grade: "MYP3", pattern: "Absent every Monday for 4 consecutive weeks", confidence: 92 },
   { name: "Sara Thomas", grade: "DP1", pattern: "Sudden drop from 98% to 71% attendance after half-term break", confidence: 87 },
-  { name: "Wing 2B Cohort", grade: "MYP2", pattern: "Unusual block-absence spike during Period 5 (PE) only", confidence: 79 },
+  { name: "Whole class", grade: "MYP2B", pattern: "Unusual block-absence spike during Period 5 (PE) only", confidence: 79 },
   { name: "Devansh Rao", grade: "DP2", pattern: "Late check-ins clustered before Theory of Knowledge periods", confidence: 84 },
 ];
 

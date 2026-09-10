@@ -3,6 +3,10 @@
 import AIDemoPage from "@/components/ai/AIDemoPage";
 import { Landmark } from "lucide-react";
 
+// The same student as the grade forecast: 38 points, Economics, Physics and
+// Mathematics AA at Higher Level, with Mathematics predicted to slip to a 5.
+// The old list was built around Chemistry SL, which this school does not
+// offer, and named no option outside the UK and Ireland for a school in India.
 export default function UniversityFitPage() {
   return (
     <AIDemoPage
@@ -23,32 +27,32 @@ export default function UniversityFitPage() {
         heading: "Course options by likelihood",
         items: [
           {
-            title: "BSc Chemistry — University of Edinburgh",
-            meta: "Requires 37 points, Chemistry HL",
+            title: "BEng Mechanical Engineering — University of Manchester",
+            meta: "Typical offer around 36–37 points, 6 in Mathematics HL",
             tone: "high",
             badgeLabel: "Reach",
-            body: "Your predicted 38 clears the total, but this course requires Chemistry at Higher Level and yours is Standard Level.",
+            body: "Your predicted 38 clears the total and Physics HL is predicted 6, but Mathematics AA HL is predicted 5 against the 6 the course asks for.",
           },
           {
-            title: "BEng Chemical Engineering — University of Manchester",
-            meta: "Requires 36 points, Maths HL 6",
+            title: "BA (Hons) Economics — Ashoka University",
+            meta: "Holistic admission",
             tone: "low",
             badgeLabel: "Likely",
-            body: "Both the total and the Mathematics HL requirement are met with a point to spare.",
+            body: "Ashoka accepts IB predicted grades and reads the whole application. A 38 with Economics at Higher Level sits comfortably inside recent admits.",
           },
           {
-            title: "BSc Biochemistry — Trinity College Dublin",
-            meta: "Requires 35 points",
+            title: "BSc Physics — Trinity College Dublin",
+            meta: "Typical requirement about 35 points",
             tone: "low",
             badgeLabel: "Likely",
-            body: "Comfortably within range; no subject-specific barrier.",
+            body: "Comfortably within range, and Physics at Higher Level is the subject it looks for.",
           },
           {
             title: "BA Natural Sciences — University of Cambridge",
-            meta: "Requires 40-42 points",
+            meta: "Typical offer 40–42 points",
             tone: "critical",
             badgeLabel: "Unlikely",
-            body: "Four points below the typical offer, and the course expects two science subjects at Higher Level.",
+            body: "Two to four points below the typical offer, and Cambridge usually expects a 7 in Mathematics at Higher Level.",
           },
         ],
       }}

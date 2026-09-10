@@ -3,6 +3,9 @@
 import AIDemoPage from "@/components/ai/AIDemoPage";
 import { Mic } from "lucide-react";
 
+// The English A individual oral: a 10-minute presentation followed by 5 minutes
+// of teacher questions, marked on four criteria out of 10. The session length
+// was given as 10 minutes, and criterion A was missing "interpretation".
 export default function OralSimulatorPage() {
   return (
     <AIDemoPage
@@ -11,19 +14,19 @@ export default function OralSimulatorPage() {
       icon={Mic}
       accent="amber"
       panelTitle="Mock Examiner"
-      panelDescription="Puts the stimulus in front of you, times the response, and asks the follow-ups an examiner would ask on what you actually said."
+      panelDescription="Puts the extracts in front of you, times the response, and asks the follow-ups an examiner would ask on what you actually said."
       runLabel="Start Mock Oral"
-      runningLabel="Preparing Stimulus..."
+      runningLabel="Preparing Extracts..."
       completeLabel="Mock Complete"
-      completeSubLabel="10 minutes · scored against 4 criteria"
+      completeSubLabel="15 minutes (10 + 5 questions) · 29 of 40"
       emptyTitle="No Session Yet"
       emptySubtitle="Start a mock oral to practise under timed conditions and get scored feedback."
       result={{
         kind: "findings",
-        heading: "Session feedback",
+        heading: "Session feedback — English A individual oral",
         items: [
           {
-            title: "Criterion A — Knowledge and understanding",
+            title: "Criterion A — Knowledge, understanding and interpretation",
             meta: "8 of 10",
             tone: "low",
             badgeLabel: "Strong",

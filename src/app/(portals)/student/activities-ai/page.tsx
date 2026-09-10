@@ -3,12 +3,16 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import { Sparkles, Trophy, Users } from "lucide-react";
 
+// The school's own clubs, each under the CAS strand it actually counts towards.
+// The old list recommended clubs the school does not run, and filed Model United
+// Nations under Activity — the strand for physical exertion.
 const activities = [
-  { name: "Model United Nations Club", reason: "Matches your strong Individuals & Societies grades and interest tags (debate, global politics)", match: 92, cas: "Activity" },
-  { name: "Robotics & Design Team", reason: "Complements your Mathematics & Physics strengths; counts toward CAS Creativity strand", match: 85, cas: "Creativity" },
-  { name: "Community Tutoring Programme", reason: "Fulfils CAS Service strand; you've shown interest in peer mentoring through past activity logs", match: 80, cas: "Service" },
+  { name: "Community Service (CAS)", reason: "Your CAS record is lightest on Service. This group runs a weekly tutoring project with a government school near Whitefield.", match: 92, cas: "Service" },
+  { name: "Robotics Club", reason: "Builds on your Physics HL and Mathematics AA HL strengths, and counts towards the CAS Creativity strand.", match: 85, cas: "Creativity" },
+  { name: "Basketball", reason: "Counts towards the Activity strand, and practice falls in your free last period on Wednesdays.", match: 78, cas: "Activity" },
 ];
 
 export default function ActivityRecommenderPage() {
@@ -20,6 +24,8 @@ export default function ActivityRecommenderPage() {
         title="Activity Recommender"
         description="Suggests clubs and CAS (Creativity, Activity, Service) opportunities matched to your strengths, interests and portfolio gaps."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><Trophy size={150} /></div>

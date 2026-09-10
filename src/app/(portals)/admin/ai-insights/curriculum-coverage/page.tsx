@@ -7,11 +7,15 @@ import { BookCheck, Sparkles, AlertCircle } from "lucide-react";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const coverage = [
+  // Subjects and levels as this school offers them: Biology is taught at HL only,
+  // MYP Individuals & Societies is integrated rather than History, and MYP
+  // language acquisition is Spanish (French B is a DP subject). DP groups carry a
+  // group number; MYP subject groups are named, not numbered.
   { subject: "Mathematics: Analysis & Approaches HL (Group 5)", grade: "DP2", pacing: 78, target: 85, status: "behind" },
-  { subject: "Biology SL (Group 4)", grade: "DP1", pacing: 91, target: 80, status: "ahead" },
-  { subject: "Individuals & Societies — History (Group 3)", grade: "MYP4", pacing: 83, target: 82, status: "on-track" },
+  { subject: "Biology HL (Group 4)", grade: "DP1", pacing: 91, target: 80, status: "ahead" },
+  { subject: "Individuals & Societies", grade: "MYP4", pacing: 83, target: 82, status: "on-track" },
   { subject: "English A: Literature HL (Group 1)", grade: "DP2", pacing: 70, target: 88, status: "behind" },
-  { subject: "Language Acquisition — French B (Group 2)", grade: "MYP3", pacing: 86, target: 84, status: "on-track" },
+  { subject: "Language Acquisition: Spanish", grade: "MYP3", pacing: 86, target: 84, status: "on-track" },
 ];
 
 const statusStyles: Record<string, string> = {

@@ -9,9 +9,11 @@ import { AlertTriangle, BrainCircuit, TrendingDown } from "lucide-react";
 import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 
 const flagged = [
-  { name: "Rohan Verma", grade: "DP2", subject: "Mathematics: Analysis & Approaches HL", signal: "Predicted grade dropped 6 → 4 over two reporting periods", risk: "high" as const, ia: "IA draft overdue by 9 days" },
-  { name: "Aanya Kapoor", grade: "DP1", subject: "Chemistry SL", signal: "ATL self-management scores declining; 3 missed formative checkpoints", risk: "medium" as const, ia: "On track" },
-  { name: "Ethan Fernandes", grade: "MYP4", subject: "Individuals & Societies", signal: "Criterion C & D scores below MYP grade boundary for 2 consecutive units", risk: "medium" as const, ia: "N/A" },
+  // Fictional students, checked against the register. The first row used to be
+  // Rohan Verma, a real DP2 student, flagged here as high risk.
+  { name: "Ishaan Bhatia", grade: "DP2", subject: "Mathematics: Analysis & Approaches HL", signal: "Predicted grade dropped 6 → 4 over two reporting periods", risk: "high" as const, ia: "IA draft overdue by 9 days" },
+  { name: "Aanya Kapoor", grade: "DP1", subject: "Chemistry HL", signal: "ATL self-management scores declining; 3 missed formative checkpoints", risk: "medium" as const, ia: "On track" },
+  { name: "Ethan Fernandes", grade: "MYP4", subject: "Individuals & Societies", signal: "Criteria C and D at levels 1–2 for two consecutive units", risk: "medium" as const, ia: "N/A" },
   { name: "Priya Nair", grade: "DP2", subject: "English A: Literature HL", signal: "Extended Essay supervisor meetings missed twice; no RPPF entry in 5 weeks", risk: "high" as const, ia: "EE at risk" },
 ];
 

@@ -3,6 +3,9 @@
 import AIDemoPage from "@/components/ai/AIDemoPage";
 import { GaugeCircle } from "lucide-react";
 
+// One DP student, taking the subjects most DP students here take. The old list
+// gave them Chemistry SL (Chemistry is HL-only at this school) and an MYP
+// Individuals & Societies "Paper 1" — a Diploma student does not sit MYP exams.
 export default function ExamReadinessPage() {
   return (
     <AIDemoPage
@@ -20,7 +23,7 @@ export default function ExamReadinessPage() {
       emptySubtitle="Run the model to see how ready you are for each exam, subject by subject."
       result={{
         kind: "findings",
-        heading: "Readiness by subject",
+        heading: "Readiness by subject — November mock",
         items: [
           {
             title: "Mathematics: Analysis & Approaches HL",
@@ -31,25 +34,25 @@ export default function ExamReadinessPage() {
             footnote: "Suggested: two 40-minute Vectors sessions before the mock.",
           },
           {
-            title: "Chemistry SL",
+            title: "Physics HL",
             meta: "Paper 2 in 15 days",
             tone: "medium",
             badgeLabel: "74% ready",
-            body: "Organic chemistry is secure. Energetics questions are being left unfinished, which usually means timing rather than understanding.",
+            body: "Mechanics is secure. Questions on gravitational fields are being left unfinished, which usually means timing rather than understanding.",
           },
           {
-            title: "English A: Literature HL",
+            title: "English A: Language & Literature SL",
             meta: "Paper 1 in 19 days",
             tone: "low",
             badgeLabel: "88% ready",
-            body: "Unseen commentary practice is consistent and recent. Both practice responses this term hit criterion B.",
+            body: "Guided textual analysis practice is consistent and recent. Both practice responses this term reached the top band for criterion B.",
           },
           {
-            title: "Individuals & Societies",
-            meta: "Paper 1 in 21 days",
+            title: "Economics HL",
+            meta: "Paper 2 in 21 days",
             tone: "low",
             badgeLabel: "85% ready",
-            body: "Source analysis is on track. No gaps detected across the three assessed units.",
+            body: "Data-response practice is on track and your diagrams are accurate. The 15-mark evaluation part is where the remaining marks are.",
           },
         ],
       }}

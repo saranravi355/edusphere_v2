@@ -3,22 +3,37 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { useAIScan } from "@/lib/useAIScan";
 import AIEmptyState from "@/components/ai/AIEmptyState";
+import AIPreviewNotice from "@/components/ai/AIPreviewNotice";
 import { Sparkles, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
+/**
+ * A full Diploma: six subjects, three at Higher Level, plus the core.
+ *
+ * This used to forecast four subjects and report a total "out of 28" — a number
+ * that exists nowhere in the IB. A DP total is six subjects out of 42 plus up to
+ * 3 core points from the TOK/EE matrix, out of 45. The subjects are the package
+ * most DP students here take, and the total (38) is the figure the university
+ * and scholarship previews quote.
+ */
 const forecast = [
-  { subject: "Mathematics: Analysis & Approaches HL", current: 5, predicted: 6, trend: "up" },
-  { subject: "Chemistry SL", current: 6, predicted: 6, trend: "flat" },
-  { subject: "English A: Literature HL", current: 6, predicted: 5, trend: "down" },
-  { subject: "Economics SL", current: 7, predicted: 7, trend: "flat" },
-  { subject: "Theory of Knowledge", current: "B", predicted: "B", trend: "flat" },
+  { subject: "English A: Language & Literature SL", current: 5, predicted: 6, trend: "up" },
+  { subject: "Spanish B SL", current: 5, predicted: 5, trend: "flat" },
+  { subject: "Economics HL", current: 6, predicted: 6, trend: "flat" },
+  { subject: "Physics HL", current: 5, predicted: 6, trend: "up" },
+  { subject: "Mathematics: Analysis & Approaches HL", current: 6, predicted: 5, trend: "down" },
+  { subject: "Visual Arts SL", current: 7, predicted: 7, trend: "flat" },
 ];
+
+/** TOK and EE are graded A–E and meet in the IB core matrix: B with A earns 3. */
+const core = { tok: "B", ee: "A", points: 3 };
 
 const trendIcon = { up: TrendingUp, down: TrendingDown, flat: Minus };
 const trendColor = { up: "text-emerald-500", down: "text-rose-500", flat: "text-slate-400" };
 
 export default function GradeForecastPage() {
   const { running, complete, run } = useAIScan(2500);
-  const totalPoints = 5 + 6 + 5 + 7; // simplified subject points contribution preview
+  const subjectTotal = forecast.reduce((sum, f) => sum + f.predicted, 0);
+  const total = subjectTotal + core.points;
 
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
@@ -26,6 +41,8 @@ export default function GradeForecastPage() {
         title="Predictive Grade Forecast"
         description="Projects your final IB Diploma subject grades (1–7 scale) based on current formative and summative performance trends."
       />
+
+      <AIPreviewNotice />
 
       <div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
         <div className="absolute top-0 right-0 p-8 opacity-10"><Sparkles size={150} /></div>
@@ -55,8 +72,15 @@ export default function GradeForecastPage() {
               </div>
             );
           })}
+          <div className="p-4 flex items-center justify-between gap-4">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Theory of Knowledge {core.tok} · Extended Essay {core.ee}
+            </span>
+            <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400">+{core.points} core points</span>
+          </div>
           <div className="p-4 bg-slate-50 dark:bg-zinc-800/50 text-xs text-slate-500">
-            Projected DP total (subject grades only, excl. TOK/EE points): <span className="font-bold text-slate-700 dark:text-slate-300">{totalPoints} / 28</span>
+            Predicted DP total: {subjectTotal}/42 from six subjects + {core.points}/3 core ={" "}
+            <span className="font-bold text-slate-700 dark:text-slate-300">{total} / 45</span>
           </div>
         </div>
       ) : (

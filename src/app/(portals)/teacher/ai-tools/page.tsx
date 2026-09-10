@@ -16,8 +16,8 @@ const tools = [
   { href: "/teacher/meeting-brief", icon: <ClipboardList size={18} />, title: "Parent Meeting Brief", description: "A one-page brief on a student before you meet their parents." },
   { href: "/teacher/differentiation", icon: <Layers size={18} />, title: "Differentiation Assistant", description: "Adapts one lesson for the range of attainment in the room." },
   { href: "/teacher/curriculum-qa", icon: <Search size={18} />, title: "Curriculum Q&A", description: "Answers from the subject guides, quoting where each came from." },
-  { href: "/teacher/grading/ai-grader", icon: <ScanLine size={18} />, title: "AI Grader", description: "Scans and auto-scores submitted homework against the rubric.", badge: "Existing" },
-  { href: "/teacher/students", icon: <BrainCircuit size={18} />, title: "Student AI Analysis", description: "Per-student performance and behaviour analysis.", badge: "Existing" },
+  { href: "/teacher/grading/ai-grader", icon: <ScanLine size={18} />, title: "AI Grader", description: "Scans and auto-scores submitted homework against the rubric." },
+  { href: "/teacher/students", icon: <BrainCircuit size={18} />, title: "Student AI Analysis", description: "Per-student performance and behaviour analysis." },
 ];
 
 export default function TeacherAIToolsHub() {
