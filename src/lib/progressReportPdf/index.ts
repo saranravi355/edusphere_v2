@@ -200,10 +200,13 @@ export async function renderProgressReportPdf(input: {
   // ---------------------------------------------------------------------
   // Units of Inquiry
   // ---------------------------------------------------------------------
-  addPage();
-  sectionHeader("Progress Summary — Units of Inquiry");
+  const hasAnyUnit = input.data.unitsOfInquiry.some((u) => u.theme || u.centralIdea || u.comment || u.ratings.some((r) => r));
+  if (hasAnyUnit) {
+    addPage();
+    sectionHeader("Progress Summary — Units of Inquiry");
+  }
   input.data.unitsOfInquiry.forEach((u, i) => {
-    if (!u.theme && !u.centralIdea && u.ratings.every((r) => !r)) return;
+    if (!u.theme && !u.centralIdea && !u.comment && u.ratings.every((r) => !r)) return;
     ensureSpace(60);
     page.drawText(sanitize(`Unit of Inquiry ${i + 1}${u.theme ? ` — ${u.theme}` : ""}`), { x: MARGIN, y, size: 12, font: FB, color: SAGE_D });
     y -= 16;
@@ -278,8 +281,11 @@ export async function renderProgressReportPdf(input: {
   // ---------------------------------------------------------------------
   // Approaches to Learning
   // ---------------------------------------------------------------------
-  addPage();
-  sectionHeader("Progress Summary — Approaches to Learning");
+  const hasAnyAtl = ATL_GROUPS.some((g) => (input.data.atl[g.name] ?? []).some((r) => r));
+  if (hasAnyAtl) {
+    addPage();
+    sectionHeader("Progress Summary — Approaches to Learning");
+  }
   for (const g of ATL_GROUPS) {
     const ratings = input.data.atl[g.name] ?? [];
     if (!ratings.some((r) => r)) continue;

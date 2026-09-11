@@ -48,7 +48,11 @@ function Section({ title, subtitle, defaultOpen, children }: { title: string; su
         </div>
         <ChevronDown size={16} className={`text-slate-400 transition-transform shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && <div className="px-5 pb-5 border-t border-slate-100 dark:border-zinc-800 pt-3 space-y-3">{children}</div>}
+      {/* Hidden via CSS, not unmounted — a collapsed section's inputs must stay
+          in the DOM or the browser drops their values from the form submission
+          entirely, silently wiping whatever the teacher filled in before
+          collapsing it. */}
+      <div hidden={!open} className="px-5 pb-5 border-t border-slate-100 dark:border-zinc-800 pt-3 space-y-3">{children}</div>
     </div>
   );
 }
