@@ -80,6 +80,7 @@ model Teacher {
   learnerProfileEvidenceGiven LearnerProfileEvidence[] @relation("LearnerProfileRecorder")
   atlSkillRecordsGiven ATLSkillRecord[] @relation("ATLSkillRecorder")
   queryTickets     QueryTicket[]
+  progressReports  ProgressReport[]
 }
 
 model Parent {
@@ -169,6 +170,7 @@ model Student {
   atlSkillRecords  ATLSkillRecord[]
   portfolioItems   PortfolioItem[]
   queryTickets     QueryTicket[]
+  progressReports  ProgressReport[]
 
   @@index([classroomId])
   @@index([parentId])
@@ -846,6 +848,35 @@ model PortfolioItem {
   createdAt    DateTime @default(now())
 
   @@index([studentId])
+}
+
+// A narrative PYP-style progress report a teacher writes for one student, one
+// term. `data` holds the full structured content (units of inquiry, subject
+// ratings and comments, ATL, Learner Profile ratings, books read) as JSON
+// rather than one column per question, because the question set (dozens of
+// fixed rating items per subject) is defined in code (src/lib/progressReport.ts)
+// and would make an unworkable number of columns otherwise. Draft until the
+// teacher clicks Generate, which renders the PDF and uploads it — pdfUrl is
+// only ever set at that point, so its presence is what parents/students gate on.
+model ProgressReport {
+  id           String    @id @default(cuid())
+  studentId    String
+  student      Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacherId    String
+  teacher      Teacher   @relation(fields: [teacherId], references: [id])
+  academicYear String
+  term         String
+  grade        String?
+  status       String    @default("DRAFT") // DRAFT, GENERATED
+  data         Json
+  pdfUrl       String?
+  generatedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([studentId, academicYear, term])
+  @@index([studentId])
+  @@index([teacherId])
 }
 
 // A student's query or issue raised with a specific teacher — separate from

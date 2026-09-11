@@ -143,6 +143,7 @@ const SECTIONS: Record<string, NavSection[]> = {
         { name: "Timetable", href: "/parent/timetable", icon: Clock },
         { name: "Attendance", href: "/parent/attendance", icon: CheckCircle2 },
         { name: "Gradebook", href: "/parent/grades", icon: BookOpen },
+        { name: "Progress Report", href: "/parent/progress-report", icon: FileText },
         { name: "Discipline", href: "/parent/discipline", icon: ShieldAlert },
         { name: "Canteen", href: "/parent/canteen", icon: UtensilsCrossed },
       ],
@@ -184,6 +185,7 @@ const SECTIONS: Record<string, NavSection[]> = {
       links: [
         { name: "My Grades", href: "/student/grades", icon: BookOpen },
         { name: "Report Card", href: "/student/report-card", icon: FileText },
+        { name: "Progress Report", href: "/student/progress-report", icon: FileText },
       ],
     },
     {
@@ -220,6 +222,7 @@ const TEACHER_SECTIONS: NavSection[] = [
       { name: "Attendance", href: "/teacher/attendance", icon: CheckCircle2 },
       { name: "Assignments", href: "/teacher/assignments", icon: FileText },
       { name: "Grading", href: "/teacher/grading", icon: BookOpen },
+      { name: "Progress Reports", href: "/teacher/progress-reports", icon: FileText },
       { name: "Quizzes", href: "/teacher/quizzes", icon: HelpCircle },
       { name: "Moderation", href: "/teacher/moderation", icon: ClipboardCheck },
     ],
