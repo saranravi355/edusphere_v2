@@ -12,6 +12,7 @@ import { Suspense, useActionState, useEffect, useState, type CSSProperties } fro
 import OrbitDecor from "@/components/ui/OrbitDecor";
 import LoginLoader from "@/components/ui/LoginLoader";
 import LoginBackgroundDecor from "@/components/ui/LoginBackgroundDecor";
+import LoginConfetti from "@/components/ui/LoginConfetti";
 
 // Same ink colors as each portal's own card on the landing page and its
 // internal dashboard (see the .portal-* rules in globals.css) — carried here
@@ -51,6 +52,7 @@ function LoginForm() {
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-slate-200 dark:bg-slate-950 p-4 sm:p-8">
       <LoginBackgroundDecor accent={accent} />
+      <LoginConfetti />
 
       <AnimatePresence>
         {loading && (
