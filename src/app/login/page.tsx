@@ -8,7 +8,21 @@ import { ArrowLeft } from "lucide-react";
 import { LogoFull } from "@/components/ui/Logo";
 import { portalBySlug } from "@/lib/portals";
 import { FORCE_PASSWORD_RESET } from "@/lib/demo";
-import { Suspense, useActionState } from "react";
+import { Suspense, useActionState, type CSSProperties } from "react";
+import OrbitDecor from "@/components/ui/OrbitDecor";
+
+// Same ink colors as each portal's own card on the landing page and its
+// internal dashboard (see the .portal-* rules in globals.css) — carried here
+// too via a scoped --primary override, so the accent a user is about to sign
+// into is visible before they even log in.
+const PORTAL_ACCENTS: Record<string, string> = {
+  admin: "#7C3AED",
+  principal: "#DB2777",
+  teacher: "#D97706",
+  student: "#2563EB",
+  parent: "#16A34A",
+  operations: "#0D9488",
+};
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -20,6 +34,8 @@ function LoginForm() {
   const portal = portalBySlug(searchParams.get("role"));
   const defaultEmail = portal.sampleEmail;
   const roleTitle = portal.loginTitle;
+  const accent = PORTAL_ACCENTS[portal.slug] ?? PORTAL_ACCENTS.student;
+  const accentVar = { "--primary": accent } as CSSProperties;
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-200 dark:bg-slate-950 p-4 sm:p-8">
@@ -30,8 +46,10 @@ function LoginForm() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[480px]"
+        style={accentVar}
+        className="relative z-0 w-full max-w-5xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[480px]"
       >
+        <OrbitDecor />
         {/* Left Side - Branding & Quote */}
         <div className="w-full md:w-1/2 p-10 md:p-14 flex flex-col items-center justify-center text-center relative bg-slate-50 dark:bg-slate-900/50">
 
@@ -53,7 +71,7 @@ function LoginForm() {
         {/* Right Side - Login Form */}
         <div className="w-full md:w-1/2 p-10 md:p-16 flex flex-col justify-center bg-white dark:bg-slate-900">
           <div className="w-full max-w-[340px] mx-auto">
-            <h3 className="text-[1.35rem] font-bold text-slate-800 dark:text-white mb-8 text-center">
+            <h3 className="text-[1.35rem] font-bold mb-8 text-center" style={{ color: accent }}>
               Login to {roleTitle} Portal
             </h3>
 
@@ -68,7 +86,7 @@ function LoginForm() {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
+                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
                   required
                 />
                 {portal.alternatives && (
@@ -99,7 +117,7 @@ function LoginForm() {
                   defaultValue={process.env.NEXT_PUBLIC_FORCE_PASSWORD_RESET === "true" ? "" : "password123"}
                   placeholder="Password"
                   autoComplete="current-password"
-                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-slate-800 focus:ring-1 focus:ring-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-400 outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
+                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
                   required
                 />
               </div>
@@ -116,7 +134,8 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={pending}
-                className="w-full py-2.5 mt-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-md transition-colors text-sm shadow-sm tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ backgroundColor: accent }}
+                className="w-full py-2.5 mt-2 hover:brightness-90 text-white font-bold rounded-md transition-all text-sm shadow-sm tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {pending ? "Signing in…" : "Login"}
               </button>

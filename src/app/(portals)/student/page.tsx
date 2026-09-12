@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import OrbitDecor from "@/components/ui/OrbitDecor";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Sparkles, Target, Trophy } from "lucide-react";
 import Link from "next/link";
@@ -26,7 +27,8 @@ export default async function StudentDashboard() {
   const pendingHomework = homeworks.filter((h) => h.submissions.length === 0).length;
 
   return (
-    <div className="space-y-6 pb-12 max-w-6xl">
+    <div className="space-y-6 pb-12 max-w-6xl relative z-0">
+      <OrbitDecor />
       <SchoolSnapshot />
       <PageHeader
         title={`Welcome back, ${firstName(session?.user.name, "there")}!`}

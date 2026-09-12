@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
+import OrbitDecor from "@/components/ui/OrbitDecor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SchoolSnapshot from "@/components/dashboard/SchoolSnapshot";
 import QuickActions from "@/components/admin/QuickActions";
@@ -56,7 +57,8 @@ export default async function AdminDashboard() {
   const waiting = waitingItems(await openCounts(), session.user.role);
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 relative z-0">
+      <OrbitDecor />
       <PageHeader
         title={`Welcome back, ${firstName(session.user.name, "Admin")}`}
         description={
