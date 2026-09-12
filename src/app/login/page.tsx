@@ -2,14 +2,16 @@
 
 import { useSearchParams } from "next/navigation";
 import { login } from "../actions";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import { LogoFull } from "@/components/ui/Logo";
 import { portalBySlug } from "@/lib/portals";
 import { FORCE_PASSWORD_RESET } from "@/lib/demo";
-import { Suspense, useActionState, type CSSProperties } from "react";
+import { Suspense, useActionState, useEffect, useState, type CSSProperties } from "react";
 import OrbitDecor from "@/components/ui/OrbitDecor";
+import LoginLoader from "@/components/ui/LoginLoader";
+import LoginBackgroundDecor from "@/components/ui/LoginBackgroundDecor";
 
 // Same ink colors as each portal's own card on the landing page and its
 // internal dashboard (see the .portal-* rules in globals.css) — carried here
@@ -27,6 +29,7 @@ const PORTAL_ACCENTS: Record<string, string> = {
 function LoginForm() {
   const searchParams = useSearchParams();
   const [state, formAction, pending] = useActionState(login, undefined);
+  const [loading, setLoading] = useState(true);
 
   // One table, shared with the landing page, so a new portal cannot appear on
   // the front door and be missing here. An unknown ?role= falls back rather
@@ -37,8 +40,32 @@ function LoginForm() {
   const accent = PORTAL_ACCENTS[portal.slug] ?? PORTAL_ACCENTS.student;
   const accentVar = { "--primary": accent } as CSSProperties;
 
+  // A brief splash rather than an indefinite spinner: nothing here is
+  // actually async (portalBySlug is a synchronous lookup), so the loader's
+  // only job is a moment of polish before the form fades in.
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-200 dark:bg-slate-950 p-4 sm:p-8">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-slate-200 dark:bg-slate-950 p-4 sm:p-8">
+      <LoginBackgroundDecor accent={accent} />
+
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            key="login-loader"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-200 dark:bg-slate-950"
+          >
+            <LoginLoader accent={accent} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Link href="/" className="absolute top-8 left-8 flex items-center text-slate-600 hover:text-black dark:text-slate-400 dark:hover:text-white transition-colors font-medium">
         <ArrowLeft className="w-4 h-4 mr-2" /> Back to Roles
       </Link>
@@ -96,7 +123,7 @@ function LoginForm() {
                 )}
               </div>
 
-              <div>
+              <div className="relative">
                 {/* The password is prefilled while this is a demonstration and
                     every account shares one. Setting
                     NEXT_PUBLIC_FORCE_PASSWORD_RESET=true empties it: a login
@@ -111,13 +138,20 @@ function LoginForm() {
                     switch a lie. Verified: with the flag on, the only
                     remaining occurrence is the "do not reuse it" hint on the
                     change-password form. */}
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none" aria-hidden="true">
+                  <span
+                    className="absolute inset-0 rounded-full border border-current animate-spin"
+                    style={{ color: accent, opacity: 0.35, animationDuration: "3s" }}
+                  />
+                  <Lock className="w-3 h-3" style={{ color: accent }} />
+                </span>
                 <input
                   type="password"
                   name="password"
                   defaultValue={process.env.NEXT_PUBLIC_FORCE_PASSWORD_RESET === "true" ? "" : "password123"}
                   placeholder="Password"
                   autoComplete="current-password"
-                  className="w-full px-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
+                  className="w-full pl-9 pr-3 py-2.5 bg-transparent border border-slate-300 dark:border-slate-700 rounded-md focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 text-sm"
                   required
                 />
               </div>
