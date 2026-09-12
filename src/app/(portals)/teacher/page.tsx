@@ -1,5 +1,4 @@
 import PageHeader from "@/components/ui/PageHeader";
-import OrbitDecor from "@/components/ui/OrbitDecor";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
@@ -132,8 +131,7 @@ export default async function TeacherDashboard() {
   ] as const;
 
   return (
-    <div className="space-y-6 pb-12 relative z-0">
-      <OrbitDecor />
+    <div className="space-y-6 pb-12">
       <PageHeader
         title={`Welcome back, ${firstName(session.user.name, "Teacher")}`}
         description="Manage your class roster, grading, and attendance."

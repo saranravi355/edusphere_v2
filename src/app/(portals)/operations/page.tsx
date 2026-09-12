@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import PageHeader from "@/components/ui/PageHeader";
-import OrbitDecor from "@/components/ui/OrbitDecor";
 import { DEPARTMENTS, departmentForRole } from "@/lib/operations";
 import { UtensilsCrossed, Bus, Bed, Monitor, Package } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -52,8 +51,7 @@ export default async function OperationsPage() {
   };
 
   return (
-    <div className="space-y-6 relative z-0">
-      <OrbitDecor />
+    <div className="space-y-6">
       <PageHeader
         title="Operations"
         description="Canteen, transport, hostel, resources and assets. Each has its own manager and its own login."
