@@ -293,17 +293,21 @@ export default function SideNav({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-black border-r border-slate-200 dark:border-zinc-800 transition-all duration-200
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-200
           w-72 transform ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
           lg:static lg:translate-x-0 lg:z-auto ${collapsed ? "lg:w-[76px]" : "lg:w-64"}`}
       >
+        {/* A slim per-portal color strip — the sidebar's one guaranteed spot of
+            color, since the container itself stays neutral for readability. */}
+        <div className="h-1 w-full flex-shrink-0 bg-sidebar-primary" />
+
         {/* Brand */}
-        <div className={`h-16 flex items-center border-b border-slate-100 dark:border-zinc-800/50 flex-shrink-0 ${collapsed ? "lg:justify-center lg:px-0 px-5" : "px-5"} justify-between`}>
+        <div className={`h-16 flex items-center border-b border-sidebar-border/60 flex-shrink-0 ${collapsed ? "lg:justify-center lg:px-0 px-5" : "px-5"} justify-between`}>
           <div className="flex items-center gap-3 min-w-0">
             <LogoMark size={34} />
             {!collapsed && (
               <span className="font-heading font-extrabold text-lg tracking-tight text-navy-900 dark:text-white truncate">
-                EduSphere <span className="text-xs font-bold text-blue-500 align-top ml-0.5">Alpha2</span>
+                EduSphere <span className="text-xs font-bold text-sidebar-primary align-top ml-0.5">Alpha2</span>
               </span>
             )}
             {collapsed && (
@@ -324,7 +328,7 @@ export default function SideNav({
                   {t(`sidenav.sections.${section.label}`, section.label)}
                 </p>
               )}
-              {collapsed && <div className="mx-2.5 mb-2 border-t border-slate-100 dark:border-zinc-800/70 first:hidden" />}
+              {collapsed && <div className="mx-2.5 mb-2 border-t border-sidebar-border/70 first:hidden" />}
               <div className="space-y-0.5">
                 {section.links.map((link) => {
                   const isActive = link.href === activeHref;
@@ -335,13 +339,19 @@ export default function SideNav({
                       href={link.href}
                       onClick={onClose}
                       title={collapsed ? t(`sidenav.links.${link.name}`, link.name) : undefined}
-                      className={`flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${collapsed ? "lg:justify-center" : ""} ${
+                      className={`flex items-center gap-2.5 rounded-full pl-1.5 pr-3 py-1.5 text-sm font-medium transition-all ${collapsed ? "lg:justify-center lg:pl-1.5" : ""} ${
                         isActive
-                          ? "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 font-semibold"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-zinc-900 dark:hover:text-slate-200"
+                          ? "bg-sidebar-accent text-sidebar-primary font-semibold shadow-sm"
+                          : "text-slate-600 hover:bg-sidebar-accent/60 hover:text-sidebar-primary dark:text-slate-400 dark:hover:text-sidebar-primary"
                       }`}
                     >
-                      <Icon size={17} className="flex-shrink-0" />
+                      <span
+                        className={`flex items-center justify-center rounded-full w-7 h-7 flex-shrink-0 transition-colors ${
+                          isActive ? "bg-sidebar-primary text-white" : "bg-transparent"
+                        }`}
+                      >
+                        <Icon size={15} />
+                      </span>
                       <span className={collapsed ? "lg:hidden" : ""} suppressHydrationWarning>{t(`sidenav.links.${link.name}`, link.name)}</span>
                     </Link>
                   );
@@ -352,10 +362,10 @@ export default function SideNav({
         </nav>
 
         {/* Collapse toggle (desktop) */}
-        <div className="hidden lg:block border-t border-slate-100 dark:border-zinc-800/50 p-3 flex-shrink-0">
+        <div className="hidden lg:block border-t border-sidebar-border/60 p-3 flex-shrink-0">
           <button
             onClick={onCollapseToggle}
-            className={`w-full flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-zinc-900 transition-colors ${collapsed ? "justify-center" : ""}`}
+            className={`w-full flex items-center gap-3 rounded-full px-2.5 py-2 text-sm font-medium text-slate-500 hover:bg-sidebar-accent/60 hover:text-sidebar-primary dark:text-slate-400 transition-colors ${collapsed ? "justify-center" : ""}`}
           >
             {collapsed ? <ChevronsRight size={17} /> : <ChevronsLeft size={17} />}
             {!collapsed && <span>Collapse</span>}
