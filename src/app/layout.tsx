@@ -11,7 +11,7 @@ import "@fontsource/ibm-plex-mono/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "EduSphere 360 Alpha2",
+  title: "EduSphere 360",
   description: "AI-Powered International School Management Platform",
   icons: { icon: "/favicon.ico", apple: "/logo.png" },
 };

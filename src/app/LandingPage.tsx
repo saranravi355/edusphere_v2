@@ -130,7 +130,7 @@ export default function LandingPage({
             <LogoMark size={36} />
             <div className="leading-tight">
               <p className="text-base font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Edusphere 360</p>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">Solution of Rapidfly</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">Solution of Rapdfly</p>
             </div>
           </motion.div>
 
