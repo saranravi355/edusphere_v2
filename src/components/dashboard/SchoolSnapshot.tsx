@@ -1,8 +1,26 @@
-import { Users, Clock, ShieldAlert, GraduationCap, IndianRupee, MessageSquare, Plane, type LucideIcon } from "lucide-react";
+import { Users, Clock, ShieldAlert, GraduationCap, IndianRupee, MessageSquare, Plane, ArrowUpRight, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { todayRegister } from "@/lib/overview";
+import { schoolDay } from "@/lib/dates";
+import { classesCaption, rupees, schoolWeekday } from "@/lib/snapshot";
+
+interface Metric {
+  label: string;
+  value: string;
+  /** One line under the number saying what it means, so a bare 0 is never left to be guessed at. */
+  caption: string;
+  icon: LucideIcon;
+  href: string;
+}
+
+// Written out in full so Tailwind can see each class; a role has 3 to 5 metrics.
+const GRID_COLS: Record<number, string> = {
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-2 lg:grid-cols-4",
+  5: "sm:grid-cols-2 lg:grid-cols-5",
+};
 
 export default async function SchoolSnapshot() {
   const session = await getSession();
@@ -14,15 +32,6 @@ export default async function SchoolSnapshot() {
   today.setHours(0, 0, 0, 0);
 
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-  interface Metric {
-    label: string;
-    value: string;
-    icon: LucideIcon;
-    color: string;
-    bg: string;
-    href: string;
-  }
 
   let metrics: Metric[] = [];
 
@@ -37,7 +46,9 @@ export default async function SchoolSnapshot() {
     // the school's midnight rather than the server's: on a UTC host, setHours(0)
     // is 05:30 IST, so first period landed in the previous day's register.
     const register = await todayRegister();
-    const attendanceRate = register.rate === null ? "Not taken" : `${register.rate}%`;
+    const attendance: Metric = register.rate === null
+      ? { label: "Daily Attendance", value: "Not taken", caption: "Register not marked yet", icon: Clock, href: "/admin/analytics" }
+      : { label: "Daily Attendance", value: `${register.rate}%`, caption: `${register.present} of ${register.marked} marked present`, icon: Clock, href: "/admin/analytics" };
 
     const activeIncidents = await prisma.behaviorIncident.count({
       where: { type: 'DEMERIT', date: { gte: startOfMonth } }
@@ -48,11 +59,11 @@ export default async function SchoolSnapshot() {
       const pendingLeave = await prisma.leaveRequest.count({ where: { status: 'PENDING' } });
 
       metrics = [
-        { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/students" },
-        { label: "Daily Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
-        { label: "Active Incidents", value: activeIncidents.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
-        { label: "Teaching Staff", value: totalTeachers.toString(), icon: GraduationCap, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30", href: "/admin/staff" },
-        { label: "Pending Leave", value: pendingLeave.toString(), icon: Plane, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/admin/staff/leave" },
+        { label: "Total Students", value: totalStudents.toString(), caption: "On the roll", icon: Users, href: "/admin/students" },
+        attendance,
+        { label: "Active Incidents", value: activeIncidents.toString(), caption: "Demerits this month", icon: ShieldAlert, href: "/admin/behavior" },
+        { label: "Teaching Staff", value: totalTeachers.toString(), caption: "On staff", icon: GraduationCap, href: "/admin/staff" },
+        { label: "Pending Leave", value: pendingLeave.toString(), caption: "Awaiting approval", icon: Plane, href: "/admin/staff/leave" },
       ];
     } else {
       const revenueResult = await prisma.feeInvoice.aggregate({
@@ -60,13 +71,13 @@ export default async function SchoolSnapshot() {
         _sum: { amount: true }
       });
       const revenue = revenueResult._sum.amount || 0;
-      const formattedRevenue = revenue >= 100000 ? `₹${(revenue/100000).toFixed(1)}L` : `₹${revenue.toLocaleString("en-IN")}`;
+      const formattedRevenue = revenue >= 100000 ? `₹${(revenue/100000).toFixed(1)}L` : rupees(revenue);
 
       metrics = [
-        { label: "Total Students", value: totalStudents.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/admin/users" },
-        { label: "Daily Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/admin/analytics" },
-        { label: "Active Incidents", value: activeIncidents.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/admin/behavior" },
-        { label: "Revenue MTD", value: formattedRevenue, icon: IndianRupee, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-900/30", href: "/admin/finance" },
+        { label: "Total Students", value: totalStudents.toString(), caption: "On the roll", icon: Users, href: "/admin/users" },
+        { ...attendance, href: "/admin/analytics" },
+        { label: "Active Incidents", value: activeIncidents.toString(), caption: "Demerits this month", icon: ShieldAlert, href: "/admin/behavior" },
+        { label: "Revenue MTD", value: formattedRevenue, caption: "Fees paid this month", icon: IndianRupee, href: "/admin/finance" },
       ];
     }
   }
@@ -97,9 +108,9 @@ export default async function SchoolSnapshot() {
     });
 
     metrics = [
-      { label: "Class Attendance", value: attendanceRate, icon: Clock, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/teacher/attendance" },
-      { label: "Pending Grading", value: pendingGrading.toString(), icon: GraduationCap, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/teacher/grading" },
-      { label: "Support Required", value: supportRequired.toString(), icon: ShieldAlert, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", href: "/teacher/students" },
+      { label: "Class Attendance", value: attendanceRate, caption: "Your class, today", icon: Clock, href: "/teacher/attendance" },
+      { label: "Pending Grading", value: pendingGrading.toString(), caption: pendingGrading === 0 ? "All marked" : "Submissions to mark", icon: GraduationCap, href: "/teacher/grading" },
+      { label: "Support Required", value: supportRequired.toString(), caption: "Demerits this month", icon: ShieldAlert, href: "/teacher/students" },
     ];
   }
   else if (role === 'PARENT') {
@@ -126,9 +137,9 @@ export default async function SchoolSnapshot() {
     });
 
     metrics = [
-      { label: "Children Attending", value: `${presentCount}/${children.length}`, icon: Users, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/parent/attendance" },
-      { label: "Upcoming Fees", value: `₹${upcomingFees.toLocaleString("en-IN")}`, icon: IndianRupee, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/parent/fees" },
-      { label: "New Messages", value: unreadMessages.toString(), icon: MessageSquare, color: "text-indigo-500", bg: "bg-indigo-100 dark:bg-indigo-900/30", href: "/parent/messages" },
+      { label: "Children Attending", value: `${presentCount}/${children.length}`, caption: "Marked present today", icon: Users, href: "/parent/attendance" },
+      { label: "Upcoming Fees", value: rupees(upcomingFees), caption: upcomingFees === 0 ? "Nothing to pay" : "Unpaid invoices", icon: IndianRupee, href: "/parent/fees" },
+      { label: "New Messages", value: unreadMessages.toString(), caption: "Unread", icon: MessageSquare, href: "/parent/messages" },
     ];
   }
   else if (role === 'STUDENT') {
@@ -137,58 +148,67 @@ export default async function SchoolSnapshot() {
       include: { classroom: true }
     });
 
-    const dayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday...
+    // The school's weekday and midnight, not the server's: timetable days run
+    // 1 = Monday … 5 = Friday, and a UTC host's getDay() is still on yesterday
+    // until 05:30 IST.
+    const weekday = schoolWeekday();
+    const { start: dayStart } = schoolDay();
+
     const todaysClasses = student?.classroomId ? await prisma.timetableEntry.count({
-      where: { classroomId: student.classroomId, dayOfWeek }
+      where: { classroomId: student.classroomId, dayOfWeek: weekday }
     }) : 0;
 
+    // Only what is still to be handed in. Counting every assignment due from
+    // today on included ones already submitted, so this tile and the "My
+    // Homework" card beneath it could give the same student two numbers.
     const homeworkDue = student?.classroomId ? await prisma.homework.count({
-      where: { classroomId: student.classroomId, dueDate: { gte: today } }
+      where: {
+        classroomId: student.classroomId,
+        dueDate: { gte: dayStart },
+        submissions: { none: { studentId: student.id } },
+      }
     }) : 0;
 
     const walletTransactions = student?.id ? await prisma.walletTransaction.findMany({ where: { studentId: student.id }}) : [];
     const balance = walletTransactions.reduce((acc, t) => t.type === 'TOP_UP' ? acc + t.amount : acc - t.amount, 0);
 
     metrics = [
-      { label: "Today's Classes", value: todaysClasses.toString(), icon: Clock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", href: "/student/timetable" },
-      { label: "Homework Due", value: homeworkDue.toString(), icon: GraduationCap, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", href: "/student/homework" },
-      { label: "Wallet Balance", value: `₹${balance}`, icon: IndianRupee, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", href: "/student/wallet" },
+      { label: "Today's Classes", value: todaysClasses.toString(), caption: classesCaption(todaysClasses, weekday), icon: Clock, href: "/student/timetable" },
+      { label: "Homework Due", value: homeworkDue.toString(), caption: homeworkDue === 0 ? "All caught up" : "Still to hand in", icon: GraduationCap, href: "/student/homework" },
+      { label: "Wallet Balance", value: rupees(balance), caption: "View wallet", icon: IndianRupee, href: "/student/wallet" },
     ];
   }
 
   return (
-    <div className="mb-6 rounded-lg border border-border border-t-2 border-t-primary bg-card overflow-hidden">
-      <div className="flex flex-col lg:flex-row">
-        <div className="p-5 lg:w-64 lg:shrink-0 lg:border-r border-border">
-          <h2 className="font-heading text-xl text-foreground">Today&apos;s Snapshot</h2>
-          <p className="text-muted-foreground text-sm mt-1">
-            {new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", month: "long", day: "numeric" })}
-          </p>
-        </div>
-        <div className="flex-1 flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-border">
-          {metrics.map((m, i) => {
-            const Icon = m.icon;
-            const content = (
-              <div className="flex items-center gap-3 px-5 py-4 h-full hover:bg-muted/50 transition-colors">
-                <Icon className="w-5 h-5 text-muted-foreground shrink-0" strokeWidth={1.75} />
-                <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold">{m.label}</p>
-                  <p className="text-xl font-semibold text-foreground mt-0.5">{m.value}</p>
-                </div>
-              </div>
-            );
-            return m.href ? (
-              <Link key={i} href={m.href} className="block flex-1 min-w-0">
-                {content}
-              </Link>
-            ) : (
-              <div key={i} className="flex-1 min-w-0">
-                {content}
-              </div>
-            );
-          })}
-        </div>
+    <section className="mb-6" aria-labelledby="snapshot-heading">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
+        <h2 id="snapshot-heading" className="font-heading text-xl text-foreground">Today&apos;s Snapshot</h2>
+        <p className="text-muted-foreground text-sm">
+          {new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", month: "long", day: "numeric" })}
+        </p>
       </div>
-    </div>
+      <div className={`grid grid-cols-1 gap-4 ${GRID_COLS[metrics.length] ?? "sm:grid-cols-3"}`}>
+        {metrics.map((m) => {
+          const Icon = m.icon;
+          return (
+            <Link
+              key={m.label}
+              href={m.href}
+              className="group flex flex-col rounded-xl bg-card p-4 ring-1 ring-foreground/10 transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <div className="flex items-start justify-between">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
+                </span>
+                <ArrowUpRight className="h-4 w-4 text-muted-foreground/60 transition-colors group-hover:text-primary" aria-hidden="true" />
+              </div>
+              <p className="mt-3 text-2xl font-semibold tabular-nums text-foreground">{m.value}</p>
+              <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{m.label}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{m.caption}</p>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
