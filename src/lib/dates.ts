@@ -94,3 +94,18 @@ export function schoolDay(at: Date = new Date()): { start: Date; end: Date } {
   );
   return { start, end: new Date(start.getTime() + 86_400_000) };
 }
+
+/** Day of the week in the school's time zone, 0 = Sunday … 6 = Saturday. */
+export function schoolWeekday(at: Date = new Date()): number {
+  return istParts(at).weekday;
+}
+
+/**
+ * Midnight IST on the 1st of the school's current month, as a UTC instant.
+ * `new Date(d.getFullYear(), d.getMonth(), 1)` is the server's month, which on
+ * a UTC host has not yet turned for the first 5½ hours of the 1st.
+ */
+export function schoolMonthStart(at: Date = new Date()): Date {
+  const { year, month } = istParts(at);
+  return new Date(Date.UTC(year, month, 1) - IST_OFFSET_MS);
+}

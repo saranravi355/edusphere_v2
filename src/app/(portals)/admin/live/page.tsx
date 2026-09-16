@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import LiveRefresh from "./LiveRefresh";
 import Link from "next/link";
-import { formatDate, schoolDay } from "@/lib/dates";
+import { formatDate, schoolDay, schoolWeekday } from "@/lib/dates";
 import { currentTerm, openCounts, waitingItems } from "@/lib/overview";
 import {
   CheckCircle2, ClipboardList, UserX, Stethoscope, Bus, BookOpen, IndianRupee,
@@ -60,7 +60,7 @@ export default async function LiveOperationsPage() {
    */
   const term = await currentTerm(now);
   const termStart = term ? new Date(term.startDate) : new Date(now.getFullYear(), 0, 1);
-  const isWeekend = [0, 6].includes(now.getDay());
+  const isWeekend = [0, 6].includes(schoolWeekday(now));
 
   const [
     classrooms, todayAttendance, absentToday, clinicToday, pendingLeave,

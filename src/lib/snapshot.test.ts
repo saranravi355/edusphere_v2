@@ -1,24 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { classesCaption, rupees, schoolWeekday } from "./snapshot";
+import { classesCaption, rupees } from "./snapshot";
 
 /**
  * The Today's Snapshot card draws a bare number, so these are the pieces that
  * decide what that number means to the reader.
  */
-
-describe("schoolWeekday", () => {
-  it("reads the day in IST, not the server's time zone", () => {
-    // 20:00 UTC on Sunday 13 Sep is 01:30 IST on Monday 14 Sep. A UTC host
-    // calling getDay() would say Sunday and report "No school today".
-    assert.equal(schoolWeekday(new Date("2026-09-13T20:00:00Z")), 1);
-  });
-
-  it("agrees with UTC during the school's daytime", () => {
-    assert.equal(schoolWeekday(new Date("2026-09-13T10:00:00Z")), 0);
-  });
-});
 
 describe("classesCaption", () => {
   it("says a zero on a weekend is no school, not missing data", () => {

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { todayRegister } from "@/lib/overview";
-import { schoolDay } from "@/lib/dates";
-import { classesCaption, rupees, schoolWeekday } from "@/lib/snapshot";
+import { schoolDay, schoolMonthStart, schoolWeekday } from "@/lib/dates";
+import { classesCaption, rupees } from "@/lib/snapshot";
 
 interface Metric {
   label: string;
@@ -28,10 +28,11 @@ export default async function SchoolSnapshot() {
 
   const role = session.user.role;
   const userId = session.user.id;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  // The school's day and month, not the server's: on a UTC host, setHours(0)
+  // is 05:30 IST, so until then "today" was still yesterday and on the 1st
+  // "this month" was still last month.
+  const { start: dayStart, end: dayEnd } = schoolDay();
+  const startOfMonth = schoolMonthStart();
 
   let metrics: Metric[] = [];
 
@@ -92,7 +93,7 @@ export default async function SchoolSnapshot() {
       const classId = teacher.classes[0].id;
       const classStudents = await prisma.student.findMany({
         where: { classroomId: classId },
-        include: { attendances: { where: { date: { gte: today } } } }
+        include: { attendances: { where: { date: { gte: dayStart, lt: dayEnd } } } }
       });
       const total = classStudents.length;
       const present = classStudents.filter(s => s.attendances.some(a => a.status === 'PRESENT')).length;
@@ -118,7 +119,7 @@ export default async function SchoolSnapshot() {
       where: { userId },
       include: {
         students: {
-          include: { attendances: { where: { date: { gte: today } } } }
+          include: { attendances: { where: { date: { gte: dayStart, lt: dayEnd } } } }
         }
       }
     });
@@ -148,11 +149,9 @@ export default async function SchoolSnapshot() {
       include: { classroom: true }
     });
 
-    // The school's weekday and midnight, not the server's: timetable days run
-    // 1 = Monday … 5 = Friday, and a UTC host's getDay() is still on yesterday
-    // until 05:30 IST.
+    // The school's weekday, not the server's: timetable days run 1 = Monday …
+    // 5 = Friday, and a UTC host's getDay() is still on yesterday until 05:30 IST.
     const weekday = schoolWeekday();
-    const { start: dayStart } = schoolDay();
 
     const todaysClasses = student?.classroomId ? await prisma.timetableEntry.count({
       where: { classroomId: student.classroomId, dayOfWeek: weekday }
