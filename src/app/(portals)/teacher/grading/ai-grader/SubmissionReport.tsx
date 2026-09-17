@@ -7,7 +7,6 @@ import { SubmitButton, FormFeedback } from '@/components/ui/form';
 import { setTeacherOverrideScore, setTeacherOverrideQuestionScore, setTeacherFeedback, publishResult } from './actions';
 import { getEffectiveTotalScore, getEffectiveQuestionScore, isScoreOverridden, isQuestionOverridden } from '@/lib/grading/effectiveScore';
 import { computePageMarks, resolveMark } from '@/lib/grading/annotationLayout';
-import type { ImageDims } from '@/lib/grading/annotationLayout';
 import type { SubmissionRow } from './types';
 
 type Tab = 'overview' | 'questions' | 'annotated' | 'pdf' | 'ocr';
@@ -43,8 +42,8 @@ export default function SubmissionReport({ submission }: { submission: Submissio
     { id: 'overview', label: 'Overview' },
     { id: 'questions', label: 'Questions' },
     ...(submission.ocrPages && submission.ocrPages.length > 0 ? [{ id: 'annotated' as Tab, label: 'Annotated paper' }] : []),
-    { id: 'pdf', label: 'Original PDF' },
-    ...(submission.ocrText ? [{ id: 'ocr' as Tab, label: 'OCR text' }] : [])
+    { id: 'pdf', label: 'Original file' },
+    ...(submission.ocrText ? [{ id: 'ocr' as Tab, label: 'Extracted text' }] : [])
   ];
 
   return (
@@ -79,9 +78,7 @@ export default function SubmissionReport({ submission }: { submission: Submissio
       {tab === 'overview' && <OverviewTab submission={submission} canPublish={canPublish} gradeScaleLabel={gradeScaleLabel} />}
       {tab === 'questions' && <QuestionsTab submission={submission} />}
       {tab === 'annotated' && <AnnotatedTab submission={submission} />}
-      {tab === 'pdf' && (
-        <iframe src={submission.fileUrl} title={`${submission.studentName} — original scan`} className="w-full h-[70vh] rounded-xl border border-slate-200 dark:border-zinc-800" />
-      )}
+      {tab === 'pdf' && <OriginalFileTab fileUrl={submission.fileUrl} studentName={submission.studentName} />}
       {tab === 'ocr' && (
         <pre className="text-xs bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-800 rounded-xl p-4 whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
           {submission.ocrText}
@@ -89,6 +86,36 @@ export default function SubmissionReport({ submission }: { submission: Submissio
       )}
     </div>
   );
+}
+
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const WORD_EXTENSIONS = ['.docx', '.doc'];
+
+/** Renders the originally-uploaded file appropriately for its format - an <img> for a photo, a
+ *  download link for a Word doc (browsers cannot render .docx inline), and an <iframe> for
+ *  everything else (PDF renders natively; plain text renders as-is). */
+function OriginalFileTab({ fileUrl, studentName }: { fileUrl: string; studentName: string }) {
+  const ext = fileUrl.toLowerCase().split('?')[0].slice(fileUrl.toLowerCase().lastIndexOf('.'));
+
+  if (IMAGE_EXTENSIONS.includes(ext)) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={fileUrl} alt={`${studentName} — original photo`} className="max-w-full rounded-xl border border-slate-200 dark:border-zinc-800" />
+    );
+  }
+
+  if (WORD_EXTENSIONS.includes(ext)) {
+    return (
+      <div className="rounded-xl border border-slate-200 dark:border-zinc-800 p-10 text-center">
+        <p className="text-sm text-slate-500 mb-3">Word documents can&apos;t be previewed inline.</p>
+        <a href={fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 hover:text-indigo-700">
+          <FileText size={14} aria-hidden /> Download the original file
+        </a>
+      </div>
+    );
+  }
+
+  return <iframe src={fileUrl} title={`${studentName} — original file`} className="w-full h-[70vh] rounded-xl border border-slate-200 dark:border-zinc-800" />;
 }
 
 function OverviewTab({
@@ -365,11 +392,15 @@ function QuestionsTab({ submission }: { submission: SubmissionRow }) {
   );
 }
 
+/** PaddleOCR-VL-1.6 (see ocr.ts) reports OCR'd text as markdown with no per-line pixel
+ *  position, so annotations can no longer be drawn as highlight boxes over a rendered page
+ *  image (the older PP-OCRv6 model this used to run on provided that). Instead, each page's
+ *  OCR'd lines are rendered as text, with the specific line(s) an annotation refers to
+ *  highlighted inline - clicking a highlighted line shows that annotation's comment. */
 function AnnotatedTab({ submission }: { submission: SubmissionRow }) {
-  const [dims, setDims] = useState<Record<number, ImageDims>>({});
   const [active, setActive] = useState<string | null>(null);
   const pages = useMemo(() => submission.ocrPages ?? [], [submission.ocrPages]);
-  const perPageMarks = useMemo(() => computePageMarks(pages, submission.result.annotations, dims), [pages, submission.result.annotations, dims]);
+  const perPageMarks = useMemo(() => computePageMarks(pages, submission.result.annotations), [pages, submission.result.annotations]);
 
   return (
     <div className="space-y-6">
@@ -379,42 +410,37 @@ function AnnotatedTab({ submission }: { submission: SubmissionRow }) {
         ))}
       </div>
       {pages.map((page, pageIndex) => {
-        if (!page.imageDataUrl) return null;
         const marks = perPageMarks[pageIndex] ?? [];
+        const markByLine = new Map(marks.map(m => [m.lineIndex, m]));
         return (
-          <div key={pageIndex} className="relative border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={page.imageDataUrl}
-              alt={`Page ${pageIndex + 1}`}
-              className="w-full block"
-              onLoad={e => {
-                const img = e.currentTarget;
-                setDims(prev => ({ ...prev, [pageIndex]: { w: img.naturalWidth, h: img.naturalHeight } }));
-              }}
-            />
-            {marks.map(m => {
-              const mark = resolveMark(m.annotation, submission.result.questions);
-              return (
-                <button
-                  key={m.key}
-                  type="button"
-                  onClick={() => setActive(active === m.key ? null : m.key)}
-                  className={`absolute border-b-2 mix-blend-multiply ${MARK_FILL[m.annotation.type]} ${MARK_BORDER[m.annotation.type]}`}
-                  style={{ left: `${m.leftPct}%`, top: `${m.topPct}%`, width: `${m.widthPct}%`, height: `${m.heightPct}%` }}
-                  aria-label={m.annotation.comment}
-                >
-                  {active === m.key && (
-                    <span className={`absolute left-0 top-full mt-1 z-10 w-56 text-left normal-case whitespace-normal text-xs rounded-lg p-2.5 shadow-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-200`}>
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold mb-1 ${TAG_STYLE[m.annotation.type]}`}>
-                        {m.annotation.type}{mark ? ` · ${mark.score}/${mark.maxScore}` : ''}
+          <div key={pageIndex} className="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+            <p className="px-4 pt-3 text-xs font-bold text-slate-400">Page {pageIndex + 1}</p>
+            <div className="p-4 space-y-1 font-mono text-xs whitespace-pre-wrap">
+              {page.lines.map((line, lineIndex) => {
+                const m = markByLine.get(lineIndex);
+                if (!m) return <p key={lineIndex} className="text-slate-600 dark:text-slate-300">{line.text}</p>;
+                const mark = resolveMark(m.annotation, submission.result.questions);
+                return (
+                  <div key={lineIndex} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActive(active === m.key ? null : m.key)}
+                      className={`text-left w-full rounded px-1 -mx-1 border-l-4 ${MARK_FILL[m.annotation.type]} ${MARK_BORDER[m.annotation.type]}`}
+                    >
+                      {line.text}
+                    </button>
+                    {active === m.key && (
+                      <span className="block mt-1 mb-2 w-full max-w-md text-left normal-case whitespace-normal text-xs rounded-lg p-2.5 shadow-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-200">
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold mb-1 ${TAG_STYLE[m.annotation.type]}`}>
+                          {m.annotation.type}{mark ? ` · ${mark.score}/${mark.maxScore}` : ''}
+                        </span>
+                        <span className="block">{m.annotation.comment}</span>
                       </span>
-                      <span className="block">{m.annotation.comment}</span>
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
       })}

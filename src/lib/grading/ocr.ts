@@ -1,8 +1,8 @@
 import { Agent, setGlobalDispatcher } from 'undici';
-import type { OcrLine, OcrPage } from './types';
+import type { OcrPage } from './types';
 
 const JOB_URL = 'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs';
-const MODEL = 'PP-OCRv6';
+const MODEL = 'PaddleOCR-VL-1.6';
 const POLL_INTERVAL_MS = 5000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -38,6 +38,8 @@ interface JobStatusResponse {
 export interface OcrResult {
   text: string;
   pages: OcrPage[];
+  /** PaddleOCR-VL-1.6's layout-parsing response carries no per-line confidence score
+   *  (unlike the old PP-OCRv6 rec_scores) - always null with this model. */
   ocrConfidence: number | null;
 }
 
@@ -45,35 +47,38 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/** PaddleX's per-page OCR result nests recognized lines under prunedResult: rec_texts[i] is
- *  the text of line i, rec_boxes[i] is its [x1,y1,x2,y2] pixel box on the page image at
- *  inputImage - confirmed against a live response, not just inferred. */
-function extractPageLines(ocrResult: unknown): { lines: OcrLine[]; imageUrl: string | null; scores: number[] } | null {
+/** PaddleOCR-VL-1.6 returns one layoutParsingResults entry per page, each carrying the page's
+ *  content as markdown (res.markdown.text) rather than a list of recognized lines with pixel
+ *  boxes (that per-line box data is specific to the older PP-OCRv6 model and does not exist in
+ *  this response - confirmed against a live response). The markdown is split into non-empty
+ *  lines so the rest of the grading pipeline (which numbers lines as [L0], [L1], ... for the
+ *  model to reference in annotations) keeps working the same way as before. */
+function extractPageLines(ocrResult: unknown): { lines: { text: string }[]; imageUrl: string | null } | null {
   if (!ocrResult || typeof ocrResult !== 'object') return null;
   const record = ocrResult as Record<string, unknown>;
-  const pruned = record.prunedResult;
-  if (!pruned || typeof pruned !== 'object') return null;
-  const prunedRecord = pruned as Record<string, unknown>;
-  const recTexts = prunedRecord.rec_texts;
-  const recBoxes = prunedRecord.rec_boxes;
-  const recScores = prunedRecord.rec_scores;
-  if (!Array.isArray(recTexts) || !Array.isArray(recBoxes)) return null;
+  const markdown = record.markdown;
+  if (!markdown || typeof markdown !== 'object') return null;
+  const markdownText = (markdown as Record<string, unknown>).text;
+  if (typeof markdownText !== 'string' || !markdownText.trim()) return null;
 
-  const lines: OcrLine[] = [];
-  const scores: number[] = [];
-  for (let i = 0; i < recTexts.length; i++) {
-    const text = recTexts[i];
-    const box = recBoxes[i];
-    if (typeof text !== 'string' || !text.length) continue;
-    if (!Array.isArray(box) || box.length !== 4 || box.some(n => typeof n !== 'number')) continue;
-    lines.push({ text, box: box as [number, number, number, number] });
-    const score = Array.isArray(recScores) ? recScores[i] : undefined;
-    if (typeof score === 'number') scores.push(score);
-  }
+  const lines = markdownText
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean)
+    .map(text => ({ text }));
   if (lines.length === 0) return null;
 
-  const imageUrl = typeof record.inputImage === 'string' ? record.inputImage : null;
-  return { lines, imageUrl, scores };
+  // outputImages varies by response (e.g. a rendered/annotated page preview) - take whichever
+  // one is offered, purely for display in the "Original file" style preview; it is never used
+  // for positioning anything, since there are no pixel boxes to position against.
+  const outputImages = record.outputImages;
+  let imageUrl: string | null = null;
+  if (outputImages && typeof outputImages === 'object') {
+    const first = Object.values(outputImages as Record<string, unknown>)[0];
+    if (typeof first === 'string') imageUrl = first;
+  }
+
+  return { lines, imageUrl };
 }
 
 async function fetchAsDataUrl(url: string): Promise<string | null> {
@@ -88,11 +93,12 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-/** Submits a scanned PDF to PaddleOCR, polls until done, and returns every page's extracted
- *  text/line-boxes plus a rendered image per page. Throws a plain Error with a message safe to
- *  show a teacher on any failure - callers decide how to surface/log it (e.g. writing it to
- *  AIGradingSubmission.errorMessage). */
-export async function runOcr(pdfBuffer: Buffer): Promise<OcrResult> {
+/** Submits a scanned PDF or image to PaddleOCR, polls until done, and returns every page's
+ *  extracted text plus (where offered) a rendered preview image per page. Throws a plain Error
+ *  with a message safe to show a teacher on any failure - callers decide how to surface/log it
+ *  (e.g. writing it to AIGradingSubmission.errorMessage). PaddleOCR-VL-1.6 accepts PDFs and
+ *  common image formats through the same "file" field, keyed off the filename/content type. */
+export async function runOcr(fileBuffer: Buffer, fileName: string, mimeType: string): Promise<OcrResult> {
   ensureLongConnectTimeout();
 
   const token = process.env.PADDLEOCR_ACCESS_TOKEN;
@@ -104,9 +110,9 @@ export async function runOcr(pdfBuffer: Buffer): Promise<OcrResult> {
   form.append('model', MODEL);
   form.append(
     'optionalPayload',
-    JSON.stringify({ useDocOrientationClassify: false, useDocUnwarping: false, useTextlineOrientation: false })
+    JSON.stringify({ useDocOrientationClassify: false, useDocUnwarping: false, useChartRecognition: false })
   );
-  form.append('file', new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' }), 'sheet.pdf');
+  form.append('file', new Blob([new Uint8Array(fileBuffer)], { type: mimeType }), fileName);
 
   let submitResp: Response;
   try {
@@ -183,7 +189,7 @@ export async function runOcr(pdfBuffer: Buffer): Promise<OcrResult> {
   if (!jsonlResp.ok) throw new Error(`Could not fetch PaddleOCR result (status ${jsonlResp.status})`);
 
   const jsonlText = await jsonlResp.text();
-  const pageResults: { lines: OcrLine[]; imageUrl: string | null; scores: number[] }[] = [];
+  const pageResults: { lines: { text: string }[]; imageUrl: string | null }[] = [];
 
   for (const line of jsonlText.split('\n')) {
     const trimmed = line.trim();
@@ -194,9 +200,9 @@ export async function runOcr(pdfBuffer: Buffer): Promise<OcrResult> {
     } catch {
       continue;
     }
-    const ocrResults = (parsed as { result?: { ocrResults?: unknown[] } })?.result?.ocrResults;
-    if (!Array.isArray(ocrResults)) continue;
-    for (const res of ocrResults) {
+    const layoutParsingResults = (parsed as { result?: { layoutParsingResults?: unknown[] } })?.result?.layoutParsingResults;
+    if (!Array.isArray(layoutParsingResults)) continue;
+    for (const res of layoutParsingResults) {
       const pageData = extractPageLines(res);
       if (pageData) pageResults.push(pageData);
     }
@@ -207,13 +213,12 @@ export async function runOcr(pdfBuffer: Buffer): Promise<OcrResult> {
   }
 
   const pages: OcrPage[] = [];
-  const allScores: number[] = [];
-  for (const { lines, imageUrl, scores } of pageResults) {
+  for (const { lines, imageUrl } of pageResults) {
     const imageDataUrl = imageUrl ? await fetchAsDataUrl(imageUrl) : null;
     pages.push({ imageDataUrl: imageDataUrl ?? '', lines });
-    allScores.push(...scores);
   }
-  const ocrConfidence = allScores.length > 0 ? allScores.reduce((a, b) => a + b, 0) / allScores.length : null;
+  // PaddleOCR-VL-1.6 does not report a per-line/per-page confidence score.
+  const ocrConfidence: number | null = null;
 
   const text = pages.map(p => p.lines.map(l => l.text).join('\n')).join('\n\n---\n\n');
   if (!text) throw new Error('PaddleOCR extracted pages but no line text was present');

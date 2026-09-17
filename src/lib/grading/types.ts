@@ -75,13 +75,21 @@ export interface GradingResult {
   annotations: Annotation[];
 }
 
-/** One OCR'd text line and its pixel bounding box [x1, y1, x2, y2] on its page's image. */
+/** One line of a page's OCR'd text (from PaddleOCR-VL-1.6's markdown output). Earlier this also
+ *  carried a pixel bounding box from the older PP-OCRv6 model, used to overlay annotation
+ *  highlights directly on the scanned page image - PaddleOCR-VL-1.6's markdown-based response
+ *  has no per-line position data, so that overlay is no longer possible (see AnnotatedTab in
+ *  SubmissionReport.tsx, which highlights matched lines as text instead). */
 export interface OcrLine {
   text: string;
-  box: [number, number, number, number];
 }
 
-/** One page of the scanned PDF, rendered by PaddleOCR as a data URL, with its detected lines. */
+/** One page of extracted answer-sheet text, however it was obtained: OCR'd by PaddleOCR for a
+ *  scanned PDF or photo, or read directly from a Word document or plain-text file (see
+ *  extractText.ts) - the rest of the grading pipeline treats every source the same way.
+ *  imageDataUrl is populated only for OCR sources where PaddleOCR offers a rendered preview,
+ *  and is for reference display only, never for positioning (there are no pixel boxes to
+ *  position against). */
 export interface OcrPage {
   imageDataUrl: string;
   lines: OcrLine[];

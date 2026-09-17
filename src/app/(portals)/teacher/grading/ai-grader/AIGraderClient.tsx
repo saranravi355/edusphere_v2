@@ -207,7 +207,7 @@ export default function AIGraderClient({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-2">Scanned answer sheet</label>
+          <label className="block text-xs font-medium text-slate-500 mb-2">Answer sheet</label>
           <div
             className="border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-xl p-8 flex flex-col items-center text-center cursor-pointer hover:border-indigo-400 transition-colors"
             onClick={() => fileInput.current?.click()}
@@ -225,13 +225,14 @@ export default function AIGraderClient({
           >
             <UploadCloud size={36} className="text-slate-400 mb-3" aria-hidden />
             <p className="text-slate-600 dark:text-slate-400 text-sm">
-              {fileName ?? 'Drop a scanned answer sheet PDF here, or click to browse'}
+              {fileName ?? 'Drop a scanned PDF, Word doc, text file, or photo here, or click to browse'}
             </p>
+            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">PDF, DOCX, TXT, JPG, PNG or WEBP</p>
             <input
               ref={fileInput}
               type="file"
               name="file"
-              accept="application/pdf"
+              accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png,image/webp"
               required
               className="hidden"
               onChange={e => setFileName(e.target.files?.[0]?.name ?? null)}

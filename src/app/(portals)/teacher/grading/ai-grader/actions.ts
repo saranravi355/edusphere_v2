@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { guard, TEACHER_ROLES } from '@/lib/authz';
 import type { ActionState } from '@/components/ui/form';
-import { runOcr } from '@/lib/grading/ocr';
+import { extractAnswerText, isAcceptedAnswerSheet, isLegacyDoc, guessMimeType } from '@/lib/grading/extractText';
 import { gradeAnswerSheet, buildMarkedOcrText } from '@/lib/grading/grade';
 import { uploadAnswerSheet } from '@/lib/grading/storage';
 import type { CourseworkType, IBProgramme } from '@/lib/grading/types';
@@ -48,8 +48,13 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
   if (!title) return { error: 'Name the assessment — it is how the result is identified later.' };
   if (!term) return { error: 'Choose a term.' };
   if (!subjectName) return { error: 'Choose a subject.' };
-  if (!(file instanceof File) || file.size === 0) return { error: 'Choose a scanned answer sheet PDF.' };
-  if (file.type !== 'application/pdf') return { error: 'Only PDF files are supported.' };
+  if (!(file instanceof File) || file.size === 0) return { error: 'Choose an answer sheet to upload.' };
+  if (isLegacyDoc(file.name, file.type)) {
+    return { error: 'Old-style .doc files are not supported — re-save as .docx (Word: File > Save As > Word Document) and re-upload.' };
+  }
+  if (!isAcceptedAnswerSheet(file.name, file.type)) {
+    return { error: 'Unsupported file type — upload a PDF, Word document (.docx), plain text (.txt), or a photo (JPG/PNG/WEBP).' };
+  }
 
   const student = await prisma.student.findFirst({
     where: { id: studentId, classroomId, isActive: true },
@@ -66,7 +71,7 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
 
   let fileUrl: string;
   try {
-    fileUrl = await uploadAnswerSheet(buffer, file.name);
+    fileUrl = await uploadAnswerSheet(buffer, file.name, file.type || guessMimeType(file.name));
   } catch (err) {
     return { error: `Could not store the file: ${(err as Error).message}` };
   }
@@ -89,7 +94,7 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
     },
   });
 
-  await runGrading(submission.id, buffer, { subjectName, level, courseworkType, programme });
+  await runGrading(submission.id, buffer, file.name, file.type, { subjectName, level, courseworkType, programme });
 
   revalidatePath('/teacher/grading/ai-grader');
   return { success: `${file.name} uploaded — grading in progress.` };
@@ -97,14 +102,18 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
 
 /** Shared by uploadAndGrade and retryGrading. Never throws — every failure is written to the
  *  submission row itself (status FAILED + errorMessage) so it shows up in the queue rather
- *  than vanishing into a server log. */
+ *  than vanishing into a server log. Dispatches by format (PDF/image via OCR, .docx via
+ *  mammoth, .txt read directly) so the rest of the pipeline never needs to know which one it
+ *  was handed - see extractText.ts. */
 async function runGrading(
   submissionId: string,
-  pdfBuffer: Buffer,
+  fileBuffer: Buffer,
+  fileName: string,
+  mimeType: string,
   params: { subjectName: string; level: string; courseworkType: CourseworkType; programme: IBProgramme }
 ): Promise<void> {
   try {
-    const ocr = await runOcr(pdfBuffer);
+    const ocr = await extractAnswerText(fileBuffer, fileName, mimeType);
     await prisma.aIGradingSubmission.update({
       where: { id: submissionId },
       data: {
@@ -159,8 +168,13 @@ export async function retryGrading(submissionId: string): Promise<ActionState> {
   if (!resp.ok) return { error: `Could not re-fetch the stored file (status ${resp.status}).` };
   const buffer = Buffer.from(await resp.arrayBuffer());
 
+  // The stored blob URL carries the original filename (see uploadAnswerSheet) but not the
+  // browser-reported MIME type, since only the URL is persisted - guessMimeType covers that.
+  const fileName = decodeURIComponent(submission.fileUrl.split('/').pop() ?? '');
+  const mimeType = resp.headers.get('content-type') || guessMimeType(fileName);
+
   await prisma.aIGradingSubmission.update({ where: { id: submissionId }, data: { status: 'OCR_PROCESSING', errorMessage: null } });
-  await runGrading(submissionId, buffer, {
+  await runGrading(submissionId, buffer, fileName, mimeType, {
     subjectName: submission.subjectName,
     level: '',
     courseworkType: submission.courseworkType as CourseworkType,
