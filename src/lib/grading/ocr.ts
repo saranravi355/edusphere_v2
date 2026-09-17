@@ -3,7 +3,10 @@ import type { OcrPage } from './types';
 
 const JOB_URL = 'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs';
 const MODEL = 'PaddleOCR-VL-1.6';
-const POLL_INTERVAL_MS = 5000;
+// Shorter than the job itself takes to run - this only controls how quickly we notice it
+// finished, not how fast PaddleOCR processes the page. Kept well above the ~1-2s a status
+// check itself costs so polling isn't a meaningful load on top of the actual OCR work.
+const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1000;
 
 /** PaddleOCR's host takes noticeably longer than most APIs just to establish a connection

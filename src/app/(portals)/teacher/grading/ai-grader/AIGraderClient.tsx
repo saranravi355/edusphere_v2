@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { UploadCloud, Files, Sparkles, RefreshCw, Trash2, BarChart3, Download } from 'lucide-react';
 import { SubmitButton, FormFeedback } from '@/components/ui/form';
 import { uploadAndGrade, retryGrading, deleteSubmission } from './actions';
-import { bulkUploadAndGrade, assignStudent } from './bulkActions';
+import { bulkUploadAndGrade } from './bulkActions';
 import SubmissionReport from './SubmissionReport';
 import type { SubmissionRow } from './types';
 
@@ -303,7 +303,7 @@ export default function AIGraderClient({
       >
         <input type="hidden" name="classroomId" value={activeClassId} />
         <p className="text-xs text-slate-500 -mt-1">
-          One assessment, many students&apos; sheets at once — no need to pick a student per file.
+          One assessment, many students&apos; sheets at once. <strong>Every file must be named with that student&apos;s registration number or full name</strong> (e.g. &quot;STU-2026-001.pdf&quot; or &quot;Aarav_Patel.pdf&quot;) — sheets are matched to students by filename only, and the whole batch is rejected if any file doesn&apos;t match.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -404,9 +404,7 @@ export default function AIGraderClient({
             ) : (
               <p className="text-slate-600 dark:text-slate-400 text-sm">Drop the whole class&apos;s sheets here, or click to browse</p>
             )}
-            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">
-              Name files with a student&apos;s registration number or name for automatic matching (e.g. &quot;2610-042.pdf&quot;) — PDF, DOCX, TXT, JPG, PNG or WEBP
-            </p>
+            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">PDF, DOCX, TXT, JPG, PNG or WEBP</p>
             <input
               ref={bulkFileInput}
               type="file"
@@ -472,7 +470,6 @@ export default function AIGraderClient({
                 <SubmissionQueueRow
                   key={s.id}
                   submission={s}
-                  students={students}
                   expanded={expanded === s.id}
                   onToggle={() => setExpanded(expanded === s.id ? null : s.id)}
                   onRetry={() => handleRetry(s.id)}
@@ -498,7 +495,6 @@ export default function AIGraderClient({
 
 function SubmissionQueueRow({
   submission,
-  students,
   expanded,
   onToggle,
   onRetry,
@@ -507,7 +503,6 @@ function SubmissionQueueRow({
   deleting
 }: {
   submission: SubmissionRow;
-  students: { id: string; name: string; registrationNo: string }[];
   expanded: boolean;
   onToggle: () => void;
   onRetry: () => void;
@@ -515,7 +510,6 @@ function SubmissionQueueRow({
   onDelete: () => void;
   deleting: boolean;
 }) {
-  const router = useRouter();
   const canOpen = submission.status !== 'OCR_PROCESSING' && submission.status !== 'EVALUATING';
   const inFlight = submission.status === 'OCR_PROCESSING' || submission.status === 'EVALUATING';
   const hasResult = ['EVALUATED', 'NEEDS_REVIEW', 'PUBLISHED'].includes(submission.status);
@@ -538,17 +532,6 @@ function SubmissionQueueRow({
   const STUCK_THRESHOLD_MS = 6 * 60 * 1000;
   const stuck = inFlight && now - new Date(submission.createdAt).getTime() > STUCK_THRESHOLD_MS;
 
-  const [assignValue, setAssignValue] = useState('');
-  const [assigning, setAssigning] = useState(false);
-
-  const saveAssign = async () => {
-    if (!assignValue) return;
-    setAssigning(true);
-    await assignStudent(submission.id, assignValue);
-    setAssigning(false);
-    router.refresh();
-  };
-
   return (
     <>
       <tr
@@ -556,39 +539,8 @@ function SubmissionQueueRow({
         onClick={() => canOpen && onToggle()}
       >
         <td className="p-4">
-          {submission.studentId ? (
-            <>
-              <p className="font-bold text-sm text-slate-800 dark:text-slate-100">{submission.studentName}</p>
-              <p className="text-xs text-slate-500">{submission.registrationNo}</p>
-            </>
-          ) : (
-            <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 shrink-0">
-                Unassigned
-              </span>
-              <select
-                value={assignValue}
-                onChange={e => setAssignValue(e.target.value)}
-                className="text-xs p-1 border border-slate-300 dark:border-zinc-700 rounded bg-white dark:bg-black text-slate-600 dark:text-slate-300 max-w-[120px]"
-              >
-                <option value="">Assign…</option>
-                {students.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={saveAssign}
-                disabled={!assignValue || assigning}
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-700 disabled:opacity-40"
-              >
-                {assigning ? '…' : 'Save'}
-              </button>
-              {submission.originalFileName && (
-                <p className="text-[10px] text-slate-400 truncate max-w-[100px]" title={submission.originalFileName}>{submission.originalFileName}</p>
-              )}
-            </div>
-          )}
+          <p className="font-bold text-sm text-slate-800 dark:text-slate-100">{submission.studentName}</p>
+          <p className="text-xs text-slate-500">{submission.registrationNo}</p>
         </td>
         <td className="p-4 text-sm text-slate-600 dark:text-slate-300">{submission.subjectName}</td>
         <td className="p-4 text-sm text-slate-600 dark:text-slate-300">{submission.title}</td>

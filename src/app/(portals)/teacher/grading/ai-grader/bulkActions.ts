@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import type { ActionState } from '@/components/ui/form';
 import { isAcceptedAnswerSheet, isLegacyDoc, guessMimeType } from '@/lib/grading/extractText';
-import { matchStudentByFilename, matchStudentFromOcrText, type RosterStudent } from '@/lib/grading/bulkMatch';
+import { matchStudentByFilename, type RosterStudent } from '@/lib/grading/bulkMatch';
 import { uploadAnswerSheet } from '@/lib/grading/storage';
 import type { CourseworkType, IBProgramme } from '@/lib/grading/types';
 import { ctx, runGrading } from './actions';
@@ -15,22 +15,37 @@ const PROGRAMMES: IBProgramme[] = ['DP', 'MYP'];
 
 /**
  * Bulk-upload many scanned answer sheets for one assessment at once, without picking a student
- * per file up front. Each file is matched to a student on the class roster automatically -
- * first by filename (matchStudentByFilename), then, once OCR'd, by any name or roll number the
- * student wrote on the sheet itself (matchStudentFromOcrText). A file that still can't be
- * matched is created with studentId null and shows up in the queue for a teacher to assign by
- * hand (assignStudent, below) - it is still OCR'd and graded regardless, since grading needs
- * the subject/level/programme common to the whole batch, not the student's identity, and
- * publishResult (actions.ts) already refuses to publish an unassigned sheet.
+ * per file in the form - every file is matched to a student purely by its filename
+ * (matchStudentByFilename), which means the teacher is expected to save each file named with
+ * that student's registration number or full name before uploading. This is deliberately the
+ * ONLY matching path: no OCR-based fallback, no manual per-row assignment step. Every file must
+ * match exactly one roster student BEFORE anything is uploaded - if any don't, the whole batch
+ * is rejected up front with the list of filenames that failed to match, so the teacher fixes
+ * the filenames and re-uploads, rather than the queue filling up with partially-identified rows.
  *
  * Every file is uploaded and given a row synchronously, so the response - and the queue the
- * teacher sees - comes back immediately without waiting on OCR/grading for the whole batch.
- * The actual OCR+grading work runs in `after()`, sequentially per file (sequential, not
- * parallel, so the batch doesn't hammer the AI provider pool's per-minute rate limits all at
- * once - see lib/ai/pool.ts). A very large batch can still exceed the serverless function's own
- * max duration before every file finishes; anything left stuck in OCR_PROCESSING/EVALUATING
- * when that happens can be re-run individually with the existing per-row "Retry" action.
+ * teacher sees - comes back immediately without waiting on OCR/grading for the whole batch. The
+ * actual OCR+grading work runs in `after()`, up to BATCH_CONCURRENCY files at a time rather than
+ * one at a time - OCR is mostly waiting on a remote PaddleOCR job, not local work, so running
+ * several concurrently is what actually cuts a batch's wall-clock time down, and the AI grading
+ * pool (lib/ai/pool.ts) already handles a rate-limit response on any one request by failing
+ * over/cooling down that account rather than taking the whole batch down with it. A very large
+ * batch can still exceed the serverless function's own max duration before every file finishes;
+ * anything left stuck is caught by the queue's own stuck-detection (AIGraderClient.tsx) and can
+ * be re-run individually with "Retry".
  */
+const BATCH_CONCURRENCY = 3;
+
+async function runInPool<T>(items: T[], concurrency: number, worker: (item: T) => Promise<void>): Promise<void> {
+  let next = 0;
+  async function runner() {
+    while (next < items.length) {
+      const item = items[next++];
+      await worker(item);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, runner));
+}
 export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const c = await ctx();
   if (!c) return { error: 'Your staff record is missing. Ask an administrator to check your profile.' };
@@ -59,21 +74,33 @@ export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData)
     }
   }
 
-  const programme: IBProgramme = PROGRAMMES.includes(rawProgramme as IBProgramme) ? (rawProgramme as IBProgramme) : 'DP';
-  const courseworkType: CourseworkType = COURSEWORK_TYPES.includes(rawCourseworkType as CourseworkType)
-    ? (rawCourseworkType as CourseworkType)
-    : 'exam';
-
   const roster: RosterStudent[] = await prisma.student.findMany({
     where: { classroomId, isActive: true },
     select: { id: true, name: true, registrationNo: true },
   });
 
+  // Match every file BEFORE uploading anything - all or nothing, so a typo in one filename
+  // doesn't leave the queue half-populated with sheets that then need sorting out by hand.
+  const matches = files.map(file => ({ file, match: matchStudentByFilename(file.name, roster) }));
+  const unmatched = matches.filter(m => !m.match);
+  if (unmatched.length > 0) {
+    return {
+      error:
+        `Could not match ${unmatched.length} file${unmatched.length === 1 ? '' : 's'} to a student by filename: ` +
+        unmatched.map(m => `"${m.file.name}"`).join(', ') +
+        `. Rename ${unmatched.length === 1 ? 'it' : 'them'} with the student's registration number or full name and try again.`,
+    };
+  }
+
+  const programme: IBProgramme = PROGRAMMES.includes(rawProgramme as IBProgramme) ? (rawProgramme as IBProgramme) : 'DP';
+  const courseworkType: CourseworkType = COURSEWORK_TYPES.includes(rawCourseworkType as CourseworkType)
+    ? (rawCourseworkType as CourseworkType)
+    : 'exam';
+
   const batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const prepared: { submissionId: string; buffer: Buffer; fileName: string; mimeType: string }[] = [];
-  let matchedAtUpload = 0;
 
-  for (const file of files) {
+  for (const { file, match } of matches) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const mimeType = file.type || guessMimeType(file.name);
 
@@ -85,12 +112,9 @@ export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData)
       continue;
     }
 
-    const matched = matchStudentByFilename(file.name, roster);
-    if (matched) matchedAtUpload++;
-
     const submission = await prisma.aIGradingSubmission.create({
       data: {
-        studentId: matched?.id ?? null,
+        studentId: match!.id,
         originalFileName: file.name,
         batchId,
         classroomId,
@@ -114,46 +138,12 @@ export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData)
   if (prepared.length === 0) return { error: 'Could not store any of the selected files.' };
 
   after(async () => {
-    for (const item of prepared) {
-      await runGrading(item.submissionId, item.buffer, item.fileName, item.mimeType, { subjectName, level, courseworkType, programme }, async ocrText => {
-        const current = await prisma.aIGradingSubmission.findUnique({ where: { id: item.submissionId }, select: { studentId: true } });
-        if (current?.studentId) return; // already matched by filename
-        const matched = matchStudentFromOcrText(ocrText, roster);
-        if (matched) {
-          await prisma.aIGradingSubmission.update({ where: { id: item.submissionId }, data: { studentId: matched.id } });
-        }
-      });
-    }
+    await runInPool(prepared, BATCH_CONCURRENCY, item =>
+      runGrading(item.submissionId, item.buffer, item.fileName, item.mimeType, { subjectName, level, courseworkType, programme })
+    );
     revalidatePath('/teacher/grading/ai-grader');
   });
 
   revalidatePath('/teacher/grading/ai-grader');
-  const unmatched = prepared.length - matchedAtUpload;
-  return {
-    success:
-      `${prepared.length} file${prepared.length === 1 ? '' : 's'} uploaded — grading in progress. ` +
-      `${matchedAtUpload} matched to a student by filename` +
-      (unmatched > 0 ? `, ${unmatched} still need a student assigned once grading finishes (or sooner, by hand).` : '.'),
-  };
-}
-
-/** Assigns (or reassigns) which student a bulk-uploaded sheet belongs to, once a teacher has
- *  confirmed or corrected it by hand - required before a sheet can be published, since a grade
- *  needs a real student to attach to (see the studentId check in publishResult, actions.ts). */
-export async function assignStudent(submissionId: string, studentId: string): Promise<ActionState> {
-  const c = await ctx();
-  if (!c) return { error: 'Your staff record is missing.' };
-
-  const submission = await prisma.aIGradingSubmission.findUnique({ where: { id: submissionId }, select: { classroomId: true } });
-  if (!submission || !c.teacher.classes.some(k => k.id === submission.classroomId)) return { error: 'Not one of your classes.' };
-
-  const student = await prisma.student.findFirst({
-    where: { id: studentId, classroomId: submission.classroomId, isActive: true },
-    select: { id: true },
-  });
-  if (!student) return { error: 'Choose a student from this class.' };
-
-  await prisma.aIGradingSubmission.update({ where: { id: submissionId }, data: { studentId: student.id } });
-  revalidatePath('/teacher/grading/ai-grader');
-  return { success: 'Student assigned.' };
+  return { success: `${prepared.length} file${prepared.length === 1 ? '' : 's'} uploaded, all matched to a student — grading in progress.` };
 }

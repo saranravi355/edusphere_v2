@@ -12,10 +12,11 @@ function tokens(s: string): string[] {
   return normalize(s).split(' ').filter(Boolean);
 }
 
-/** Tries to match one bulk-uploaded file to exactly one student on the class roster, from its
- *  filename alone. Only returns a match when exactly one student fits - an ambiguous or absent
- *  match returns null and is left for a teacher to assign by hand (see assignStudent in
- *  actions.ts) rather than risk silently grading the wrong student's paper as someone else's. */
+/** Matches one bulk-uploaded file to exactly one student on the class roster, from its filename
+ *  alone - the only matching path bulk upload uses: teachers are expected to save each file
+ *  named with that student's registration number or full name before uploading, and
+ *  bulkUploadAndGrade (bulkActions.ts) rejects the whole batch up front if any file doesn't
+ *  resolve to exactly one student, rather than uploading a partially-identified queue. */
 export function matchStudentByFilename(fileName: string, roster: RosterStudent[]): RosterStudent | null {
   const base = fileName.replace(/\.[^.]+$/, '');
   if (!normalize(base)) return null;
@@ -36,40 +37,5 @@ export function matchStudentByFilename(fileName: string, roster: RosterStudent[]
   });
   if (nameMatches.length === 1) return nameMatches[0];
 
-  return null;
-}
-
-/** Answer sheets often carry the student's own handwritten "Name: ..." / "Roll No: ..." line
- *  near the top - pulls out plausible identity strings from the first few OCR'd lines. This is
- *  the least reliable source available (OCR of handwriting is no more trustworthy here than
- *  anywhere else on the page), so callers only try it after filename matching has already
- *  failed, and still only accept a candidate that resolves to exactly one roster student. */
-function candidateIdentityStrings(ocrText: string): string[] {
-  const lines = ocrText.split('\n').slice(0, 15);
-  const candidates: string[] = [];
-  for (const line of lines) {
-    const nameMatch = line.match(/(?:name|student)\s*[:\-]\s*(.+)/i);
-    if (nameMatch?.[1]) candidates.push(nameMatch[1].trim());
-    const idMatch = line.match(/(?:roll|reg(?:istration)?)\s*(?:no\.?|number)?\s*[:\-]?\s*([A-Za-z0-9\-/]+)/i);
-    if (idMatch?.[1]) candidates.push(idMatch[1].trim());
-  }
-  return candidates;
-}
-
-export function matchStudentFromOcrText(ocrText: string, roster: RosterStudent[]): RosterStudent | null {
-  for (const candidate of candidateIdentityStrings(ocrText)) {
-    const normalizedCandidate = normalize(candidate);
-    if (!normalizedCandidate) continue;
-
-    const regnoMatches = roster.filter(s => s.registrationNo && normalize(s.registrationNo) === normalizedCandidate);
-    if (regnoMatches.length === 1) return regnoMatches[0];
-
-    const candidateTokens = new Set(tokens(candidate));
-    const nameMatches = roster.filter(s => {
-      const nameTokens = tokens(s.name);
-      return nameTokens.length > 0 && nameTokens.every(t => candidateTokens.has(t));
-    });
-    if (nameMatches.length === 1) return nameMatches[0];
-  }
   return null;
 }
