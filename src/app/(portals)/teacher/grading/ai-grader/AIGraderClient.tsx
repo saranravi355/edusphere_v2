@@ -64,7 +64,9 @@ export default function AIGraderClient({
   const [programme, setProgramme] = useState<'DP' | 'MYP'>('DP');
   const [courseworkType, setCourseworkType] = useState('exam');
   const [fileName, setFileName] = useState<string | null>(null);
+  const [markingSchemeFileName, setMarkingSchemeFileName] = useState<string | null>(null);
   const [bulkFileNames, setBulkFileNames] = useState<string[]>([]);
+  const [bulkMarkingSchemeFileName, setBulkMarkingSchemeFileName] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [retrying, setRetrying] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -151,6 +153,7 @@ export default function AIGraderClient({
         action={formData => {
           action(formData);
           setFileName(null);
+          setMarkingSchemeFileName(null);
           formRef.current?.reset();
         }}
         className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5"
@@ -278,6 +281,24 @@ export default function AIGraderClient({
           </div>
         </div>
 
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="ag-marking-scheme">
+            Marking scheme <span className="text-slate-400 font-normal">(optional, but recommended)</span>
+          </label>
+          <p className="text-xs text-slate-400 mb-2">
+            Upload the exam questions, model/expected answers and marks per question — grading is graded against this instead of the AI inferring its own rubric. Saved for this assessment, so it&apos;s reused automatically on later uploads for the same subject/title/term.
+          </p>
+          <input
+            id="ag-marking-scheme"
+            type="file"
+            name="markingScheme"
+            accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png,image/webp"
+            onChange={e => setMarkingSchemeFileName(e.target.files?.[0]?.name ?? null)}
+            className="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 dark:file:bg-zinc-800 file:text-slate-700 dark:file:text-slate-200"
+          />
+          {markingSchemeFileName && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{markingSchemeFileName} selected</p>}
+        </div>
+
         <div className="flex items-center justify-between gap-3">
           <FormFeedback state={state} className="flex-1" />
           <SubmitButton pendingText="Uploading…" className="!bg-indigo-600 hover:!bg-indigo-700 !text-white shrink-0">
@@ -287,16 +308,16 @@ export default function AIGraderClient({
       </form>
       )}
 
-      {/* Bulk upload card — one assessment, many sheets, no student picked up front. Each
-          sheet is matched to a student automatically (by filename, then by name/roll number
-          OCR'd off the sheet itself); anything left unmatched is assigned by hand in the queue
-          below. */}
+      {/* Bulk upload card — one assessment, many sheets, no student picked up front. Every
+          sheet is matched to a student by filename alone; the whole batch is rejected if any
+          file doesn't match exactly one roster student. */}
       {mode === 'bulk' && (
       <form
         ref={bulkFormRef}
         action={formData => {
           bulkAction(formData);
           setBulkFileNames([]);
+          setBulkMarkingSchemeFileName(null);
           bulkFormRef.current?.reset();
         }}
         className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5"
@@ -416,6 +437,24 @@ export default function AIGraderClient({
               onChange={e => setBulkFileNames(Array.from(e.target.files ?? []).map(f => f.name))}
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="bag-marking-scheme">
+            Marking scheme <span className="text-slate-400 font-normal">(optional, but recommended)</span>
+          </label>
+          <p className="text-xs text-slate-400 mb-2">
+            Upload the exam questions, model/expected answers and marks per question once for the whole batch — every sheet in this batch is graded against it instead of the AI inferring its own rubric.
+          </p>
+          <input
+            id="bag-marking-scheme"
+            type="file"
+            name="markingScheme"
+            accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png,image/webp"
+            onChange={e => setBulkMarkingSchemeFileName(e.target.files?.[0]?.name ?? null)}
+            className="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 dark:file:bg-zinc-800 file:text-slate-700 dark:file:text-slate-200"
+          />
+          {bulkMarkingSchemeFileName && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{bulkMarkingSchemeFileName} selected</p>}
         </div>
 
         <div className="flex items-center justify-between gap-3">

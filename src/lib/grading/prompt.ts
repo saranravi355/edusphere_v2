@@ -47,12 +47,34 @@ Produce 3-8 annotations, covering a mix of strengths, weaknesses, and suggestion
 
 const ANNOTATIONS_EXAMPLE = '"annotations":[{"type":"strength","questionNumber":1,"criterionCode":"","lineStart":0,"lineEnd":0,"comment":"..."}]';
 
+/** A teacher-uploaded answer key (questions, model/expected answers, marks per question) for
+ *  this specific assessment - see markingScheme.ts. Only meaningful for the per-question branch
+ *  below (exam/internal-assessment/external-assessment): Extended Essay and TOK are graded
+ *  holistically against IB's own fixed criteria, not a teacher-written marking scheme, so it is
+ *  never applied there even if one happens to exist for that assessment. */
+function markingSchemeBlock(markingSchemeText: string): string {
+  return `
+
+OFFICIAL MARKING SCHEME FOR THIS ASSESSMENT (uploaded by the teacher - the actual questions, model/expected answers, and marks allocated per question):
+"""
+${markingSchemeText}
+"""
+
+This marking scheme is the authoritative source for THIS assessment - it overrides the generic criteria list above wherever the two would disagree:
+- Match the student's OCR'd answers to these EXACT questions, in this order, not questions you infer from the answer text alone.
+- Each question's "maxScore" in your JSON output MUST equal the marks allocated to that question in this marking scheme - never the generic criteria total.
+- Compare the student's answer against the model/expected answer given here, and award marks according to how many of the marking scheme's specific points the student's answer actually covers - do not award marks for content the marking scheme doesn't credit, even if the criteria descriptions below would suggest otherwise.
+- Still report each question's marks broken down using the criteria codes below (so the UI can show which IB objective they map to), but the marking scheme's content and point values are what actually decide the numbers, not the criteria descriptions.
+- If the marking scheme doesn't cover a question the student answered (or vice versa), grade what you can match and note the mismatch in that question's feedback.`;
+}
+
 export function buildTextGradingPrompt(
   programme: IBProgramme,
   courseworkType: CourseworkType,
   subject: string,
   level: string,
-  ocrText: string
+  ocrText: string,
+  markingSchemeText?: string
 ): string {
   const criteria = getCriteria(programme, courseworkType, subject);
   const { list, maxTotal, example } = criteriaBlock(criteria);
@@ -104,6 +126,9 @@ ${ocrText}
   const programmeLabel = programme === 'MYP' ? 'IB MYP' : 'IB DP';
   // SL/HL is a DP-only concept - never mention it for MYP, which has no such split.
   const levelSuffix = programme === 'MYP' ? '' : ` ${level}`;
+  const questionMaxScorePhrase = markingSchemeText
+    ? `that question's marks as stated in the official marking scheme below - NOT ${maxTotal}, which is only the generic criteria total and is overridden per question by the marking scheme`
+    : `${maxTotal} per question, since the criteria above sum to that`;
 
   return `You are an IB examiner's grading assistant reviewing a scanned student ${courseworkLabel} answer sheet for ${programmeLabel} ${subject}${levelSuffix}.
 
@@ -114,11 +139,12 @@ Grade using these ${subject} ${courseworkLabel} criteria for EVERY question (do 
 ${list}
 
 ${scoringNote}
+${markingSchemeText ? markingSchemeBlock(markingSchemeText) : ''}
 
 Do the following, in order:
-1. Identify each distinct question/answer pair in the OCR text, in order.
+1. Identify each distinct question/answer pair in the OCR text, in order${markingSchemeText ? ' - matched against the marking scheme\'s questions, not inferred freely' : ''}.
 2. For each answer, write a 1-3 sentence summary of what the student wrote.
-3. For each question, ${isMyp ? 'assign' : 'score'} EACH of the ${criteria.length} criteria above individually (each out of its own maxScore shown above, as a ${unit}), with a short comment of 12 words or fewer per criterion explaining that specific ${unit}. Sum the criteria ${isMyp ? 'levels' : 'scores'} into the question's own score, and the criteria maxScores into the question's own maxScore (which will be ${maxTotal} per question, since the criteria above sum to that).
+3. For each question, ${isMyp ? 'assign' : 'score'} EACH of the ${criteria.length} criteria above individually (each out of its own maxScore shown above, as a ${unit}), with a short comment of 12 words or fewer per criterion explaining that specific ${unit}. Sum the criteria ${isMyp ? 'levels' : 'scores'} into the question's own score, and the criteria maxScores into the question's own maxScore (which will be ${questionMaxScorePhrase}).
 4. ${EVIDENCE_INSTRUCTION}
 5. Write a single overall feedback comment for the question (12 words or fewer) summarizing across all criteria.
 6. Write 2-4 general feedback bullets for the whole sheet, each 14 words or fewer, grounded in the criteria above.

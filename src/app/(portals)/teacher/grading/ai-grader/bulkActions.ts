@@ -4,9 +4,10 @@ import { after } from 'next/server';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import type { ActionState } from '@/components/ui/form';
-import { isAcceptedAnswerSheet, isLegacyDoc, guessMimeType } from '@/lib/grading/extractText';
+import { extractAnswerText, isAcceptedAnswerSheet, isLegacyDoc, guessMimeType } from '@/lib/grading/extractText';
 import { matchStudentByFilename, type RosterStudent } from '@/lib/grading/bulkMatch';
 import { uploadAnswerSheet } from '@/lib/grading/storage';
+import { upsertMarkingScheme, findMarkingScheme } from '@/lib/grading/markingScheme';
 import type { CourseworkType, IBProgramme } from '@/lib/grading/types';
 import { ctx, runGrading } from './actions';
 
@@ -58,6 +59,7 @@ export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData)
   const rawProgramme = String(formData.get('programme') ?? '');
   const rawCourseworkType = String(formData.get('courseworkType') ?? '');
   const files = formData.getAll('files').filter((f): f is File => f instanceof File && f.size > 0);
+  const markingSchemeFile = formData.get('markingScheme');
 
   if (!c.teacher.classes.some(k => k.id === classroomId)) return { error: 'That is not one of your classes.' };
   if (!title) return { error: 'Name the assessment — it is how the result is identified later.' };
@@ -71,6 +73,14 @@ export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData)
     }
     if (!isAcceptedAnswerSheet(file.name, file.type)) {
       return { error: `"${file.name}" is an unsupported file type — upload PDF, DOCX, TXT, JPG, PNG or WEBP.` };
+    }
+  }
+  if (markingSchemeFile instanceof File && markingSchemeFile.size > 0) {
+    if (isLegacyDoc(markingSchemeFile.name, markingSchemeFile.type)) {
+      return { error: 'The marking scheme is an old-style .doc file — re-save it as .docx and re-upload.' };
+    }
+    if (!isAcceptedAnswerSheet(markingSchemeFile.name, markingSchemeFile.type)) {
+      return { error: 'The marking scheme is an unsupported file type — upload a PDF, Word document (.docx), plain text (.txt), or a photo (JPG/PNG/WEBP).' };
     }
   }
 
@@ -96,6 +106,25 @@ export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData)
   const courseworkType: CourseworkType = COURSEWORK_TYPES.includes(rawCourseworkType as CourseworkType)
     ? (rawCourseworkType as CourseworkType)
     : 'exam';
+
+  // A marking scheme uploaded here is attached to the whole assessment (every sheet in this
+  // batch, and any single-uploaded sheet for the same classroom/subject/title/term later) - see
+  // markingScheme.ts. If none is uploaded this time, fall back to one already on file.
+  let markingSchemeText: string | null = null;
+  if (markingSchemeFile instanceof File && markingSchemeFile.size > 0) {
+    try {
+      const msBuffer = Buffer.from(await markingSchemeFile.arrayBuffer());
+      const msMimeType = markingSchemeFile.type || guessMimeType(markingSchemeFile.name);
+      const msOcr = await extractAnswerText(msBuffer, markingSchemeFile.name, msMimeType);
+      const msFileUrl = await uploadAnswerSheet(msBuffer, markingSchemeFile.name, msMimeType);
+      await upsertMarkingScheme({ classroomId, teacherId: c.teacher.id, subjectName, title, term, programme, courseworkType, fileUrl: msFileUrl, rawText: msOcr.text });
+      markingSchemeText = msOcr.text;
+    } catch (err) {
+      return { error: `Could not process the marking scheme: ${(err as Error).message}` };
+    }
+  } else {
+    markingSchemeText = await findMarkingScheme({ classroomId, subjectName, title, term });
+  }
 
   const batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const prepared: { submissionId: string; buffer: Buffer; fileName: string; mimeType: string }[] = [];
@@ -139,11 +168,15 @@ export async function bulkUploadAndGrade(_prev: ActionState, formData: FormData)
 
   after(async () => {
     await runInPool(prepared, BATCH_CONCURRENCY, item =>
-      runGrading(item.submissionId, item.buffer, item.fileName, item.mimeType, { subjectName, level, courseworkType, programme })
+      runGrading(item.submissionId, item.buffer, item.fileName, item.mimeType, { subjectName, level, courseworkType, programme, markingSchemeText })
     );
     revalidatePath('/teacher/grading/ai-grader');
   });
 
   revalidatePath('/teacher/grading/ai-grader');
-  return { success: `${prepared.length} file${prepared.length === 1 ? '' : 's'} uploaded, all matched to a student — grading in progress.` };
+  return {
+    success:
+      `${prepared.length} file${prepared.length === 1 ? '' : 's'} uploaded, all matched to a student — grading in progress.` +
+      (markingSchemeText ? ' Grading against the uploaded marking scheme.' : ''),
+  };
 }

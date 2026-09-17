@@ -38,8 +38,12 @@ export async function gradeAnswerSheet(params: {
   level: string;
   courseworkType: CourseworkType;
   programme: IBProgramme;
+  /** A teacher-uploaded answer key for this assessment (markingScheme.ts) - grounds grading in
+   *  the actual questions/model answers/marks instead of generic IB criteria alone. Ignored for
+   *  TOK/Extended Essay, which buildTextGradingPrompt grades holistically regardless. */
+  markingSchemeText?: string | null;
 }): Promise<GradingResult> {
-  const { ocrText, subject, level, courseworkType, programme } = params;
+  const { ocrText, subject, level, courseworkType, programme, markingSchemeText } = params;
 
   if (courseworkType === 'tok') {
     const gradingPrompt = buildTextGradingPrompt(programme, courseworkType, TOK_SUBJECT_LABEL, level || '', ocrText);
@@ -64,7 +68,7 @@ export async function gradeAnswerSheet(params: {
     }
   }
 
-  const gradingPrompt = buildTextGradingPrompt(programme, courseworkType, selectedSubject, level, ocrText);
+  const gradingPrompt = buildTextGradingPrompt(programme, courseworkType, selectedSubject, level, ocrText, markingSchemeText ?? undefined);
   const text = (await callWithFailover(gradingPrompt, true)).text;
   return parseGradingResponse(text, selectedSubject);
 }

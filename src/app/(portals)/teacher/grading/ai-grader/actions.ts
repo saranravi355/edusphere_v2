@@ -8,6 +8,7 @@ import type { ActionState } from '@/components/ui/form';
 import { extractAnswerText, isAcceptedAnswerSheet, isLegacyDoc, guessMimeType } from '@/lib/grading/extractText';
 import { gradeAnswerSheet, buildMarkedOcrText } from '@/lib/grading/grade';
 import { uploadAnswerSheet } from '@/lib/grading/storage';
+import { upsertMarkingScheme, findMarkingScheme } from '@/lib/grading/markingScheme';
 import type { CourseworkType, IBProgramme } from '@/lib/grading/types';
 
 export async function ctx() {
@@ -43,6 +44,7 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
   const rawProgramme = String(formData.get('programme') ?? '');
   const rawCourseworkType = String(formData.get('courseworkType') ?? '');
   const file = formData.get('file');
+  const markingSchemeFile = formData.get('markingScheme');
 
   if (!c.teacher.classes.some(k => k.id === classroomId)) return { error: 'That is not one of your classes.' };
   if (!title) return { error: 'Name the assessment — it is how the result is identified later.' };
@@ -55,6 +57,14 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
   if (!isAcceptedAnswerSheet(file.name, file.type)) {
     return { error: 'Unsupported file type — upload a PDF, Word document (.docx), plain text (.txt), or a photo (JPG/PNG/WEBP).' };
   }
+  if (markingSchemeFile instanceof File && markingSchemeFile.size > 0) {
+    if (isLegacyDoc(markingSchemeFile.name, markingSchemeFile.type)) {
+      return { error: 'The marking scheme is an old-style .doc file — re-save it as .docx and re-upload.' };
+    }
+    if (!isAcceptedAnswerSheet(markingSchemeFile.name, markingSchemeFile.type)) {
+      return { error: 'The marking scheme is an unsupported file type — upload a PDF, Word document (.docx), plain text (.txt), or a photo (JPG/PNG/WEBP).' };
+    }
+  }
 
   const student = await prisma.student.findFirst({
     where: { id: studentId, classroomId, isActive: true },
@@ -66,6 +76,26 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
   const courseworkType: CourseworkType = COURSEWORK_TYPES.includes(rawCourseworkType as CourseworkType)
     ? (rawCourseworkType as CourseworkType)
     : 'exam';
+
+  // A marking scheme uploaded alongside this sheet is attached to the whole assessment (every
+  // sheet for this classroom/subject/title/term), not just this one submission - see
+  // markingScheme.ts. If none is uploaded this time, fall back to one already on file for this
+  // assessment from an earlier upload.
+  let markingSchemeText: string | null = null;
+  if (markingSchemeFile instanceof File && markingSchemeFile.size > 0) {
+    try {
+      const msBuffer = Buffer.from(await markingSchemeFile.arrayBuffer());
+      const msMimeType = markingSchemeFile.type || guessMimeType(markingSchemeFile.name);
+      const msOcr = await extractAnswerText(msBuffer, markingSchemeFile.name, msMimeType);
+      const msFileUrl = await uploadAnswerSheet(msBuffer, markingSchemeFile.name, msMimeType);
+      await upsertMarkingScheme({ classroomId, teacherId: c.teacher.id, subjectName, title, term, programme, courseworkType, fileUrl: msFileUrl, rawText: msOcr.text });
+      markingSchemeText = msOcr.text;
+    } catch (err) {
+      return { error: `Could not process the marking scheme: ${(err as Error).message}` };
+    }
+  } else {
+    markingSchemeText = await findMarkingScheme({ classroomId, subjectName, title, term });
+  }
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -94,10 +124,12 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
     },
   });
 
-  await runGrading(submission.id, buffer, file.name, file.type, { subjectName, level, courseworkType, programme });
+  await runGrading(submission.id, buffer, file.name, file.type, { subjectName, level, courseworkType, programme, markingSchemeText });
 
   revalidatePath('/teacher/grading/ai-grader');
-  return { success: `${file.name} uploaded — grading in progress.` };
+  return {
+    success: `${file.name} uploaded — grading in progress.` + (markingSchemeText ? ' Grading against the uploaded marking scheme.' : ''),
+  };
 }
 
 /** Shared by uploadAndGrade, retryGrading, and bulkUploadAndGrade (bulkActions.ts). Never
@@ -115,7 +147,7 @@ export async function runGrading(
   fileBuffer: Buffer,
   fileName: string,
   mimeType: string,
-  params: { subjectName: string; level: string; courseworkType: CourseworkType; programme: IBProgramme },
+  params: { subjectName: string; level: string; courseworkType: CourseworkType; programme: IBProgramme; markingSchemeText?: string | null },
   onOcrComplete?: (ocrText: string) => Promise<void>
 ): Promise<void> {
   try {
@@ -139,6 +171,7 @@ export async function runGrading(
       level: params.level,
       courseworkType: params.courseworkType,
       programme: params.programme,
+      markingSchemeText: params.markingSchemeText,
     });
 
     const lowConfidence = typeof ocr.ocrConfidence === 'number' && ocr.ocrConfidence < 0.75;
@@ -181,12 +214,20 @@ export async function retryGrading(submissionId: string): Promise<ActionState> {
   const fileName = decodeURIComponent(submission.fileUrl.split('/').pop() ?? '');
   const mimeType = resp.headers.get('content-type') || guessMimeType(fileName);
 
+  const markingSchemeText = await findMarkingScheme({
+    classroomId: submission.classroomId,
+    subjectName: submission.subjectName,
+    title: submission.title,
+    term: submission.term,
+  });
+
   await prisma.aIGradingSubmission.update({ where: { id: submissionId }, data: { status: 'OCR_PROCESSING', errorMessage: null } });
   await runGrading(submissionId, buffer, fileName, mimeType, {
     subjectName: submission.subjectName,
     level: '',
     courseworkType: submission.courseworkType as CourseworkType,
     programme: submission.programme as IBProgramme,
+    markingSchemeText,
   });
 
   revalidatePath('/teacher/grading/ai-grader');

@@ -76,6 +76,7 @@ model Teacher {
   baseSalary       Float?         /// monthly gross, in rupees
   payrollLines     PayrollLine[]
   aiGradingSubmissions AIGradingSubmission[]
+  markingSchemes   MarkingScheme[]
   feedbackReceived TeacherFeedback[]
   learnerProfileEvidenceGiven LearnerProfileEvidence[] @relation("LearnerProfileRecorder")
   atlSkillRecordsGiven ATLSkillRecord[] @relation("ATLSkillRecorder")
@@ -1056,6 +1057,30 @@ model AIGradingSubmission {
   @@index([teacherId, classroomId])
   @@index([studentId])
   @@index([batchId])
+}
+
+// A teacher-supplied answer key for one specific assessment - the exam questions, model/expected
+// answers, and marks allocated per question, uploaded once and shared by every AIGradingSubmission
+// for that same (classroom, subject, title, term), whether from a single upload or a bulk batch.
+// Grading grounds itself in this text when present instead of inferring question boundaries and
+// mark values from the generic IB subject criteria alone - see grade.ts/prompt.ts.
+model MarkingScheme {
+  id             String   @id @default(cuid())
+  classroomId    String
+  teacherId      String
+  teacher        Teacher  @relation(fields: [teacherId], references: [id])
+  subjectName    String
+  title          String                 // matches AIGradingSubmission.title for the same assessment
+  term           String
+  programme      String
+  courseworkType String
+  fileUrl        String                 // Vercel Blob URL of the uploaded marking scheme
+  rawText        String   @db.Text      // extracted via extractText.ts - same PDF/DOCX/TXT/image pipeline as answer sheets
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([classroomId, subjectName, title, term])
+  @@index([teacherId])
 }
 
 model FeeItem {
