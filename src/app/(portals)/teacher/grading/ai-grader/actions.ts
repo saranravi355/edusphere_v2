@@ -87,7 +87,7 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
       programme,
       courseworkType,
       fileUrl,
-      result: { questions: [], generalFeedback: [], totalScore: 0, maxTotal: 0, detectedSubject: subjectName, annotations: [] },
+      result: { questions: [], generalFeedback: [], totalScore: 0, maxTotal: 0, detectedSubject: subjectName, annotations: [], scoreRationale: '' },
       totalScore: 0,
       maxTotal: 0,
       status: 'OCR_PROCESSING',

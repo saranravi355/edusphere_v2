@@ -73,6 +73,11 @@ export interface GradingResult {
   error?: string;
   detectedSubject: string;
   annotations: Annotation[];
+  /** A short (2-3 sentence) plain-language explanation of why the AI arrived at totalScore -
+   *  what pulled the score up or down across the criteria - shown next to the teacher's
+   *  override control so a teacher can sanity-check the number before approving it. Empty
+   *  string if the model didn't report one (e.g. the empty/garbled-sheet result). */
+  scoreRationale: string;
 }
 
 /** One line of a page's OCR'd text (from PaddleOCR-VL-1.6's markdown output). Earlier this also

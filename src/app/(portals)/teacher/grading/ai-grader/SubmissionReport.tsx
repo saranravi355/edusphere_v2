@@ -186,42 +186,50 @@ function OverviewTab({
           </ul>
         )}
 
-        <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs text-slate-500">AI-suggested score</p>
-            <p className="font-mono text-sm text-slate-600 dark:text-slate-300">{r.totalScore}/{r.maxTotal}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-500">Teacher-approved score</p>
-            {overriding ? (
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="number"
-                  value={overrideValue}
-                  onChange={e => setOverrideValue(e.target.value)}
-                  className="w-16 p-1.5 border border-indigo-400 rounded text-center text-sm font-bold bg-white dark:bg-black"
-                />
-                <span className="text-xs text-slate-400">/ {r.maxTotal}</span>
-                <SubmitButtonLike onClick={saveOverride} busy={savingOverride}>Save</SubmitButtonLike>
-                <button type="button" onClick={() => setOverriding(false)} className="text-xs text-slate-500 px-2">Cancel</button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 mt-1">
-                <span className={`font-mono text-sm font-bold ${overridden ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100'}`}>
-                  {effectiveScore}/{r.maxTotal}
-                </span>
-                {overridden && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">teacher-adjusted</span>}
-                <button type="button" onClick={() => setOverriding(true)} className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 inline-flex items-center gap-1">
-                  <Edit3 size={12} aria-hidden /> Override
-                </button>
-                {overridden && (
-                  <button type="button" onClick={clearOverride} disabled={savingOverride} className="text-xs text-red-500 hover:text-red-600">
-                    Clear
+        <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800 rounded-xl p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-slate-500">AI-suggested score</p>
+              <p className="font-mono text-sm text-slate-600 dark:text-slate-300">{r.totalScore}/{r.maxTotal}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Teacher-approved score</p>
+              {overriding ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="number"
+                    value={overrideValue}
+                    onChange={e => setOverrideValue(e.target.value)}
+                    className="w-16 p-1.5 border border-indigo-400 rounded text-center text-sm font-bold bg-white dark:bg-black"
+                  />
+                  <span className="text-xs text-slate-400">/ {r.maxTotal}</span>
+                  <SubmitButtonLike onClick={saveOverride} busy={savingOverride}>Save</SubmitButtonLike>
+                  <button type="button" onClick={() => setOverriding(false)} className="text-xs text-slate-500 px-2">Cancel</button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`font-mono text-sm font-bold ${overridden ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100'}`}>
+                    {effectiveScore}/{r.maxTotal}
+                  </span>
+                  {overridden && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">teacher-adjusted</span>}
+                  <button type="button" onClick={() => setOverriding(true)} className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 inline-flex items-center gap-1">
+                    <Edit3 size={12} aria-hidden /> Override
                   </button>
-                )}
-              </div>
-            )}
+                  {overridden && (
+                    <button type="button" onClick={clearOverride} disabled={savingOverride} className="text-xs text-red-500 hover:text-red-600">
+                      Clear
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+          {r.scoreRationale && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 border-t border-dashed border-slate-200 dark:border-zinc-800 pt-3">
+              <span className="font-bold text-slate-600 dark:text-slate-300">Why this score: </span>
+              {r.scoreRationale}
+            </p>
+          )}
         </div>
 
         <form action={feedbackAction} className="space-y-2">

@@ -44,7 +44,8 @@ function result(questions: GradedQuestion[], totalScore: number): GradingResult 
     totalScore,
     maxTotal: questions.length * 10,
     detectedSubject: "Mathematics",
-    annotations: []
+    annotations: [],
+    scoreRationale: ""
   };
 }
 

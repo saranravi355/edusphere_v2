@@ -93,7 +93,8 @@ export function parseGradingResponse(rawText: string, detectedSubject: string): 
     totalScore: typeof p.totalScore === 'number' ? p.totalScore : 0,
     maxTotal: typeof p.maxTotal === 'number' ? p.maxTotal : 0,
     detectedSubject,
-    annotations: normalizeAnnotations(p.annotations)
+    annotations: normalizeAnnotations(p.annotations),
+    scoreRationale: typeof p.scoreRationale === 'string' ? p.scoreRationale : ''
   };
   if (typeof p.error === 'string') result.error = p.error;
   return result;

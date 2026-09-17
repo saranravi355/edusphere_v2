@@ -32,7 +32,9 @@ const EVIDENCE_INSTRUCTION = `For EACH criterion, in addition to the score and c
 Both must be grounded in the actual OCR text below - never invent an answer the student didn't give. IMPORTANT for valid JSON: describe/paraphrase in your own plain words rather than copying the student's text verbatim, and never include a quotation mark (" or ') inside these strings.`;
 
 const EMPTY_RESULT_JSON =
-  '{"questions":[],"generalFeedback":[],"totalScore":0,"maxTotal":0,"annotations":[],"error":"Sheet appears blank or unreadable."}';
+  '{"questions":[],"generalFeedback":[],"totalScore":0,"maxTotal":0,"annotations":[],"scoreRationale":"","error":"Sheet appears blank or unreadable."}';
+
+const SCORE_RATIONALE_INSTRUCTION = `Write a "scoreRationale": 2-3 plain-language sentences explaining why the score came out the way it did overall - which criteria pulled it up, which pulled it down, and the single biggest thing that would raise it. Written for the teacher reviewing the AI's suggestion before approving it, not for the student - so this is separate from (and more compressed than) the general feedback bullets.`;
 
 const ANNOTATIONS_INSTRUCTION = `Every line of the OCR text below is prefixed with a marker like [L12] - a global line number. In ADDITION to the scoring above, produce an "annotations" array: one entry per specific point worth marking directly on the original scanned page (praise, an error, a missed opportunity, or a note tied to one criterion). For each annotation:
 - "type": one of "strength", "weakness", "suggestion", "criterion"
@@ -80,11 +82,12 @@ Do the following, in order:
 4. Write one overall feedback comment (15 words or fewer) summarizing across all criteria.
 5. Write 2-4 general feedback bullets for the whole piece, each 16 words or fewer, grounded in the criteria above.
 6. Give a "confidence" from 0 to 1 (e.g. 0.9) for how confident you are in this grading - lower it when the OCR text looks garbled, ambiguous, or borderline between two scores.
-7. ${ANNOTATIONS_INSTRUCTION}
+7. ${SCORE_RATIONALE_INSTRUCTION}
+8. ${ANNOTATIONS_INSTRUCTION}
 
 Respond with ONLY a single JSON object, no markdown fences, no commentary, matching exactly this shape (the "questions" array will contain exactly ONE entry, representing the whole piece):
 
-{"questions":[{"number":1,"questionText":"<research question / knowledge question / central focus>","answerText":"<1-3 sentence summary of the piece>","score":0,"maxScore":${maxTotal},"feedback":"...","criteria":[${example}],"confidence":0.9}],"generalFeedback":["...","..."],"totalScore":0,"maxTotal":${maxTotal},${ANNOTATIONS_EXAMPLE}}
+{"questions":[{"number":1,"questionText":"<research question / knowledge question / central focus>","answerText":"<1-3 sentence summary of the piece>","score":0,"maxScore":${maxTotal},"feedback":"...","criteria":[${example}],"confidence":0.9}],"generalFeedback":["...","..."],"totalScore":0,"maxTotal":${maxTotal},"scoreRationale":"...",${ANNOTATIONS_EXAMPLE}}
 
 If the OCR text is empty or garbled beyond use, respond with exactly:
 
@@ -121,11 +124,12 @@ Do the following, in order:
 6. Write 2-4 general feedback bullets for the whole sheet, each 14 words or fewer, grounded in the criteria above.
 7. Compute totalScore (the sum of every question's score) and maxTotal (the sum of every question's maxScore).
 8. For EACH question, give a "confidence" from 0 to 1 (e.g. 0.9) for how confident you are in that question's grading - lower it when the OCR text for that answer looks garbled, ambiguous, or borderline between two scores.
-9. ${ANNOTATIONS_INSTRUCTION}
+9. ${SCORE_RATIONALE_INSTRUCTION}
+10. ${ANNOTATIONS_INSTRUCTION}
 
 Respond with ONLY a single JSON object, no markdown fences, no commentary, matching exactly this shape:
 
-{"questions":[{"number":1,"questionText":"...","answerText":"...","score":0,"maxScore":${maxTotal},"feedback":"...","criteria":[${example}],"confidence":0.9}],"generalFeedback":["...","..."],"totalScore":0,"maxTotal":0,${ANNOTATIONS_EXAMPLE}}
+{"questions":[{"number":1,"questionText":"...","answerText":"...","score":0,"maxScore":${maxTotal},"feedback":"...","criteria":[${example}],"confidence":0.9}],"generalFeedback":["...","..."],"totalScore":0,"maxTotal":0,"scoreRationale":"...",${ANNOTATIONS_EXAMPLE}}
 
 If the OCR text is empty, garbled beyond use, or you cannot identify any questions, respond with exactly:
 
