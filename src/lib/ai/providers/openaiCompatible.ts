@@ -87,6 +87,13 @@ export async function callOpenAiCompatible(account: AccountConfig, prompt: strin
       body: JSON.stringify({
         model: account.model,
         messages: [{ role: 'user', content: prompt }],
+        // Grading must be reproducible - a teacher re-running the same paper (retryGrading)
+        // should get the same score back, not a different one because the default sampling
+        // temperature (~1.0 on most OpenAI-compatible endpoints) picked a different token
+        // path through an otherwise-identical prompt. 0 asks for the model's single most
+        // likely output every time, which is what "accurate, not random" marking needs -
+        // this is not a knob to raise back up for grading calls.
+        temperature: 0,
         ...(jsonMode
           ? { max_tokens: maxTokens, ...(supportsJsonResponseFormat(account.provider) ? { response_format: { type: 'json_object' } } : {}) }
           : {})

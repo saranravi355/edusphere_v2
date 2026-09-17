@@ -4,12 +4,12 @@ import { useActionState, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, Edit3, FileText } from 'lucide-react';
 import { SubmitButton, FormFeedback } from '@/components/ui/form';
-import { setTeacherOverrideScore, setTeacherOverrideQuestionScore, setTeacherFeedback, publishResult } from './actions';
-import { getEffectiveTotalScore, getEffectiveQuestionScore, isScoreOverridden, isQuestionOverridden } from '@/lib/grading/effectiveScore';
+import { setTeacherOverrideScore, setTeacherFeedback, publishResult } from './actions';
+import { getEffectiveTotalScore, isScoreOverridden } from '@/lib/grading/effectiveScore';
 import { computePageMarks, resolveMark } from '@/lib/grading/annotationLayout';
 import type { SubmissionRow } from './types';
 
-type Tab = 'overview' | 'questions' | 'annotated' | 'pdf' | 'ocr';
+type Tab = 'overview' | 'annotated' | 'pdf' | 'ocr';
 
 const TAG_STYLE: Record<string, string> = {
   strength: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -40,7 +40,6 @@ export default function SubmissionReport({ submission }: { submission: Submissio
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
-    { id: 'questions', label: 'Questions' },
     ...(submission.ocrPages && submission.ocrPages.length > 0 ? [{ id: 'annotated' as Tab, label: 'Annotated paper' }] : []),
     { id: 'pdf', label: 'Original file' },
     ...(submission.ocrText ? [{ id: 'ocr' as Tab, label: 'Extracted text' }] : [])
@@ -76,7 +75,6 @@ export default function SubmissionReport({ submission }: { submission: Submissio
       </div>
 
       {tab === 'overview' && <OverviewTab submission={submission} canPublish={canPublish} gradeScaleLabel={gradeScaleLabel} />}
-      {tab === 'questions' && <QuestionsTab submission={submission} />}
       {tab === 'annotated' && <AnnotatedTab submission={submission} />}
       {tab === 'pdf' && <OriginalFileTab fileUrl={submission.fileUrl} studentName={submission.studentName} />}
       {tab === 'ocr' && (
@@ -320,83 +318,6 @@ function SubmitButtonLike({ onClick, busy, children }: { onClick: () => void; bu
     >
       {busy ? '…' : children}
     </button>
-  );
-}
-
-function QuestionsTab({ submission }: { submission: SubmissionRow }) {
-  const router = useRouter();
-  const r = submission.result;
-  const [editing, setEditing] = useState<number | null>(null);
-  const [value, setValue] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const save = async (questionNumber: number) => {
-    setBusy(true);
-    const n = Number(value);
-    await setTeacherOverrideQuestionScore(submission.id, questionNumber, Number.isFinite(n) ? n : null);
-    setBusy(false);
-    setEditing(null);
-    router.refresh();
-  };
-
-  return (
-    <div className="space-y-3">
-      {r.questions.map(q => {
-        const effective = getEffectiveQuestionScore(submission, q);
-        const overridden = isQuestionOverridden(submission, q.number);
-        return (
-          <div key={q.number} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-sm text-slate-800 dark:text-slate-100">Q{q.number}</span>
-              {editing === q.number ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={value}
-                    onChange={e => setValue(e.target.value)}
-                    className="w-14 p-1 border border-indigo-400 rounded text-center text-xs font-bold bg-white dark:bg-black"
-                  />
-                  <span className="text-xs text-slate-400">/ {q.maxScore}</span>
-                  <SubmitButtonLike onClick={() => save(q.number)} busy={busy}>Save</SubmitButtonLike>
-                  <button type="button" onClick={() => setEditing(null)} className="text-xs text-slate-500">Cancel</button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded-full ${overridden ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-slate-300'}`}>
-                    {effective}/{q.maxScore}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditing(q.number);
-                      setValue(String(effective));
-                    }}
-                    className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  >
-                    <Edit3 size={12} aria-hidden />
-                  </button>
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 mb-1.5">{q.questionText}</p>
-            <p className="text-xs font-mono bg-slate-50 dark:bg-black rounded-lg p-2.5 mb-2 whitespace-pre-wrap">{q.answerText}</p>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">{q.feedback}</p>
-            {q.criteria.length > 0 && (
-              <div className="space-y-1.5 pt-2 border-t border-dashed border-slate-200 dark:border-zinc-800">
-                {q.criteria.map(c => (
-                  <div key={c.code} className="flex items-center justify-between text-xs">
-                    <span className="text-slate-700 dark:text-slate-200">
-                      <strong>{c.code}</strong>: {c.name}
-                    </span>
-                    <span className="font-mono text-slate-500">{c.score}/{c.maxScore}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
   );
 }
 
