@@ -303,7 +303,7 @@ export default function AIGraderClient({
       >
         <input type="hidden" name="classroomId" value={activeClassId} />
         <p className="text-xs text-slate-500 -mt-1">
-          One assessment, many students' sheets at once — no need to pick a student per file.
+          One assessment, many students&apos; sheets at once — no need to pick a student per file.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -402,10 +402,10 @@ export default function AIGraderClient({
             {bulkFileNames.length > 0 ? (
               <p className="text-slate-600 dark:text-slate-400 text-sm">{bulkFileNames.length} file{bulkFileNames.length === 1 ? '' : 's'} selected</p>
             ) : (
-              <p className="text-slate-600 dark:text-slate-400 text-sm">Drop the whole class's sheets here, or click to browse</p>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">Drop the whole class&apos;s sheets here, or click to browse</p>
             )}
             <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">
-              Name files with a student's registration number or name for automatic matching (e.g. &quot;2610-042.pdf&quot;) — PDF, DOCX, TXT, JPG, PNG or WEBP
+              Name files with a student&apos;s registration number or name for automatic matching (e.g. &quot;2610-042.pdf&quot;) — PDF, DOCX, TXT, JPG, PNG or WEBP
             </p>
             <input
               ref={bulkFileInput}
@@ -521,6 +521,23 @@ function SubmissionQueueRow({
   const hasResult = ['EVALUATED', 'NEEDS_REVIEW', 'PUBLISHED'].includes(submission.status);
   const pct = submission.maxTotal > 0 ? Math.round((submission.totalScore / submission.maxTotal) * 100) : null;
 
+  // A bulk batch's background grading runs sequentially in one function invocation
+  // (bulkUploadAndGrade's after()) - if that invocation gets cut off partway through (its own
+  // max duration, a redeploy, a crash), a row can be left "in flight" forever with no error
+  // ever recorded. 6 minutes is just above PaddleOCR's own 5-minute worst-case poll timeout, so
+  // a genuinely still-working single job isn't mistaken for a stuck one. `now` only ever
+  // changes from the interval callback (never set synchronously in the effect body itself, per
+  // React's rules on effects), and the actual "stuck" check is a plain, pure render-time
+  // comparison against it - no impure Date.now() call in the render body.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!inFlight) return;
+    const id = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(id);
+  }, [inFlight]);
+  const STUCK_THRESHOLD_MS = 6 * 60 * 1000;
+  const stuck = inFlight && now - new Date(submission.createdAt).getTime() > STUCK_THRESHOLD_MS;
+
   const [assignValue, setAssignValue] = useState('');
   const [assigning, setAssigning] = useState(false);
 
@@ -582,6 +599,9 @@ function SubmissionQueueRow({
           {submission.status === 'FAILED' && submission.errorMessage && (
             <p className="text-[11px] text-red-500 mt-1 max-w-[220px]">{submission.errorMessage}</p>
           )}
+          {stuck && (
+            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 max-w-[220px]">Stuck — try Retry.</p>
+          )}
         </td>
         <td className="p-4 text-sm font-medium text-slate-700 dark:text-slate-200">
           {pct !== null ? `${submission.totalScore}/${submission.maxTotal} (${pct}%)` : '—'}
@@ -606,11 +626,12 @@ function SubmissionQueueRow({
                 </a>
               </>
             )}
-            {submission.status === 'FAILED' && (
+            {(submission.status === 'FAILED' || stuck) && (
               <button
                 type="button"
                 onClick={onRetry}
                 disabled={retrying || deleting}
+                title={stuck ? 'This sheet stopped mid-grading — re-run it from scratch' : 'Retry'}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200 disabled:opacity-60"
               >
                 <RefreshCw size={12} className={retrying ? 'animate-spin' : ''} aria-hidden /> Retry
@@ -619,8 +640,8 @@ function SubmissionQueueRow({
             <button
               type="button"
               onClick={onDelete}
-              disabled={inFlight || retrying || deleting}
-              title={inFlight ? 'Wait for grading to finish before deleting' : 'Delete'}
+              disabled={(inFlight && !stuck) || retrying || deleting}
+              title={inFlight && !stuck ? 'Wait for grading to finish before deleting' : 'Delete'}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Trash2 size={12} aria-hidden /> {deleting ? 'Deleting…' : 'Delete'}

@@ -8,6 +8,13 @@ import type { GradingResult, OcrPage } from '@/lib/grading/types';
 import { SUBJECTS } from '@/lib/grading/subjects';
 
 export const dynamic = 'force-dynamic';
+// Server actions invoked from this page (uploadAndGrade, bulkUploadAndGrade) run OCR jobs that
+// can each take up to several minutes, and bulkUploadAndGrade's after() callback grades a whole
+// batch sequentially in that same invocation - without this, the function was hitting the
+// platform's default timeout partway through a batch (observed live: a 4-file batch stopped
+// dead after 2 files, the rest stuck in OCR_PROCESSING forever with no error recorded). 300s is
+// safe on every Vercel plan tier; raise it if a batch this size still doesn't fully finish.
+export const maxDuration = 300;
 
 export default async function AIGraderPage({
   searchParams
