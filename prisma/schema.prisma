@@ -1010,8 +1010,19 @@ model AssessmentResult {
 /// records which row that was.
 model AIGradingSubmission {
   id             String   @id @default(cuid())
-  studentId      String
-  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // Nullable to support bulk upload: a batch of sheets is OCR'd and graded immediately without
+  // requiring a student to be picked per file first (grading needs subject/level/programme, not
+  // student identity). Unmatched sheets sit with studentId null until a teacher assigns one -
+  // publishResult (actions.ts) refuses to publish until it is set.
+  studentId      String?
+  student        Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // The uploaded file's original name, preserved for display in the bulk-upload queue and for
+  // (best-effort, see bulkMatch.ts) matching a sheet to a student by filename.
+  originalFileName String?
+  // Groups every sheet uploaded together in one bulk-upload action, so the class-summary export
+  // (analytics.ts) and the upload queue UI can scope to "this batch" rather than every
+  // submission ever graded for the class.
+  batchId        String?
   classroomId    String
   teacherId      String
   teacher        Teacher  @relation(fields: [teacherId], references: [id])
@@ -1044,6 +1055,7 @@ model AIGradingSubmission {
 
   @@index([teacherId, classroomId])
   @@index([studentId])
+  @@index([batchId])
 }
 
 model FeeItem {

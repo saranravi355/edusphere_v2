@@ -49,6 +49,8 @@ export default async function AIGraderPage({
     select: {
       id: true,
       studentId: true,
+      originalFileName: true,
+      batchId: true,
       subjectName: true,
       title: true,
       term: true,
@@ -74,8 +76,8 @@ export default async function AIGraderPage({
   const rows: SubmissionRow[] = submissions.map(s => ({
     ...s,
     createdAt: s.createdAt.toISOString(),
-    studentName: studentsById.get(s.studentId)?.name ?? 'Unknown student',
-    registrationNo: studentsById.get(s.studentId)?.registrationNo ?? '',
+    studentName: (s.studentId && studentsById.get(s.studentId)?.name) ?? 'Unassigned',
+    registrationNo: (s.studentId && studentsById.get(s.studentId)?.registrationNo) ?? '',
     result: s.result as unknown as GradingResult,
     ocrPages: s.ocrPages as unknown as OcrPage[] | null,
     teacherOverrideQuestionScores: s.teacherOverrideQuestionScores as unknown as Record<number, number> | null

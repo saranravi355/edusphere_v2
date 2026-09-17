@@ -10,7 +10,7 @@ import { gradeAnswerSheet, buildMarkedOcrText } from '@/lib/grading/grade';
 import { uploadAnswerSheet } from '@/lib/grading/storage';
 import type { CourseworkType, IBProgramme } from '@/lib/grading/types';
 
-async function ctx() {
+export async function ctx() {
   const auth = await guard(TEACHER_ROLES);
   if (!auth.ok) return null;
   const teacher = await prisma.teacher.findUnique({
@@ -100,17 +100,23 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
   return { success: `${file.name} uploaded — grading in progress.` };
 }
 
-/** Shared by uploadAndGrade and retryGrading. Never throws — every failure is written to the
- *  submission row itself (status FAILED + errorMessage) so it shows up in the queue rather
- *  than vanishing into a server log. Dispatches by format (PDF/image via OCR, .docx via
- *  mammoth, .txt read directly) so the rest of the pipeline never needs to know which one it
- *  was handed - see extractText.ts. */
-async function runGrading(
+/** Shared by uploadAndGrade, retryGrading, and bulkUploadAndGrade (bulkActions.ts). Never
+ *  throws — every failure is written to the submission row itself (status FAILED +
+ *  errorMessage) so it shows up in the queue rather than vanishing into a server log.
+ *  Dispatches by format (PDF/image via OCR, .docx via mammoth, .txt read directly) so the
+ *  rest of the pipeline never needs to know which one it was handed - see extractText.ts.
+ *
+ *  onOcrComplete, when given, runs right after OCR text is available and before grading
+ *  starts - bulkUploadAndGrade uses it to attempt matching a still-unassigned sheet to a
+ *  student from whatever name/roll-number is written on the sheet itself, now that the text
+ *  to search is actually available, without OCR'ing the file a second time to get it. */
+export async function runGrading(
   submissionId: string,
   fileBuffer: Buffer,
   fileName: string,
   mimeType: string,
-  params: { subjectName: string; level: string; courseworkType: CourseworkType; programme: IBProgramme }
+  params: { subjectName: string; level: string; courseworkType: CourseworkType; programme: IBProgramme },
+  onOcrComplete?: (ocrText: string) => Promise<void>
 ): Promise<void> {
   try {
     const ocr = await extractAnswerText(fileBuffer, fileName, mimeType);
@@ -123,6 +129,8 @@ async function runGrading(
         ocrConfidence: ocr.ocrConfidence
       },
     });
+
+    if (onOcrComplete) await onOcrComplete(ocr.text);
 
     const markedText = buildMarkedOcrText(ocr.pages);
     const result = await gradeAnswerSheet({
@@ -279,6 +287,7 @@ export async function publishResult(_prev: ActionState, formData: FormData): Pro
 
   const submission = await prisma.aIGradingSubmission.findUnique({ where: { id: submissionId } });
   if (!submission || !c.teacher.classes.some(k => k.id === submission.classroomId)) return { error: 'Not one of your classes.' };
+  if (!submission.studentId) return { error: 'Assign a student to this sheet before publishing (see the bulk-upload queue).' };
   if (!['EVALUATED', 'NEEDS_REVIEW'].includes(submission.status)) return { error: 'This submission is not ready to publish.' };
 
   const grade = Number(gradeRaw);

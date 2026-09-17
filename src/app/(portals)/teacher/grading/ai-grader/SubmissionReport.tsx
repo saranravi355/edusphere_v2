@@ -35,7 +35,7 @@ const MARK_FILL: Record<string, string> = {
 export default function SubmissionReport({ submission }: { submission: SubmissionRow }) {
   const [tab, setTab] = useState<Tab>('overview');
 
-  const canPublish = submission.status === 'EVALUATED' || submission.status === 'NEEDS_REVIEW';
+  const canPublish = Boolean(submission.studentId) && (submission.status === 'EVALUATED' || submission.status === 'NEEDS_REVIEW');
   const gradeScaleLabel = submission.programme === 'MYP' ? 'MYP subject grade' : 'IB course grade';
 
   const tabs: { id: Tab; label: string }[] = [
@@ -301,7 +301,11 @@ function OverviewTab({
             <FormFeedback state={publishState} />
           </form>
         ) : (
-          <p className="text-xs text-slate-400">This submission needs to finish grading before it can be published.</p>
+          <p className="text-xs text-slate-400">
+            {submission.studentId
+              ? 'This submission needs to finish grading before it can be published.'
+              : 'Assign a student to this sheet (in the queue) before it can be published.'}
+          </p>
         )}
       </div>
     </div>

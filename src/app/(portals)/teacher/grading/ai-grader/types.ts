@@ -5,9 +5,13 @@ import type { GradingResult, OcrPage } from '@/lib/grading/types';
  *  writes into them). */
 export interface SubmissionRow {
   id: string;
-  studentId: string;
+  // Null when a bulk-uploaded sheet hasn't been matched to a student yet (see bulkActions.ts) -
+  // studentName/registrationNo below read as "Unassigned" in that case rather than a real name.
+  studentId: string | null;
   studentName: string;
   registrationNo: string;
+  originalFileName: string | null;
+  batchId: string | null;
   subjectName: string;
   title: string;
   term: string;

@@ -53,16 +53,21 @@ export default async function ClassAnalyticsPage({
     })
   ]);
 
-  const rows: AnalyticsSubmission[] = submissions.map(s => ({
-    studentId: s.studentId,
-    studentName: s.student.name,
-    status: s.status,
-    totalScore: s.totalScore,
-    maxTotal: s.maxTotal,
-    teacherOverrideScore: s.teacherOverrideScore,
-    teacherOverrideQuestionScores: s.teacherOverrideQuestionScores as unknown as Record<number, number> | null,
-    result: s.result as unknown as GradingResult
-  }));
+  // Bulk-uploaded sheets not yet matched to a student (studentId null) have nothing to
+  // attribute a per-student trend to, so they're left out here until assigned - they still
+  // show up in the main grader queue for that assignment.
+  const rows: AnalyticsSubmission[] = submissions
+    .filter((s): s is typeof s & { studentId: string; student: { name: string } } => s.studentId !== null && s.student !== null)
+    .map(s => ({
+      studentId: s.studentId,
+      studentName: s.student.name,
+      status: s.status,
+      totalScore: s.totalScore,
+      maxTotal: s.maxTotal,
+      teacherOverrideScore: s.teacherOverrideScore,
+      teacherOverrideQuestionScores: s.teacherOverrideQuestionScores as unknown as Record<number, number> | null,
+      result: s.result as unknown as GradingResult
+    }));
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
