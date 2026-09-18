@@ -63,7 +63,7 @@ export default function AIGraderClient({
   const [bulkState, bulkAction] = useActionState(bulkUploadAndGrade, undefined);
   const [programme, setProgramme] = useState<'DP' | 'MYP'>('DP');
   const [courseworkType, setCourseworkType] = useState('exam');
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileNames, setFileNames] = useState<string[]>([]);
   const [markingSchemeFileName, setMarkingSchemeFileName] = useState<string | null>(null);
   const [bulkFileNames, setBulkFileNames] = useState<string[]>([]);
   const [bulkMarkingSchemeFileName, setBulkMarkingSchemeFileName] = useState<string | null>(null);
@@ -152,7 +152,7 @@ export default function AIGraderClient({
         ref={formRef}
         action={formData => {
           action(formData);
-          setFileName(null);
+          setFileNames([]);
           setMarkingSchemeFileName(null);
           formRef.current?.reset();
         }}
@@ -255,28 +255,35 @@ export default function AIGraderClient({
             onDragOver={e => e.preventDefault()}
             onDrop={e => {
               e.preventDefault();
-              const dropped = e.dataTransfer.files?.[0];
-              if (dropped && fileInput.current) {
+              const dropped = Array.from(e.dataTransfer.files ?? []);
+              if (dropped.length && fileInput.current) {
                 const dt = new DataTransfer();
-                dt.items.add(dropped);
+                dropped.forEach(f => dt.items.add(f));
                 fileInput.current.files = dt.files;
-                setFileName(dropped.name);
+                setFileNames(dropped.map(f => f.name));
               }
             }}
           >
             <UploadCloud size={36} className="text-slate-400 mb-3" aria-hidden />
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
-              {fileName ?? 'Drop a scanned PDF, Word doc, text file, or photo here, or click to browse'}
+            {fileNames.length > 0 ? (
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                {fileNames.length === 1 ? fileNames[0] : `${fileNames.length} pages selected`}
+              </p>
+            ) : (
+              <p className="text-slate-600 dark:text-slate-400 text-sm">Drop a scanned PDF, Word doc, text file, or photo here, or click to browse</p>
+            )}
+            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">
+              PDF, DOCX, TXT, JPG, PNG or WEBP — select multiple photos for a multi-page sheet
             </p>
-            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">PDF, DOCX, TXT, JPG, PNG or WEBP</p>
             <input
               ref={fileInput}
               type="file"
-              name="file"
+              name="files"
+              multiple
               accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png,image/webp"
               required
               className="hidden"
-              onChange={e => setFileName(e.target.files?.[0]?.name ?? null)}
+              onChange={e => setFileNames(Array.from(e.target.files ?? []).map(f => f.name))}
             />
           </div>
         </div>

@@ -9,7 +9,13 @@ import { extractAnswerText, isAcceptedAnswerSheet, isLegacyDoc, guessMimeType } 
 import { gradeAnswerSheet, buildMarkedOcrText } from '@/lib/grading/grade';
 import { uploadAnswerSheet } from '@/lib/grading/storage';
 import { upsertMarkingScheme, findMarkingScheme } from '@/lib/grading/markingScheme';
+import { combineImagesToPdf } from '@/lib/grading/combineImages';
 import type { CourseworkType, IBProgramme } from '@/lib/grading/types';
+
+const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+function isImageFile(f: File): boolean {
+  return IMAGE_MIME_TYPES.has(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
+}
 
 export async function ctx() {
   const auth = await guard(TEACHER_ROLES);
@@ -43,19 +49,30 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
   const level = String(formData.get('level') ?? '');
   const rawProgramme = String(formData.get('programme') ?? '');
   const rawCourseworkType = String(formData.get('courseworkType') ?? '');
-  const file = formData.get('file');
+  const files = formData.getAll('files').filter((f): f is File => f instanceof File && f.size > 0);
   const markingSchemeFile = formData.get('markingScheme');
 
   if (!c.teacher.classes.some(k => k.id === classroomId)) return { error: 'That is not one of your classes.' };
   if (!title) return { error: 'Name the assessment — it is how the result is identified later.' };
   if (!term) return { error: 'Choose a term.' };
   if (!subjectName) return { error: 'Choose a subject.' };
-  if (!(file instanceof File) || file.size === 0) return { error: 'Choose an answer sheet to upload.' };
-  if (isLegacyDoc(file.name, file.type)) {
-    return { error: 'Old-style .doc files are not supported — re-save as .docx (Word: File > Save As > Word Document) and re-upload.' };
+  if (files.length === 0) return { error: 'Choose an answer sheet to upload.' };
+  // Multiple files for one student means "one photo per page of the same sheet" - anything
+  // else (a PDF plus a photo, two PDFs, etc.) has no sensible way to combine into one
+  // submission, so only a single non-image file is accepted; a single image is fine too
+  // (handled the same as one page below) and doesn't need combining.
+  if (files.length > 1 && !files.every(isImageFile)) {
+    return {
+      error: 'When uploading multiple files for one student, every file must be a photo (JPG/PNG/WEBP) — one per page. For a PDF, Word document, or text file, upload just that single file.',
+    };
   }
-  if (!isAcceptedAnswerSheet(file.name, file.type)) {
-    return { error: 'Unsupported file type — upload a PDF, Word document (.docx), plain text (.txt), or a photo (JPG/PNG/WEBP).' };
+  for (const f of files) {
+    if (isLegacyDoc(f.name, f.type)) {
+      return { error: 'Old-style .doc files are not supported — re-save as .docx (Word: File > Save As > Word Document) and re-upload.' };
+    }
+    if (!isAcceptedAnswerSheet(f.name, f.type)) {
+      return { error: `"${f.name}" is an unsupported file type — upload a PDF, Word document (.docx), plain text (.txt), or a photo (JPG/PNG/WEBP).` };
+    }
   }
   if (markingSchemeFile instanceof File && markingSchemeFile.size > 0) {
     if (isLegacyDoc(markingSchemeFile.name, markingSchemeFile.type)) {
@@ -97,11 +114,31 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
     markingSchemeText = await findMarkingScheme({ classroomId, subjectName, title, term });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  let buffer: Buffer;
+  let combinedFileName: string;
+  let combinedMimeType: string;
+  if (files.length === 1) {
+    buffer = Buffer.from(await files[0].arrayBuffer());
+    combinedFileName = files[0].name;
+    combinedMimeType = files[0].type || guessMimeType(files[0].name);
+  } else {
+    // Multiple page photos for this one student - merge into a single multi-page PDF so
+    // everything downstream (OCR, the grading prompt's page numbering, Retry, the Annotated
+    // paper view) treats this exactly like any other multi-page scanned PDF, no special-casing
+    // needed anywhere else in the pipeline.
+    try {
+      const imageBuffers = await Promise.all(files.map(f => f.arrayBuffer().then(a => Buffer.from(a))));
+      buffer = await combineImagesToPdf(imageBuffers);
+    } catch (err) {
+      return { error: `Could not combine the uploaded photos into one sheet: ${(err as Error).message}` };
+    }
+    combinedFileName = `${files.length}-page-answer-sheet.pdf`;
+    combinedMimeType = 'application/pdf';
+  }
 
   let fileUrl: string;
   try {
-    fileUrl = await uploadAnswerSheet(buffer, file.name, file.type || guessMimeType(file.name));
+    fileUrl = await uploadAnswerSheet(buffer, combinedFileName, combinedMimeType);
   } catch (err) {
     return { error: `Could not store the file: ${(err as Error).message}` };
   }
@@ -124,11 +161,14 @@ export async function uploadAndGrade(_prev: ActionState, formData: FormData): Pr
     },
   });
 
-  await runGrading(submission.id, buffer, file.name, file.type, { subjectName, level, courseworkType, programme, markingSchemeText });
+  await runGrading(submission.id, buffer, combinedFileName, combinedMimeType, { subjectName, level, courseworkType, programme, markingSchemeText });
 
   revalidatePath('/teacher/grading/ai-grader');
   return {
-    success: `${file.name} uploaded — grading in progress.` + (markingSchemeText ? ' Grading against the uploaded marking scheme.' : ''),
+    success:
+      (files.length === 1 ? `${files[0].name} uploaded` : `${files.length} pages combined and uploaded`) +
+      ' — grading in progress.' +
+      (markingSchemeText ? ' Grading against the uploaded marking scheme.' : ''),
   };
 }
 
