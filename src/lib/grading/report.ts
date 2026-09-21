@@ -31,12 +31,61 @@ function toSummaryRow(s: SubmissionRow): SummaryRow {
 
 // StandardFonts are built into every PDF viewer - no font file to embed, so none of the
 // WOFF/WOFF2 glyph-corruption issues seen elsewhere in this codebase's pdf-lib usage apply here.
+// They do, however, encode WinAnsi (CP1252) and nothing else - see pdfSafe below.
+
+/** Characters with an obvious plain-text equivalent, spelled out rather than lost. */
+const PDF_REPLACEMENTS: Record<string, string> = {
+  // Written as escapes on purpose: several of these are invisible in an editor.
+  '\u2010': '-', '\u2011': '-', '\u2012': '-', '\u2212': '-', // hyphen, non-breaking hyphen, figure dash, minus
+  '\u2044': '/', '\u2215': '/', // fraction and division slashes
+  '\u2192': '->', '\u2190': '<-', '\u2194': '<->', '\u21d2': '=>',
+  '\u2264': '<=', '\u2265': '>=', '\u2260': '!=', '\u2248': '~',
+  '\u2032': "'", '\u2033': '"', // prime, double prime
+  '\u2002': ' ', '\u2003': ' ', '\u2009': ' ', '\u200a': ' ', '\u202f': ' ', // typographic spaces
+  '\u200b': '', '\u200c': '', '\u200d': '', '\ufeff': '', '\ufe0f': '', // zero-width and invisible
+  '\t': '  ', '\r': ''
+};
+
+/** The 0x80-0x9F slots, which CP1252 fills with punctuation rather than control codes. */
+const CP1252_HIGH = new Set([
+  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160, 0x2039, 0x0152,
+  0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a,
+  0x0153, 0x017e, 0x0178
+]);
+
+const encodable = (cp: number) =>
+  (cp >= 0x20 && cp <= 0x7e) || (cp >= 0xa0 && cp <= 0xff) || CP1252_HIGH.has(cp) || cp === 0x0a;
+
+/**
+ * Text a standard PDF font can actually draw.
+ *
+ * pdf-lib's StandardFonts encode WinAnsi and *throw* on anything outside it, rather than
+ * dropping a glyph — so one character decided the whole download. The AI writes this text,
+ * which means the characters in it are not ours to choose: it reaches for a non-breaking
+ * hyphen (U+2011) in "criterion-referenced" often enough that it was in 20 of the 32 graded
+ * submissions on the day this was found, and every one of their PDF exports answered 500.
+ * Known characters are translated, and anything left becomes "?" so a report still comes out.
+ */
+export function pdfSafe(text: string): string {
+  let out = '';
+  for (const ch of text) {
+    const mapped = PDF_REPLACEMENTS[ch];
+    if (mapped !== undefined) {
+      out += mapped;
+      continue;
+    }
+    out += encodable(ch.codePointAt(0)!) ? ch : '?';
+  }
+  return out;
+}
+
 const MARGIN = 50;
 const PAGE_W = 841.89; // A4 landscape - a class list is naturally wide (name, reg no, subject, score...)
 const PAGE_H = 595.28;
 
 function wrap(font: import('pdf-lib').PDFFont, text: string, size: number, maxWidth: number): string[] {
-  const words = text.split(/\s+/);
+  // Measuring encodes the text too, so it has to be made safe before the width is asked for.
+  const words = pdfSafe(text).split(/\s+/);
   const lines: string[] = [];
   let cur = '';
   for (const w of words) {
@@ -68,8 +117,8 @@ export async function buildClassSummaryPdf(className: string, assessmentTitle: s
   let y = PAGE_H - MARGIN;
 
   const drawHeader = () => {
-    page.drawText(assessmentTitle, { x: MARGIN, y: y - 22, size: 20, font: bold, color: ink });
-    page.drawText(`${className} — class gradesheet`, { x: MARGIN, y: y - 40, size: 11, font: regular, color: grey });
+    page.drawText(pdfSafe(assessmentTitle), { x: MARGIN, y: y - 22, size: 20, font: bold, color: ink });
+    page.drawText(pdfSafe(`${className} — class gradesheet`), { x: MARGIN, y: y - 40, size: 11, font: regular, color: grey });
     y -= 60;
     const cols = [
       { label: 'Student', x: MARGIN, w: 150 },
@@ -99,9 +148,9 @@ export async function buildClassSummaryPdf(className: string, assessmentTitle: s
       cols = drawHeader();
     }
 
-    page.drawText(r.studentName, { x: cols[0].x, y: y - 10, size: 9.5, font: bold, color: ink });
-    page.drawText(r.registrationNo, { x: cols[1].x, y: y - 10, size: 9, font: regular, color: grey });
-    page.drawText(r.subjectName, { x: cols[2].x, y: y - 10, size: 9, font: regular, color: ink });
+    page.drawText(pdfSafe(r.studentName), { x: cols[0].x, y: y - 10, size: 9.5, font: bold, color: ink });
+    page.drawText(pdfSafe(r.registrationNo), { x: cols[1].x, y: y - 10, size: 9, font: regular, color: grey });
+    page.drawText(pdfSafe(r.subjectName), { x: cols[2].x, y: y - 10, size: 9, font: regular, color: ink });
     page.drawText(r.maxTotal > 0 ? `${r.effectiveScore}/${r.maxTotal}` : '—', { x: cols[3].x, y: y - 10, size: 9, font: bold, color: ink });
     page.drawText(r.maxTotal > 0 ? `${pct}%` : '—', { x: cols[4].x, y: y - 10, size: 9, font: regular, color: ink });
     rationaleLines.forEach((line_, i) => {
@@ -187,9 +236,9 @@ export async function buildIndividualPdf(s: SubmissionRow): Promise<Uint8Array> 
     }
   };
 
-  page.drawText(s.title, { x: MARGIN, y: y - 22, size: 20, font: bold, color: ink });
+  page.drawText(pdfSafe(s.title), { x: MARGIN, y: y - 22, size: 20, font: bold, color: ink });
   y -= 30;
-  page.drawText(`${s.studentName} (${s.registrationNo}) — ${s.subjectName} — ${s.term}`, { x: MARGIN, y: y - 14, size: 11, font: regular, color: grey });
+  page.drawText(pdfSafe(`${s.studentName} (${s.registrationNo}) — ${s.subjectName} — ${s.term}`), { x: MARGIN, y: y - 14, size: 11, font: regular, color: grey });
   y -= 34;
 
   page.drawText(`Score: ${effectiveScore}/${r.maxTotal}`, { x: MARGIN, y: y - 16, size: 14, font: bold, color: brand });
