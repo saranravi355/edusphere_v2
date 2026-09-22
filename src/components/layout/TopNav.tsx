@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Search, LogOut, Menu } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
+import { NotificationBell } from "@/components/ui/notification-bell";
 import { logout, markAllNotificationsRead } from "@/app/actions";
 import type { AppNotification } from "./AppShell";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -136,21 +137,22 @@ export default function TopNav({
 
         {/* Notifications */}
         <div className="relative" ref={bellRef}>
-          <button
-            type="button"
+          {/*
+            The bell itself is Rare UI's (components/ui/notification-bell.tsx): it
+            swings when the count goes up and rolls the digits, and it carries its
+            own live-region label, so the aria-label that was here would have been
+            read twice. The surface is overridden to the header's own hover style
+            rather than the component's grey pill, and the panel below is ours.
+          */}
+          <NotificationBell
+            count={unread}
+            max={9}
+            size={36}
             onClick={() => setBellOpen((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={bellOpen}
-            className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors dark:text-slate-400 dark:hover:bg-zinc-800 relative"
-            aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-          >
-            <Bell size={20} />
-            {unread > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-white dark:border-black flex items-center justify-center">
-                {unread > 9 ? "9+" : unread}
-              </span>
-            )}
-          </button>
+            className="bg-transparent dark:bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+          />
           <div className={`absolute right-0 top-full pt-2 z-50 w-80 ${bellOpen ? "block" : "hidden"}`}>
             <div className="bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 shadow-lg rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="p-3 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 flex justify-between items-center">
