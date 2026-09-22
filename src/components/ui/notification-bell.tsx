@@ -134,28 +134,32 @@ function BellIcon({
   clapper: MotionValue<number>;
 }) {
   return (
+    // EDUSPHERE: lucide's own Bell (ISC, lucide-react v1.18.0) on Rare UI's rig, so the
+    // one animated icon in the header is drawn like every static icon beside it — an
+    // outline at stroke width 2 — rather than the filled iOS-style glyph it shipped with.
+    // The two paths are lucide's verbatim: the body, and the little clapper underneath
+    // that swings a beat behind it.
     <motion.svg
-      viewBox="0 0 18 18"
-      fill="currentColor"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden
       width={side}
       height={side}
       // the bell hangs from the top, spinning from the middle looks wrong
       style={{ rotate: swing, transformOrigin: "50% 12%" }}
     >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        fillOpacity={0.55}
-        d="M3.5 6.5C3.5 3.46279 5.96279 1 9 1C12.0372 1 14.5 3.46279 14.5 6.5V10.75C14.5 11.4408 15.0592 12 15.75 12C16.1642 12 16.5 12.3358 16.5 12.75C16.5 13.1642 16.1642 13.5 15.75 13.5H2.25C1.83579 13.5 1.5 13.1642 1.5 12.75C1.5 12.3358 1.83579 12 2.25 12C2.94079 12 3.5 11.4408 3.5 10.75V6.5Z"
-      />
+      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
       <motion.path
         style={{
           rotate: clapper,
           transformBox: "fill-box",
           transformOrigin: "50% 0%",
         }}
-        d="M10.2 15H7.80099C7.64999 15 7.50799 15.068 7.41299 15.185C7.31799 15.302 7.28099 15.456 7.31199 15.603C7.48499 16.425 8.17999 17 9.00099 17C9.82199 17 10.517 16.425 10.69 15.603C10.721 15.456 10.684 15.302 10.589 15.185C10.494 15.068 10.351 15 10.2 15Z"
+        d="M10.268 21a2 2 0 0 0 3.464 0"
       />
     </motion.svg>
   );
