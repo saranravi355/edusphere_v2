@@ -48,6 +48,9 @@ model User {
   resourceBookings ResourceBooking[]
   announcements    Announcement[]    @relation("AnnouncementAuthor")
   bookLoans        BookLoan[]
+  evidenceTagged    EvidenceTag[]      @relation("EvidenceTaggedBy")
+  evidenceConfirmed EvidenceTag[]      @relation("EvidenceConfirmedBy")
+  evidenceDocuments EvidenceDocument[] @relation("EvidenceDocumentUploader")
 }
 
 model Teacher {
@@ -712,6 +715,8 @@ model Observation {
   growthAreas     String?
   status          String   @default("FINAL") // DRAFT, FINAL
 
+  evidenceTags EvidenceTag[]
+
   @@index([teacherId])
 }
 
@@ -848,6 +853,8 @@ model PortfolioItem {
   fileType     String?
   createdAt    DateTime @default(now())
 
+  evidenceTags EvidenceTag[]
+
   @@index([studentId])
 }
 
@@ -950,6 +957,8 @@ model LessonPlan {
   subPlan         String?  // generated substitute-teacher plan
   createdAt       DateTime @default(now())
 
+  evidenceTags EvidenceTag[]
+
   @@index([teacherId, date])
 }
 
@@ -997,6 +1006,7 @@ model AssessmentResult {
   term        String   @default("Term 1 2026-27")
 
   aiGradingSubmission AIGradingSubmission?
+  evidenceTags        EvidenceTag[]
 
   @@index([studentId, date])
 }
@@ -1377,4 +1387,82 @@ model AuditLog {
   @@index([actorId, at])
   @@index([entity, entityId])
   @@index([action, at])
+}
+
+/// Evidence for one IB practice, pointing at exactly one record.
+///
+/// The five nullable foreign keys are deliberate. A polymorphic
+/// sourceType/sourceId pair would let a deleted lesson plan leave an orphan
+/// tag that still counted toward coverage — and a dashboard that overstates
+/// evidence is the exact failure this module exists to prevent. Prisma cannot
+/// enforce a polymorphic reference; it enforces these.
+///
+/// `standardKey` matches Practice.key in src/lib/accreditation/standards.ts.
+/// Keys are never renumbered there, because every row here points at one.
+model EvidenceTag {
+  id            String    @id @default(cuid())
+  standardKey   String
+  /// SUGGESTED, CONFIRMED, REJECTED. Born CONFIRMED when the tagger is an
+  /// administrator — there is nobody above them to confirm it.
+  status        String    @default("SUGGESTED")
+  /// Why the tagger thinks this evidences the practice.
+  note          String?
+  taggedById    String
+  taggedBy      User      @relation("EvidenceTaggedBy", fields: [taggedById], references: [id])
+  taggedAt      DateTime  @default(now())
+  confirmedById String?
+  confirmedBy   User?     @relation("EvidenceConfirmedBy", fields: [confirmedById], references: [id])
+  confirmedAt   DateTime?
+
+  /// Exactly one of the five is non-null; a check constraint in the migration
+  /// enforces it, since Prisma has no way to express that.
+  lessonPlanId       String?
+  lessonPlan         LessonPlan?       @relation(fields: [lessonPlanId], references: [id], onDelete: Cascade)
+  portfolioItemId    String?
+  portfolioItem      PortfolioItem?    @relation(fields: [portfolioItemId], references: [id], onDelete: Cascade)
+  assessmentResultId String?
+  assessmentResult   AssessmentResult? @relation(fields: [assessmentResultId], references: [id], onDelete: Cascade)
+  observationId      String?
+  observation        Observation?      @relation(fields: [observationId], references: [id], onDelete: Cascade)
+  documentId         String?
+  document           EvidenceDocument? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  /// One tag per record per practice. Postgres treats NULLs as distinct, so
+  /// all five coexist: rows with a null in one column never collide there.
+  @@unique([standardKey, lessonPlanId])
+  @@unique([standardKey, portfolioItemId])
+  @@unique([standardKey, assessmentResultId])
+  @@unique([standardKey, observationId])
+  @@unique([standardKey, documentId])
+  @@index([standardKey, status])
+  @@index([status, taggedAt])
+}
+
+/// A school document offered as accreditation evidence.
+///
+/// The Purpose and Environment categories are carried by governance documents
+/// — the mission statement, board minutes, the staff handbook — not by
+/// anything that happens in a classroom. Without this table those standards
+/// have nothing to evidence and read as permanent gaps.
+model EvidenceDocument {
+  id           String    @id @default(cuid())
+  title        String
+  /// POLICY, MINUTES, HANDBOOK, PLAN, REPORT.
+  kind         String
+  description  String?
+  /// @vercel/blob URL. The row is written only after the upload succeeds, so
+  /// the register never lists a dead link.
+  fileUrl      String
+  fileType     String?
+  academicYear String?
+  /// When the document was last reviewed. IB asks; "dated within the review
+  /// cycle" is a judgement this column makes possible.
+  reviewedOn   DateTime?
+  uploadedById String
+  uploadedBy   User      @relation("EvidenceDocumentUploader", fields: [uploadedById], references: [id])
+  createdAt    DateTime  @default(now())
+
+  tags EvidenceTag[]
+
+  @@index([kind])
 }
