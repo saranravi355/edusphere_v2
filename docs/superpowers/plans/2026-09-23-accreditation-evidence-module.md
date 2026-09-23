@@ -1692,7 +1692,8 @@ export default async function AccreditationPage() {
       lessonPlan: { select: { id: true, title: true, subjectName: true } },
       portfolioItem: { select: { id: true, title: true, student: { select: { name: true } } } },
       assessmentResult: { select: { id: true, title: true, student: { select: { name: true } } } },
-      observation: { select: { id: true, focusArea: true, teacher: { select: { name: true } } } },
+      // Teacher has no `name` column of its own — it lives on the related User.
+      observation: { select: { id: true, focusArea: true, teacher: { select: { user: { select: { name: true } } } } } },
       document: { select: { id: true, title: true, fileUrl: true } },
     },
     orderBy: { taggedAt: "desc" },
@@ -1725,7 +1726,7 @@ export default async function AccreditationPage() {
     if (kind === "OBSERVATION") {
       return {
         kind,
-        label: `${t.observation!.focusArea ?? "Lesson observation"} · ${t.observation!.teacher.name}`,
+        label: `${t.observation!.focusArea ?? "Lesson observation"} · ${t.observation!.teacher.user.name}`,
         href: "/admin/staff/appraisal",
       };
     }
@@ -2552,7 +2553,8 @@ export default async function VisitorPage() {
       lessonPlan: { select: { title: true, subjectName: true } },
       portfolioItem: { select: { title: true, student: { select: { name: true } } } },
       assessmentResult: { select: { title: true, student: { select: { name: true } } } },
-      observation: { select: { focusArea: true, teacher: { select: { name: true } } } },
+      // Teacher has no `name` column of its own — it lives on the related User.
+      observation: { select: { focusArea: true, teacher: { select: { user: { select: { name: true } } } } } },
       document: { select: { title: true, fileUrl: true } },
     },
     orderBy: { taggedAt: "desc" },
