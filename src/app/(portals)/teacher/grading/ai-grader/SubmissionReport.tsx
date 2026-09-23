@@ -15,21 +15,21 @@ const TAG_STYLE: Record<string, string> = {
   strength: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
   weakness: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   suggestion: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  criterion: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+  criterion: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
 };
 
 const MARK_BORDER: Record<string, string> = {
   strength: 'border-emerald-500',
   weakness: 'border-red-500',
   suggestion: 'border-amber-500',
-  criterion: 'border-indigo-500'
+  criterion: 'border-violet-500'
 };
 
 const MARK_FILL: Record<string, string> = {
   strength: 'bg-emerald-500/25',
   weakness: 'bg-red-500/25',
   suggestion: 'bg-amber-500/25',
-  criterion: 'bg-indigo-500/25'
+  criterion: 'bg-violet-500/25'
 };
 
 export default function SubmissionReport({ submission }: { submission: SubmissionRow }) {
@@ -54,10 +54,10 @@ export default function SubmissionReport({ submission }: { submission: Submissio
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
                 tab === t.id
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white dark:bg-black border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300'
+                  ? 'bg-cyan-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-black border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:border-cyan-600/40'
               }`}
             >
               {t.label}
@@ -106,7 +106,7 @@ function OriginalFileTab({ fileUrl, studentName }: { fileUrl: string; studentNam
     return (
       <div className="rounded-xl border border-slate-200 dark:border-zinc-800 p-10 text-center">
         <p className="text-sm text-slate-500 mb-3">Word documents can&apos;t be previewed inline.</p>
-        <a href={fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 hover:text-indigo-700">
+        <a href={fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-cyan-600 hover:text-cyan-700 dark:text-cyan-400">
           <FileText size={14} aria-hidden /> Download the original file
         </a>
       </div>
@@ -184,7 +184,7 @@ function OverviewTab({
           </ul>
         )}
 
-        <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800 rounded-xl p-4 space-y-3">
+        <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs text-slate-500">AI-suggested score</p>
@@ -198,7 +198,7 @@ function OverviewTab({
                     type="number"
                     value={overrideValue}
                     onChange={e => setOverrideValue(e.target.value)}
-                    className="w-16 p-1.5 border border-indigo-400 rounded text-center text-sm font-bold bg-white dark:bg-black"
+                    className="w-16 p-1.5 border border-cyan-600 rounded text-center text-sm font-bold bg-white dark:bg-black"
                   />
                   <span className="text-xs text-slate-400">/ {r.maxTotal}</span>
                   <SubmitButtonLike onClick={saveOverride} busy={savingOverride}>Save</SubmitButtonLike>
@@ -206,10 +206,10 @@ function OverviewTab({
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={`font-mono text-sm font-bold ${overridden ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100'}`}>
+                  <span className={`font-mono text-sm font-bold ${overridden ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-800 dark:text-slate-100'}`}>
                     {effectiveScore}/{r.maxTotal}
                   </span>
-                  {overridden && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">teacher-adjusted</span>}
+                  {overridden && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400">teacher-adjusted</span>}
                   <button type="button" onClick={() => setOverriding(true)} className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 inline-flex items-center gap-1">
                     <Edit3 size={12} aria-hidden /> Override
                   </button>
@@ -239,10 +239,10 @@ function OverviewTab({
             defaultValue={submission.teacherFeedback ?? ''}
             rows={3}
             placeholder="Add your own notes for this student…"
-            className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg text-sm bg-white dark:bg-black text-slate-700 dark:text-slate-300"
+            className="w-full p-2.5 border border-slate-300 dark:border-zinc-700 rounded-xl text-sm bg-white dark:bg-black text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-600/40 focus:border-cyan-600"
           />
           <div className="flex items-center gap-3">
-            <SubmitButton size="sm" pendingText="Saving…">Save feedback</SubmitButton>
+            <SubmitButton size="sm" pendingText="Saving…" className="!rounded-xl">Save feedback</SubmitButton>
             <FormFeedback state={feedbackState} />
           </div>
         </form>
@@ -272,12 +272,12 @@ function OverviewTab({
                 max={7}
                 step={1}
                 required
-                className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg text-center text-sm font-bold bg-white dark:bg-black"
+                className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-xl text-center text-sm font-bold bg-white dark:bg-black focus:outline-none focus:ring-2 focus:ring-cyan-600/40 focus:border-cyan-600"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="pg-type">Type</label>
-              <select id="pg-type" name="type" defaultValue="SUMMATIVE" className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg text-sm bg-white dark:bg-black">
+              <select id="pg-type" name="type" defaultValue="SUMMATIVE" className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-xl text-sm bg-white dark:bg-black focus:outline-none focus:ring-2 focus:ring-cyan-600/40 focus:border-cyan-600">
                 <option value="FORMATIVE">Formative</option>
                 <option value="SUMMATIVE">Summative</option>
                 <option value="MOCK">Mock</option>
@@ -292,10 +292,10 @@ function OverviewTab({
                 name="comment"
                 defaultValue={suggestedComment}
                 rows={2}
-                className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-lg text-sm bg-white dark:bg-black"
+                className="w-full p-2 border border-slate-300 dark:border-zinc-700 rounded-xl text-sm bg-white dark:bg-black focus:outline-none focus:ring-2 focus:ring-cyan-600/40 focus:border-cyan-600"
               />
             </div>
-            <SubmitButton className="w-full !bg-indigo-600 hover:!bg-indigo-700 !text-white" pendingText="Publishing…">
+            <SubmitButton className="w-full !bg-cyan-600 hover:!bg-cyan-700 !text-white !rounded-xl" pendingText="Publishing…">
               <Send size={14} aria-hidden /> Publish
             </SubmitButton>
             <FormFeedback state={publishState} />
@@ -318,7 +318,7 @@ function SubmitButtonLike({ onClick, busy, children }: { onClick: () => void; bu
       type="button"
       onClick={onClick}
       disabled={busy}
-      className="px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60"
+      className="px-2.5 py-1 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-700 text-white disabled:opacity-60"
     >
       {busy ? '…' : children}
     </button>

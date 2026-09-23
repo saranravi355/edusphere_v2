@@ -24,7 +24,7 @@ const TERMS = ['Term 1 2026-27', 'Term 2 2026-27', 'Term 3 2026-27'];
 
 const STATUS_STYLE: Record<string, string> = {
   OCR_PROCESSING: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  EVALUATING: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+  EVALUATING: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
   EVALUATED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
   NEEDS_REVIEW: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
   PUBLISHED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -40,9 +40,20 @@ const STATUS_LABEL: Record<string, string> = {
   FAILED: 'Failed'
 };
 
+// A colored left-border accent per row (alongside the status pill) so the queue reads at a
+// glance the way a timetable does, rather than needing to parse each badge's text.
+const STATUS_BORDER: Record<string, string> = {
+  OCR_PROCESSING: 'border-l-blue-400',
+  EVALUATING: 'border-l-violet-400',
+  EVALUATED: 'border-l-emerald-400',
+  NEEDS_REVIEW: 'border-l-amber-400',
+  PUBLISHED: 'border-l-emerald-400',
+  FAILED: 'border-l-red-400'
+};
+
 const select =
-  'p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black font-medium ' +
-  'text-slate-700 dark:text-slate-300 text-sm';
+  'p-2.5 border border-slate-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-black font-medium ' +
+  'text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600/40 focus:border-cyan-600';
 
 export default function AIGraderClient({
   classes,
@@ -134,10 +145,10 @@ export default function AIGraderClient({
             key={m}
             type="button"
             onClick={() => setMode(m)}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors inline-flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all inline-flex items-center gap-1.5 ${
               mode === m
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-300'
+                ? 'bg-cyan-600 text-white shadow-sm'
+                : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-300 hover:border-cyan-600/40'
             }`}
           >
             {m === 'single' ? <UploadCloud size={14} aria-hidden /> : <Files size={14} aria-hidden />}
@@ -215,7 +226,7 @@ export default function AIGraderClient({
                   onChange={() => setCourseworkType(t.value)}
                   className="sr-only peer"
                 />
-                <span className="inline-block px-3 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-colors border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600">
+                <span className="inline-block px-3 py-2 rounded-xl text-sm font-medium border cursor-pointer transition-all border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:border-cyan-600/40 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 peer-checked:shadow-sm">
                   {t.label}
                 </span>
               </label>
@@ -250,7 +261,7 @@ export default function AIGraderClient({
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-2">Answer sheet</label>
           <div
-            className="border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-xl p-8 flex flex-col items-center text-center cursor-pointer hover:border-indigo-400 transition-colors"
+            className="border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-2xl p-8 flex flex-col items-center text-center cursor-pointer hover:border-cyan-600 hover:bg-cyan-50/60 dark:hover:bg-cyan-900/10 transition-all"
             onClick={() => fileInput.current?.click()}
             onDragOver={e => e.preventDefault()}
             onDrop={e => {
@@ -264,7 +275,9 @@ export default function AIGraderClient({
               }
             }}
           >
-            <UploadCloud size={36} className="text-slate-400 mb-3" aria-hidden />
+            <span className="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center mb-3">
+              <UploadCloud size={26} className="text-cyan-600 dark:text-cyan-400" aria-hidden />
+            </span>
             {fileNames.length > 0 ? (
               <p className="text-slate-600 dark:text-slate-400 text-sm">
                 {fileNames.length === 1 ? fileNames[0] : `${fileNames.length} pages selected`}
@@ -308,7 +321,7 @@ export default function AIGraderClient({
 
         <div className="flex items-center justify-between gap-3">
           <FormFeedback state={state} className="flex-1" />
-          <SubmitButton pendingText="Uploading…" className="!bg-indigo-600 hover:!bg-indigo-700 !text-white shrink-0">
+          <SubmitButton pendingText="Uploading…" className="!bg-cyan-600 hover:!bg-cyan-700 !text-white shrink-0 !rounded-xl">
             <Sparkles size={16} aria-hidden /> Grade with AI
           </SubmitButton>
         </div>
@@ -380,7 +393,7 @@ export default function AIGraderClient({
                   onChange={() => setCourseworkType(t.value)}
                   className="sr-only peer"
                 />
-                <span className="inline-block px-3 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-colors border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600">
+                <span className="inline-block px-3 py-2 rounded-xl text-sm font-medium border cursor-pointer transition-all border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:border-cyan-600/40 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 peer-checked:shadow-sm">
                   {t.label}
                 </span>
               </label>
@@ -412,7 +425,7 @@ export default function AIGraderClient({
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-2">Answer sheets (multiple)</label>
           <div
-            className="border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-xl p-8 flex flex-col items-center text-center cursor-pointer hover:border-indigo-400 transition-colors"
+            className="border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-2xl p-8 flex flex-col items-center text-center cursor-pointer hover:border-cyan-600 hover:bg-cyan-50/60 dark:hover:bg-cyan-900/10 transition-all"
             onClick={() => bulkFileInput.current?.click()}
             onDragOver={e => e.preventDefault()}
             onDrop={e => {
@@ -426,7 +439,9 @@ export default function AIGraderClient({
               }
             }}
           >
-            <Files size={36} className="text-slate-400 mb-3" aria-hidden />
+            <span className="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center mb-3">
+              <Files size={26} className="text-cyan-600 dark:text-cyan-400" aria-hidden />
+            </span>
             {bulkFileNames.length > 0 ? (
               <p className="text-slate-600 dark:text-slate-400 text-sm">{bulkFileNames.length} file{bulkFileNames.length === 1 ? '' : 's'} selected</p>
             ) : (
@@ -466,7 +481,7 @@ export default function AIGraderClient({
 
         <div className="flex items-center justify-between gap-3">
           <FormFeedback state={bulkState} className="flex-1" />
-          <SubmitButton pendingText="Uploading…" className="!bg-indigo-600 hover:!bg-indigo-700 !text-white shrink-0">
+          <SubmitButton pendingText="Uploading…" className="!bg-cyan-600 hover:!bg-cyan-700 !text-white shrink-0 !rounded-xl">
             <Sparkles size={16} aria-hidden /> Grade batch with AI
           </SubmitButton>
         </div>
@@ -481,19 +496,19 @@ export default function AIGraderClient({
             <span className="text-xs font-medium text-slate-400 hidden sm:inline">Download class results:</span>
             <a
               href={`/teacher/grading/ai-grader/export/class?classId=${activeClassId}&format=pdf`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:border-cyan-600/50"
             >
               <Download size={13} aria-hidden /> PDF
             </a>
             <a
               href={`/teacher/grading/ai-grader/export/class?classId=${activeClassId}&format=docx`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:border-cyan-600/50"
             >
               <Download size={13} aria-hidden /> DOCX
             </a>
             <Link
               href={`/teacher/grading/ai-grader/analytics?classId=${activeClassId}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white shrink-0"
             >
               <BarChart3 size={13} aria-hidden /> Class Analytics
             </Link>
@@ -581,7 +596,7 @@ function SubmissionQueueRow({
   return (
     <>
       <tr
-        className={`transition-colors ${canOpen ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-800/20' : ''}`}
+        className={`transition-colors border-l-4 ${STATUS_BORDER[submission.status] ?? 'border-l-transparent'} ${canOpen ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-800/20' : ''}`}
         onClick={() => canOpen && onToggle()}
       >
         <td className="p-4">
