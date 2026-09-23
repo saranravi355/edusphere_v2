@@ -51,6 +51,7 @@ const PRINCIPAL_ADMIN_PATHS = [
   // Academics
   "/admin/academic-setup",
   "/admin/programmes",
+  "/admin/accreditation",
   "/admin/exams",
   "/admin/library",
   // People, and the pastoral records that belong with them
