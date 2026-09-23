@@ -52,21 +52,56 @@ function toSummaryRow(s: SubmissionRow): SummaryRow {
 
 // StandardFonts are built into every PDF viewer - no font file to embed, so none of the
 // WOFF/WOFF2 glyph-corruption issues seen elsewhere in this codebase's pdf-lib usage apply here.
-// They DO, however, only support WinAnsi encoding (~cp1252) - a narrower set than what an AI
-// response can actually contain. Confirmed live: a real grading response used U+2011 NON-BREAKING
-// HYPHEN (inside "AO1‑Q3"), which WinAnsi has no slot for at all - not a bad-looking glyph, a
-// hard crash inside widthOfTextAtSize before drawText is even reached. sanitizeForPdf is the
-// single choke point every string in this file passes through before touching pdf-lib, so no
-// character the model happens to produce can take report generation down; the DOCX builder below
-// needs no equivalent since Word documents aren't limited to WinAnsi.
-function sanitizeForPdf(text: string): string {
-  return text
-    .replace(/[‐-―]/g, '-')
-    .replace(/[‘’‚‛]/g, "'")
-    .replace(/[“”„‟]/g, '"')
-    .replace(/…/g, '...')
-    .replace(/[  -​]/g, ' ')
-    .replace(/[^\x20-\x7E]/g, '');
+// They do, however, encode WinAnsi (CP1252) and nothing else - see pdfSafe below.
+
+/** Characters with an obvious plain-text equivalent, spelled out rather than lost. */
+const PDF_REPLACEMENTS: Record<string, string> = {
+  // Written as escapes on purpose: several of these are invisible in an editor.
+  '‐': '-', '‑': '-', '‒': '-', '−': '-', // hyphen, non-breaking hyphen, figure dash, minus
+  '⁄': '/', '∕': '/', // fraction and division slashes
+  '→': '->', '←': '<-', '↔': '<->', '⇒': '=>',
+  '≤': '<=', '≥': '>=', '≠': '!=', '≈': '~',
+  '′': "'", '″': '"', // prime, double prime
+  ' ': ' ', ' ': ' ', ' ': ' ', ' ': ' ', ' ': ' ', // typographic spaces
+  '​': '', '‌': '', '‍': '', '﻿': '', '️': '', // zero-width and invisible
+  '\t': '  ', '\r': ''
+};
+
+/** The 0x80-0x9F slots, which CP1252 fills with punctuation rather than control codes. */
+const CP1252_HIGH = new Set([
+  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160, 0x2039, 0x0152,
+  0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a,
+  0x0153, 0x017e, 0x0178
+]);
+
+const encodable = (cp: number) =>
+  (cp >= 0x20 && cp <= 0x7e) || (cp >= 0xa0 && cp <= 0xff) || CP1252_HIGH.has(cp) || cp === 0x0a;
+
+/**
+ * Text a standard PDF font can actually draw.
+ *
+ * pdf-lib's StandardFonts encode WinAnsi and *throw* on anything outside it, rather than
+ * dropping a glyph — so one character decided the whole download. The AI writes this text,
+ * which means the characters in it are not ours to choose: it reaches for a non-breaking
+ * hyphen (U+2011) in "criterion-referenced" often enough that it was in 20 of the 32 graded
+ * submissions on the day this was found, and every one of their PDF exports answered 500.
+ * Known characters are translated, and anything left becomes "?" so a report still comes out.
+ * This is the single choke point every string in this file passes through before touching
+ * pdf-lib - via drawText and wrap below - so no character the model happens to produce can
+ * take report generation down; the DOCX builders need no equivalent since Word isn't limited
+ * to WinAnsi.
+ */
+export function pdfSafe(text: string): string {
+  let out = '';
+  for (const ch of text) {
+    const mapped = PDF_REPLACEMENTS[ch];
+    if (mapped !== undefined) {
+      out += mapped;
+      continue;
+    }
+    out += encodable(ch.codePointAt(0)!) ? ch : '?';
+  }
+  return out;
 }
 
 const MARGIN = 50;
@@ -74,13 +109,14 @@ const PAGE_W = 841.89; // A4 landscape - a class list is naturally wide (name, r
 const PAGE_H = 595.28;
 
 /** Every page.drawText call in this file should go through this, not the raw pdf-lib method -
- *  see sanitizeForPdf above for why. */
+ *  see pdfSafe above for why. */
 function drawText(page: import('pdf-lib').PDFPage, text: string, opts: Parameters<import('pdf-lib').PDFPage['drawText']>[1]): void {
-  page.drawText(sanitizeForPdf(text), opts);
+  page.drawText(pdfSafe(text), opts);
 }
 
 function wrap(font: import('pdf-lib').PDFFont, rawText: string, size: number, maxWidth: number): string[] {
-  const text = sanitizeForPdf(rawText);
+  // Measuring encodes the text too, so it has to be made safe before the width is asked for.
+  const text = pdfSafe(rawText);
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let cur = '';
