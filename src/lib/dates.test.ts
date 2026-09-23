@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { schoolMonthStart, schoolWeekday } from "./dates";
+import { academicYearOf, schoolMonthStart, schoolWeekday } from "./dates";
 
 /**
  * The school runs on IST and the server may not. Every case here is an instant
@@ -51,5 +51,25 @@ describe("schoolMonthStart", () => {
       schoolMonthStart(new Date("2026-12-31T19:00:00Z")).toISOString(),
       "2026-12-31T18:30:00.000Z",
     );
+  });
+});
+
+describe("academicYearOf", () => {
+  it("runs April to March, the Indian school year", () => {
+    assert.equal(academicYearOf(new Date("2026-04-01T00:00:00+05:30")), "2026-27");
+    assert.equal(academicYearOf(new Date("2026-12-31T00:00:00+05:30")), "2026-27");
+    assert.equal(academicYearOf(new Date("2027-03-31T00:00:00+05:30")), "2026-27");
+  });
+
+  it("rolls over on 1 April, not 1 January", () => {
+    // The whole point. A calendar-year reading would call these the same year
+    // and would reclassify every practice's coverage each January.
+    assert.equal(academicYearOf(new Date("2027-03-31T00:00:00+05:30")), "2026-27");
+    assert.equal(academicYearOf(new Date("2027-04-01T00:00:00+05:30")), "2027-28");
+  });
+
+  it("reads the date in Asia/Kolkata, not the server's zone", () => {
+    // 31 March 2027 at 21:00 UTC is already 1 April in Bengaluru.
+    assert.equal(academicYearOf(new Date("2027-03-31T21:00:00Z")), "2027-28");
   });
 });

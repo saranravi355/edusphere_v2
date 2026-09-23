@@ -109,3 +109,26 @@ export function schoolMonthStart(at: Date = new Date()): Date {
   const { year, month } = istParts(at);
   return new Date(Date.UTC(year, month, 1) - IST_OFFSET_MS);
 }
+
+/**
+ * The academic year a date falls in, as the school writes it: "2026-27".
+ *
+ * The year runs April to March, so 31 March 2027 is still 2026-27 and 1 April
+ * 2027 begins 2027-28. Reading the calendar year instead would reclassify
+ * every accreditation practice's coverage each January, which is why this is a
+ * function with a test rather than `date.getFullYear()` at three call sites.
+ *
+ * Resolved in Asia/Kolkata, because the boundary is a date in Bengaluru, not
+ * wherever the server happens to run.
+ */
+export function academicYearOf(at: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(at);
+  const year = Number(parts.find((p) => p.type === "year")!.value);
+  const month = Number(parts.find((p) => p.type === "month")!.value);
+  const start = month >= 4 ? year : year - 1;
+  return `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
+}
