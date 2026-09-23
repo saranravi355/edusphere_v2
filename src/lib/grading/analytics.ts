@@ -142,7 +142,11 @@ export interface HeatmapData {
 export function getHeatmapData(submissions: AnalyticsSubmission[]): HeatmapData {
   const rows = graded(submissions);
   const questionNumbers = Array.from(new Set(rows.flatMap(s => s.result.questions.map(q => q.number)))).sort((a, b) => a - b);
-  const students = rows.map(s => ({ studentId: s.studentId, studentName: s.studentName }));
+  // One row per STUDENT, not per submission - a student with more than one graded paper this
+  // term would otherwise duplicate their row (and their React key) once per submission, all
+  // showing identical numbers since the cell lookup below already collapses to one value per
+  // student+question anyway.
+  const students = Array.from(new Map(rows.map(s => [s.studentId, { studentId: s.studentId, studentName: s.studentName }])).values());
 
   const cells: HeatmapCell[] = [];
   rows.forEach(s => {
