@@ -2589,7 +2589,7 @@ export default async function VisitorPage() {
               : kind === "ASSESSMENT_RESULT"
               ? `${t.assessmentResult!.title} · ${t.assessmentResult!.student.name}`
               : kind === "OBSERVATION"
-              ? `${t.observation!.focusArea ?? "Lesson observation"} · ${t.observation!.teacher.name}`
+              ? `${t.observation!.focusArea ?? "Lesson observation"} · ${t.observation!.teacher.user.name}`
               : t.document!.title;
           return {
             id: t.id,
