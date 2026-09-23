@@ -14,6 +14,7 @@ import {
   type EvidenceKind,
 } from "@/lib/accreditation/standards";
 import AccreditationClient from "./AccreditationClient";
+import DocumentRegisterClient from "./DocumentRegisterClient";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +121,22 @@ export default async function AccreditationPage() {
     };
   });
 
+  const documents = await prisma.evidenceDocument.findMany({
+    include: { tags: { select: { id: true, standardKey: true, status: true, note: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const documentRows = documents.map((d) => ({
+    id: d.id,
+    title: d.title,
+    kind: d.kind,
+    description: d.description,
+    fileUrl: d.fileUrl,
+    academicYear: d.academicYear,
+    reviewedOn: d.reviewedOn ? formatDate(d.reviewedOn, "weekdayDMon") : null,
+    tags: d.tags,
+  }));
+
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
       <PageHeader
@@ -138,6 +155,7 @@ export default async function AccreditationPage() {
         }}
         categoryOrder={[...CATEGORY_ORDER]}
       />
+      <DocumentRegisterClient documents={documentRows} />
     </div>
   );
 }
