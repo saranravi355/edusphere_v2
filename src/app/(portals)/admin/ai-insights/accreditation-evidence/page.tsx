@@ -1,61 +1,14 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import AIDemoPage from "@/components/ai/AIDemoPage";
-import { FolderSearch } from "lucide-react";
-
+/**
+ * This was the "Accreditation Evidence Finder" preview: a scripted screen that
+ * described coverage it had not measured. /admin/accreditation now computes the
+ * same judgement from real tags, so the preview is superseded rather than
+ * merely duplicated.
+ *
+ * Kept as a redirect because the AI Insights hub, the sidebar and any
+ * bookmark still point here.
+ */
 export default function AccreditationEvidencePage() {
-  return (
-    <AIDemoPage
-      title="Accreditation Evidence Finder"
-      description="Finds the documents that evidence a given standard, and says plainly where the evidence is thin."
-      icon={FolderSearch}
-      accent="emerald"
-      panelTitle="Evidence Retrieval"
-      panelDescription="Maps each standard onto the documents held, and reports coverage rather than assuming a document exists because it should."
-      runLabel="Find Evidence"
-      runningLabel="Matching Standards..."
-      completeLabel="Search Complete"
-      completeSubLabel="18 standards · 3 gaps found"
-      emptyTitle="No Search Run"
-      emptySubtitle="Search for the evidence behind each accreditation standard."
-      result={{
-        kind: "findings",
-        heading: "Evidence coverage by standard",
-        // Labelled by the four categories of the IB Programme standards and
-        // practices (2020) — Purpose, Environment, Culture, Learning. The old
-        // labels filed Purpose and Environment under Culture, and Assessment
-        // under Lifelong learners.
-        items: [
-          {
-            title: "Purpose — Mission and philosophy",
-            meta: "4 documents",
-            tone: "low",
-            badgeLabel: "Well evidenced",
-            body: "Mission statement, board minutes adopting it, the staff handbook section and this year's strategic plan all align and are current.",
-          },
-          {
-            title: "Culture — Language, inclusion and safeguarding policies",
-            meta: "6 documents",
-            tone: "low",
-            badgeLabel: "Well evidenced",
-            body: "Safeguarding, inclusion and language policies are present, dated within the review cycle, and show recorded consultation.",
-          },
-          {
-            title: "Learning — Approaches to teaching",
-            meta: "1 document",
-            tone: "high",
-            badgeLabel: "Thin",
-            body: "Only the curriculum overview maps to this standard. There is no lesson-observation record or professional development log evidencing it in practice.",
-          },
-          {
-            title: "Learning — Assessment",
-            meta: "0 documents",
-            tone: "critical",
-            badgeLabel: "Gap",
-            body: "No document currently maps to this standard. The assessment policy referenced in the handbook is not in the evidence folder.",
-          },
-        ],
-      }}
-    />
-  );
+  redirect("/admin/accreditation");
 }

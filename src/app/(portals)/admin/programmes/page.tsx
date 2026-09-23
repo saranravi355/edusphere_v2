@@ -164,10 +164,10 @@ export default async function ProgrammesPage() {
           description="Answers policy questions from the school's own documents."
         />
         <AIFeatureLink
-          href="/admin/ai-insights/accreditation-evidence"
+          href="/admin/accreditation"
           icon={<FolderSearch size={15} />}
-          title="Accreditation Evidence Finder"
-          description="Locates the evidence for each standard, and where it is thin."
+          title="Accreditation & Evidence"
+          description="Evidence for each IB practice, tagged as teachers work."
         />
       </div>
 
