@@ -48,16 +48,26 @@ export default function AccreditationClient({
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pendingId, setPendingId] = useState<string | null>(null);
+  // A set, not a single id: two rows can be in flight at once (click Confirm
+  // on row A, then row B before A resolves), and each row's disabled/spinner
+  // state must depend only on whether *that* row's request is still pending —
+  // not on whichever id happened to be clicked most recently.
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
 
   function act(fn: (id: string) => Promise<{ success: true } | { error: string }>, id: string) {
     setError(null);
-    setPendingId(id);
+    setPendingIds((prev) => new Set(prev).add(id));
     startTransition(async () => {
       const result = await fn(id);
       if ("error" in result) setError(result.error);
-      setPendingId(null);
+      // Cleared on both the success and error paths — a failed confirm must
+      // not leave its row disabled forever.
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     });
   }
 
@@ -95,15 +105,15 @@ export default function AccreditationClient({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => act(confirmTag, row.id)}
-                    disabled={pendingId === row.id}
+                    disabled={pendingIds.has(row.id)}
                     className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1"
                   >
-                    {pendingId === row.id ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                    {pendingIds.has(row.id) ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                     Confirm
                   </button>
                   <button
                     onClick={() => act(rejectTag, row.id)}
-                    disabled={pendingId === row.id}
+                    disabled={pendingIds.has(row.id)}
                     className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-zinc-800 dark:text-slate-300 disabled:opacity-50 inline-flex items-center gap-1"
                   >
                     <X size={12} /> Reject
@@ -113,7 +123,7 @@ export default function AccreditationClient({
             ))}
           </ul>
         )}
-        {error && <p className="mt-2 text-xs font-semibold text-rose-600">{error}</p>}
+        {error && <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">{error}</p>}
       </section>
 
       <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
