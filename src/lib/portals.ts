@@ -1,4 +1,5 @@
 import { DEPARTMENTS, isOperationsRole, operationsLandingPath } from "@/lib/operations";
+import { VISITOR_SLUG, isVisitorRole } from "@/lib/visiting";
 
 /**
  * The front door.
@@ -70,5 +71,8 @@ export function landingPathFor(role: string | undefined | null): string {
   // Straight to the one department they run — /operations itself would only
   // show them four doors they cannot open.
   if (isOperationsRole(role)) return operationsLandingPath(role);
+  // A visiting team has exactly one page. The landing page would only show
+  // them doors they cannot open, so they go straight to their own.
+  if (isVisitorRole(role)) return `/${VISITOR_SLUG}`;
   return "/";
 }
