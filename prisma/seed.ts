@@ -894,6 +894,117 @@ async function main() {
     }
   }
 
+  // ── Accreditation evidence ─────────────────────────────────────────────────
+  // A deliberately imperfect spread: 4 practices well evidenced, 11 thin, 3
+  // gaps. Most practices are evidenced exactly once, which is precisely what
+  // THIN means — a full house would look like seeded data, and the thinness is
+  // what makes the coordinator dashboard worth opening.
+  const visitor = await prisma.user.upsert({
+    where: { email: "visitor@edusphere.com" },
+    update: { role: "IB_VISITOR" },
+    create: {
+      email: "visitor@edusphere.com",
+      name: "IB Visiting Team",
+      role: "IB_VISITOR",
+      password: SEED_PASSWORD,
+    },
+  });
+  console.log(`Visiting-team account: ${visitor.email}`);
+
+  const coordinator = await prisma.user.findFirst({
+    where: { role: { in: ["PRINCIPAL", "SUPER_ADMIN"] } },
+    select: { id: true },
+  });
+  if (!coordinator) throw new Error("Seed the admin accounts before accreditation evidence.");
+
+  const documentSeeds = [
+    { title: "Language Policy 2026-27", kind: "POLICY", file: "language-policy-2026-27.pdf", keys: ["culture-2.1"] },
+    { title: "Inclusion Policy 2026-27", kind: "POLICY", file: "inclusion-policy-2026-27.pdf", keys: ["culture-2.2", "environment-1.4"] },
+    { title: "Assessment Policy 2026-27", kind: "POLICY", file: "assessment-policy-2026-27.pdf", keys: ["culture-2.3"] },
+    { title: "Academic Integrity Policy 2026-27", kind: "POLICY", file: "academic-integrity-policy-2026-27.pdf", keys: ["culture-2.4"] },
+    { title: "Governing Body Minutes, April 2026", kind: "MINUTES", file: "governing-body-minutes-2026-04.pdf", keys: ["purpose-0.1", "purpose-0.2", "environment-1.1", "environment-1.2"] },
+    { title: "Curriculum Overview 2026-27", kind: "PLAN", file: "curriculum-overview-2026-27.pdf", keys: ["learning-3.1"] },
+  ];
+
+  for (const seed of documentSeeds) {
+    const doc = await prisma.evidenceDocument.create({
+      data: {
+        title: seed.title,
+        kind: seed.kind,
+        fileUrl: `/evidence/${seed.file}`,
+        fileType: "application/pdf",
+        academicYear: "2026-27",
+        reviewedOn: new Date("2026-04-15"),
+        uploadedById: coordinator.id,
+      },
+    });
+    for (const key of seed.keys) {
+      await prisma.evidenceTag.create({
+        data: {
+          standardKey: key,
+          status: "CONFIRMED",
+          taggedById: coordinator.id,
+          confirmedById: coordinator.id,
+          confirmedAt: new Date(),
+          documentId: doc.id,
+        },
+      });
+    }
+  }
+
+  // Classroom evidence. Two kinds per practice where possible, because a
+  // practice evidenced only one way classifies as thin however many tags it
+  // has — which is exactly what should happen to learning-3.3 below.
+  const seedPlans = await prisma.lessonPlan.findMany({ take: 6, select: { id: true, teacher: { select: { userId: true } } } });
+  const seedObservations = await prisma.observation.findMany({ take: 4, select: { id: true } });
+  const seedPortfolio = await prisma.portfolioItem.findMany({ take: 4, select: { id: true } });
+  const seedAssessments = await prisma.assessmentResult.findMany({ take: 4, select: { id: true } });
+
+  async function tag(key: string, data: Record<string, string>, status = "CONFIRMED") {
+    await prisma.evidenceTag.create({
+      data: {
+        standardKey: key,
+        status,
+        taggedById: coordinator!.id,
+        ...(status === "CONFIRMED" ? { confirmedById: coordinator!.id, confirmedAt: new Date() } : {}),
+        ...data,
+      },
+    });
+  }
+
+  // learning-3.1's third piece of evidence is the Curriculum Overview document seeded
+  // above, NOT an observation: its expects is ["LESSON_PLAN", "DOCUMENT"], so an
+  // observation here would be data the tag picker could never have produced.
+  if (seedPlans[0]) await tag("learning-3.1", { lessonPlanId: seedPlans[0].id });
+  if (seedPlans[1]) await tag("learning-3.1", { lessonPlanId: seedPlans[1].id });
+
+  if (seedPlans[2]) await tag("learning-3.2", { lessonPlanId: seedPlans[2].id });
+  if (seedObservations[1]) await tag("learning-3.2", { observationId: seedObservations[1].id });
+  if (seedPortfolio[0]) await tag("learning-3.2", { portfolioItemId: seedPortfolio[0].id });
+
+  // Three tags, one kind — thin on purpose, and the clearest demonstration of
+  // why the single-kind rule exists.
+  if (seedPlans[3]) await tag("learning-3.3", { lessonPlanId: seedPlans[3].id });
+  if (seedPlans[4]) await tag("learning-3.3", { lessonPlanId: seedPlans[4].id });
+  if (seedPlans[5]) await tag("learning-3.3", { lessonPlanId: seedPlans[5].id });
+
+  if (seedAssessments[0]) await tag("learning-3.4", { assessmentResultId: seedAssessments[0].id });
+  if (seedAssessments[1]) await tag("learning-3.4", { assessmentResultId: seedAssessments[1].id });
+  if (seedPlans[0]) await tag("learning-3.4", { lessonPlanId: seedPlans[0].id });
+
+  if (seedAssessments[2]) await tag("learning-3.5", { assessmentResultId: seedAssessments[2].id });
+  if (seedPortfolio[1]) await tag("learning-3.5", { portfolioItemId: seedPortfolio[1].id });
+  if (seedPortfolio[2]) await tag("learning-3.5", { portfolioItemId: seedPortfolio[2].id });
+
+  if (seedObservations[2]) await tag("environment-1.3", { observationId: seedObservations[2].id });
+
+  // Two suggestions left waiting, so the confirm queue is not empty on a first
+  // look at the dashboard.
+  if (seedPortfolio[3]) await tag("learning-3.6", { portfolioItemId: seedPortfolio[3].id }, "SUGGESTED");
+  if (seedObservations[3]) await tag("culture-2.2", { observationId: seedObservations[3].id }, "SUGGESTED");
+
+  console.log(`Accreditation: ${documentSeeds.length} documents seeded, evidence tagged across practices.`);
+
   console.log('Seeding completed successfully!')
   console.log('')
   console.log('  Every seeded account opens with this password:')
