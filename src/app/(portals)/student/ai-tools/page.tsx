@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 import { getStudentProgramme } from "@/lib/students/programme";
 import {
   Map, CalendarRange, Sparkles, BookOpen, Trophy, MessageSquare, Target,
-  GaugeCircle, ClipboardCheck, NotebookPen, FileQuestion, Mic, AlarmClock, Award, Landmark,
+  GaugeCircle, ClipboardCheck, NotebookPen, FileQuestion, Mic, AlarmClock, Award, Landmark, PenLine,
 } from "lucide-react";
 
 type Tool = {
@@ -14,9 +14,14 @@ type Tool = {
   description: string;
   /** What an MYP student sees instead, where the DP wording would not apply to them. */
   myp?: { title?: string; description: string };
+  /** Unlike the rest of this hub (illustrative sample output, see AIPreviewNotice), this tool
+   *  actually calls the AI on what the student pastes in - worth flagging so the two kinds
+   *  aren't mistaken for each other. */
+  badge?: string;
 };
 
 const tools: Tool[] = [
+  { href: "/student/writing-assistant", icon: <PenLine size={18} />, title: "Writing Assistant", description: "Paste a draft and get feedback on clarity, structure, argument and grammar before you submit it.", badge: "Live" },
   { href: "/student/learning-gap", icon: <Map size={18} />, title: "Learning Gap Map", description: "See which sub-topics you're weakest on after each assessment." },
   { href: "/student/study-plan", icon: <CalendarRange size={18} />, title: "AI Study Plan", description: "A personalized weekly study schedule built around your deadlines." },
   { href: "/student/grade-forecast", icon: <Sparkles size={18} />, title: "Predictive Grade Forecast", description: "Projects your final IB subject grades from this term's trend.", myp: { description: "Projects your MYP subject grades from your criterion levels." } },
