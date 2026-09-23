@@ -2999,10 +2999,25 @@ Append to the body of `main()` in `prisma/seed.ts`, before its final log:
   console.log(`Accreditation: ${documentSeeds.length} documents seeded, evidence tagged across practices.`);
 ```
 
-- [ ] **Step 3: Run the seed**
+- [ ] **Step 3: Apply the accreditation seed ONLY — never `prisma db seed`**
 
-Run: `npx prisma db seed`
-Expected: the two new log lines, no errors. A `P2002` here means the seed ran twice — clear the two tables first:
+> **Do not run `npx prisma db seed` against a database that already holds data.**
+> `prisma/seed.ts` contains 26 plain `.create()` calls against only 7 `.upsert()` calls, so a
+> second run duplicates students, attendance and assessment records rather than reconciling them.
+> The configured database is the live Supabase instance holding 173 students and ~10,660 rows.
+> The seed script is not destructive — it has no `deleteMany`, `TRUNCATE` or `DROP` — but it is
+> emphatically not idempotent.
+>
+> The section added in Step 2 exists so that a **fresh** database gets this evidence. To apply it
+> to a database that already exists, run only that section via a standalone script.
+
+Write a one-off script that performs exactly the Step 2 block and nothing else — the visitor
+account upsert, the `EvidenceDocument` rows, and the `EvidenceTag` rows — and run it with
+`node`. It touches only `User` (one upsert of a new account), `EvidenceDocument` and
+`EvidenceTag`. Delete the script afterwards; it is not committed.
+
+Expected: the two new log lines, no errors. A `P2002` means the accreditation seed has already
+been applied — clear the two evidence tables and re-run:
 
 ```bash
 npx prisma db execute --stdin <<'SQL'
