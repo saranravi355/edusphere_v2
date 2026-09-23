@@ -10,16 +10,16 @@ import {
 } from "@/app/(portals)/admin/accreditation/actions";
 import {
   practiceByKey,
-  practicesFor,
   type EvidenceKind,
 } from "@/lib/accreditation/standards";
+import {
+  availablePractices,
+  visibleTags,
+  type TagView,
+} from "@/lib/accreditation/tagView";
 
-export interface TagView {
-  id: string;
-  standardKey: string;
-  status: string;
-  note: string | null;
-}
+// Re-export for Task 9's import path
+export type { TagView };
 
 /**
  * Tag one record as evidence for an IB practice.
@@ -52,11 +52,8 @@ export default function EvidenceTagger({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const options = practicesFor(kind);
-  const alreadyTagged = new Set(tags.filter((t) => t.status !== "REJECTED").map((t) => t.standardKey));
-  const available = options.filter((p) => !alreadyTagged.has(p.key));
-
-  const shown = readOnly ? tags.filter((t) => t.status === "CONFIRMED") : tags.filter((t) => t.status !== "REJECTED");
+  const shown = visibleTags({ tags, kind, readOnly });
+  const available = availablePractices({ tags, kind, readOnly });
 
   async function submitAsync() {
     if (!chosen) return;
@@ -176,7 +173,7 @@ export default function EvidenceTagger({
         </div>
       )}
 
-      {error && <p className="mt-1.5 text-[11px] font-semibold text-rose-600">{error}</p>}
+      {error && <p className="mt-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400">{error}</p>}
     </div>
   );
 }
