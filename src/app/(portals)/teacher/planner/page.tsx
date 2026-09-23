@@ -18,7 +18,16 @@ export default async function TeacherPlannerPage() {
 
   const teacher = await prisma.teacher.findUnique({
     where: { userId: session.user.id },
-    include: { lessonPlans: { orderBy: { date: "asc" } } },
+    include: {
+      lessonPlans: {
+        orderBy: { date: "asc" },
+        include: {
+          evidenceTags: {
+            select: { id: true, standardKey: true, status: true, note: true },
+          },
+        },
+      },
+    },
   });
 
   // The grid below used to render a hardcoded array from lib/mockTimetable.
@@ -40,6 +49,7 @@ export default async function TeacherPlannerPage() {
     assessment: p.assessment,
     status: p.status,
     subPlan: p.subPlan,
+    evidenceTags: p.evidenceTags,
   }));
 
   return (

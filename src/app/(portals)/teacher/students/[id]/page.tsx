@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import EvidenceTagger from "@/components/accreditation/EvidenceTagger";
 
 export const dynamic = "force-dynamic";
 
@@ -166,10 +167,22 @@ export default async function TeacherStudentProfilePage({ params }: { params: Pr
 
       ibSubjects: { orderBy: [{ subjectGroup: "asc" }, { subjectName: "asc" }] },
       ibCore: { include: { entries: { orderBy: { createdAt: "desc" }, take: 3 } } },
-      assessmentResults: { orderBy: { date: "desc" }, take: 6 },
+      assessmentResults: {
+        orderBy: { date: "desc" },
+        take: 6,
+        include: {
+          evidenceTags: { select: { id: true, standardKey: true, status: true, note: true } },
+        },
+      },
       atlSkillRecords: { orderBy: { createdAt: "desc" } },
       learnerProfileEvidence: { orderBy: { createdAt: "desc" }, take: 6 },
-      portfolioItems: { orderBy: { createdAt: "desc" }, take: 6 },
+      portfolioItems: {
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        include: {
+          evidenceTags: { select: { id: true, standardKey: true, status: true, note: true } },
+        },
+      },
       behaviorIncidents: { orderBy: { date: "desc" }, take: 5 },
       clinicVisits: { orderBy: { date: "desc" }, take: 3 },
     },
@@ -486,21 +499,24 @@ export default async function TeacherStudentProfilePage({ params }: { params: Pr
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-zinc-800">
             {student.portfolioItems.map((p) => (
-              <li key={p.id} className="py-2.5 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <a
-                    href={p.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    {p.title}
-                  </a>
-                  <p className="text-xs text-slate-400">
-                    {[p.subject, p.academicYear].filter(Boolean).join(" · ") || "No subject recorded"}
-                  </p>
+              <li key={p.id} className="py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <a
+                      href={p.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      {p.title}
+                    </a>
+                    <p className="text-xs text-slate-400">
+                      {[p.subject, p.academicYear].filter(Boolean).join(" · ") || "No subject recorded"}
+                    </p>
+                  </div>
+                  <span className="text-xs text-slate-400 shrink-0">{fmtDate(p.createdAt)}</span>
                 </div>
-                <span className="text-xs text-slate-400 shrink-0">{fmtDate(p.createdAt)}</span>
+                <EvidenceTagger kind="PORTFOLIO_ITEM" recordId={p.id} tags={p.evidenceTags} />
               </li>
             ))}
           </ul>
@@ -514,16 +530,19 @@ export default async function TeacherStudentProfilePage({ params }: { params: Pr
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-zinc-800">
             {student.assessmentResults.map((a) => (
-              <li key={a.id} className="py-2.5 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{a.title}</p>
-                  <p className="text-xs text-slate-400">
-                    {a.subjectName} · {a.type.replace(/_/g, " ").toLowerCase()} · {fmtDate(a.date)}
-                  </p>
+              <li key={a.id} className="py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{a.title}</p>
+                    <p className="text-xs text-slate-400">
+                      {a.subjectName} · {a.type.replace(/_/g, " ").toLowerCase()} · {fmtDate(a.date)}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-bold ${gradeBand(a.grade)}`}>
+                    {a.grade}/{a.maxGrade}
+                  </span>
                 </div>
-                <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-bold ${gradeBand(a.grade)}`}>
-                  {a.grade}/{a.maxGrade}
-                </span>
+                <EvidenceTagger kind="ASSESSMENT_RESULT" recordId={a.id} tags={a.evidenceTags} />
               </li>
             ))}
           </ul>

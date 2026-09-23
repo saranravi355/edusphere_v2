@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FileText, Image as ImageIcon, Trash2, UploadCloud } from "lucide-react";
 import { SubmitButton, FormFeedback } from "@/components/ui/form";
 import { uploadPortfolioItem, deletePortfolioItem } from "./actions";
+import EvidenceTagger from "@/components/accreditation/EvidenceTagger";
 
 type Item = {
   id: string;
@@ -15,6 +16,7 @@ type Item = {
   fileUrl: string;
   fileType: string | null;
   createdAt: string;
+  evidenceTags: { id: string; standardKey: string; status: string; note: string | null }[];
 };
 
 const field =
@@ -55,6 +57,7 @@ function ItemCard({ item }: { item: Item }) {
         </div>
         <p className="text-[11px] text-slate-400 mt-0.5">{[item.subject, item.academicYear].filter(Boolean).join(" · ") || fmt(item.createdAt)}</p>
         {item.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">{item.description}</p>}
+        <EvidenceTagger kind="PORTFOLIO_ITEM" recordId={item.id} tags={item.evidenceTags} readOnly />
       </div>
     </div>
   );

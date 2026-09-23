@@ -5,6 +5,7 @@ import { Plus, X, BookOpen, CheckCircle2, FileText, Sparkles, Loader2, Trash2, G
 import { createLessonPlan, setLessonStatus, deleteLessonPlan, generateSubPlan } from "./actions";
 import { formatDate } from "@/lib/dates";
 import { ConfirmIconButton } from "@/components/ui/form";
+import EvidenceTagger from "@/components/accreditation/EvidenceTagger";
 
 interface Plan {
   id: string;
@@ -22,6 +23,7 @@ interface Plan {
   assessment: string | null;
   status: string;
   subPlan: string | null;
+  evidenceTags: { id: string; standardKey: string; status: string; note: string | null }[];
 }
 
 const ATL_SKILLS = ["Thinking", "Communication", "Social", "Self-management", "Research"];
@@ -173,6 +175,7 @@ export default function PlannerClient({ plans, subjects }: { plans: Plan[]; subj
 
                 {open && (
                   <div className="px-5 pb-5 space-y-4 border-t border-slate-100 dark:border-zinc-800 pt-4">
+                    <EvidenceTagger kind="LESSON_PLAN" recordId={p.id} tags={p.evidenceTags} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       {p.objectives && (
                         <div>

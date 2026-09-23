@@ -19,6 +19,12 @@ export default async function StudentPortfolioPage() {
   const items = await prisma.portfolioItem.findMany({
     where: { studentId: student.id },
     orderBy: { createdAt: "desc" },
+    include: {
+      evidenceTags: {
+        where: { status: "CONFIRMED" },
+        select: { id: true, standardKey: true, status: true, note: true },
+      },
+    },
   });
 
   return (
@@ -37,6 +43,7 @@ export default async function StudentPortfolioPage() {
           fileUrl: i.fileUrl,
           fileType: i.fileType,
           createdAt: i.createdAt.toISOString(),
+          evidenceTags: i.evidenceTags,
         }))}
       />
     </div>

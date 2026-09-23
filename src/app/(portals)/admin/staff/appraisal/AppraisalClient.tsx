@@ -4,8 +4,10 @@ import { useState, useTransition } from "react";
 import { ClipboardCheck, GraduationCap, X, Eye, Award, TrendingUp } from "lucide-react";
 import { createObservation } from "./actions";
 import { formatDate } from "@/lib/dates";
+import EvidenceTagger from "@/components/accreditation/EvidenceTagger";
 
 interface LastObservation {
+  id: string;
   date: string;
   observerName: string;
   focusArea: string | null;
@@ -15,6 +17,7 @@ interface LastObservation {
   assessmentScore: number;
   strengths: string | null;
   growthAreas: string | null;
+  evidenceTags: { id: string; standardKey: string; status: string; note: string | null }[];
 }
 
 interface Row {
@@ -309,6 +312,12 @@ export default function AppraisalClient({ rows, years, observerName }: { rows: R
                 <p className="text-slate-600 dark:text-slate-300">{viewing.lastObservation.growthAreas}</p>
               </div>
             )}
+            <EvidenceTagger
+              kind="OBSERVATION"
+              recordId={viewing.lastObservation.id}
+              tags={viewing.lastObservation.evidenceTags}
+              canConfirm
+            />
           </div>
         </div>
       )}

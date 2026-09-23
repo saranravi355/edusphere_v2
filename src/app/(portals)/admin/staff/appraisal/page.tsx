@@ -14,7 +14,12 @@ export default async function StaffAppraisalPage() {
     include: {
       user: { select: { name: true, email: true } },
       pdRecords: { orderBy: { dateCompleted: "desc" } },
-      observations: { orderBy: { date: "desc" } },
+      observations: {
+        orderBy: { date: "desc" },
+        include: {
+          evidenceTags: { select: { id: true, standardKey: true, status: true, note: true } },
+        },
+      },
     },
   });
 
@@ -54,6 +59,7 @@ export default async function StaffAppraisalPage() {
       yearly,
       lastObservation: obs[0]
         ? {
+            id: obs[0].id,
             date: obs[0].date.toISOString(),
             observerName: obs[0].observerName,
             focusArea: obs[0].focusArea,
@@ -63,6 +69,7 @@ export default async function StaffAppraisalPage() {
             assessmentScore: obs[0].assessmentScore,
             strengths: obs[0].strengths,
             growthAreas: obs[0].growthAreas,
+            evidenceTags: obs[0].evidenceTags,
           }
         : null,
     };
