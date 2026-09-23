@@ -213,7 +213,7 @@ Page contents, in order:
 1. **Confirm queue** — suggested tags awaiting the coordinator, newest first: practice, record, tagger,
    note, confirm/reject inline. The coordinator's recurring job, so it leads rather than sitting under a
    summary.
-2. **Header line** — "11 of 18 well evidenced · 4 thin · 3 gaps". Plain computed text.
+2. **Header line** — "4 of 18 well evidenced · 11 thin · 3 gaps". Plain computed text.
 3. **Four category sections** — Purpose, Environment, Culture, Learning. Each a table of its practices:
    practice, confirmed count, tone badge, expanding to the evidence list with links to source records.
 
@@ -324,7 +324,8 @@ npm test
 Demo credibility depends on this. Seeded into `prisma/seed.ts`:
 
 - Tags across existing lesson plans, observations and portfolio items producing a realistic spread —
-  approximately 11 well evidenced, 4 thin, 3 gaps. Not a perfect score; gaps are what make the
+  4 well evidenced, 11 thin, 3 gaps. Not a perfect score; most practices are evidenced exactly
+  once, which is what THIN means and what makes the
   dashboard look real.
 - A handful of `EvidenceDocument` rows pointing at placeholder PDFs in `/public`.
 - An `IB_VISITOR` account at `visitor@edusphere.com`, consistent with the shared demo password.

@@ -2833,7 +2833,7 @@ git commit -m "Redirect the accreditation preview to the real module"
 
 **Files:**
 - Modify: `prisma/seed.ts`
-- Create: `public/evidence/` with five placeholder PDFs
+- Create: `public/evidence/` with six placeholder PDFs
 
 **Interfaces:**
 - Consumes: `PRACTICES` from Task 1.
@@ -2841,7 +2841,7 @@ git commit -m "Redirect the accreditation preview to the real module"
 
 - [ ] **Step 1: Add the placeholder documents**
 
-Create `public/evidence/` and put five small PDFs in it, named:
+Create `public/evidence/` and put six small PDFs in it, named:
 
 ```
 language-policy-2026-27.pdf
@@ -2849,6 +2849,7 @@ inclusion-policy-2026-27.pdf
 assessment-policy-2026-27.pdf
 academic-integrity-policy-2026-27.pdf
 governing-body-minutes-2026-04.pdf
+curriculum-overview-2026-27.pdf
 ```
 
 Any valid PDF will do; these stand in for the school's real documents.
@@ -2859,9 +2860,10 @@ Append to the body of `main()` in `prisma/seed.ts`, before its final log:
 
 ```ts
   // ── Accreditation evidence ─────────────────────────────────────────────────
-  // A deliberately imperfect spread: roughly 11 practices well evidenced, 4
-  // thin, 3 gaps. A full house would look like seeded data, and the gaps are
-  // what make the coordinator dashboard worth opening.
+  // A deliberately imperfect spread: 4 practices well evidenced, 11 thin, 3
+  // gaps. Most practices are evidenced exactly once, which is precisely what
+  // THIN means — a full house would look like seeded data, and the thinness is
+  // what makes the coordinator dashboard worth opening.
   const visitor = await prisma.user.upsert({
     where: { email: "visitor@edusphere.com" },
     update: { role: "IB_VISITOR" },
@@ -2886,6 +2888,7 @@ Append to the body of `main()` in `prisma/seed.ts`, before its final log:
     { title: "Assessment Policy 2026-27", kind: "POLICY", file: "assessment-policy-2026-27.pdf", keys: ["culture-2.3"] },
     { title: "Academic Integrity Policy 2026-27", kind: "POLICY", file: "academic-integrity-policy-2026-27.pdf", keys: ["culture-2.4"] },
     { title: "Governing Body Minutes, April 2026", kind: "MINUTES", file: "governing-body-minutes-2026-04.pdf", keys: ["purpose-0.1", "purpose-0.2", "environment-1.1", "environment-1.2"] },
+    { title: "Curriculum Overview 2026-27", kind: "PLAN", file: "curriculum-overview-2026-27.pdf", keys: ["learning-3.1"] },
   ];
 
   for (const seed of documentSeeds) {
@@ -2934,9 +2937,11 @@ Append to the body of `main()` in `prisma/seed.ts`, before its final log:
     });
   }
 
+  // learning-3.1's third piece of evidence is the Curriculum Overview document seeded
+  // above, NOT an observation: its expects is ["LESSON_PLAN", "DOCUMENT"], so an
+  // observation here would be data the tag picker could never have produced.
   if (seedPlans[0]) await tag("learning-3.1", { lessonPlanId: seedPlans[0].id });
   if (seedPlans[1]) await tag("learning-3.1", { lessonPlanId: seedPlans[1].id });
-  if (seedObservations[0]) await tag("learning-3.1", { observationId: seedObservations[0].id });
 
   if (seedPlans[2]) await tag("learning-3.2", { lessonPlanId: seedPlans[2].id });
   if (seedObservations[1]) await tag("learning-3.2", { observationId: seedObservations[1].id });
@@ -2982,9 +2987,11 @@ SQL
 
 Open `/admin/accreditation` as the Principal. Expected:
 
-- Header shows a mix, with `learning-3.3` classified **Thin** despite three tags, because all three are lesson plans.
+- Header reads **4 of 18 well evidenced · 11 thin · 3 gaps**. Most practices are evidenced exactly once, so THIN is the common case — correct, not a seeding mistake.
+- `learning-3.3` is **Thin** despite three tags, because all three are lesson plans. The single-kind rule doing its job, and the clearest thing to point at in a demo.
+- `learning-3.1`, `3.2`, `3.4` and `3.5` are the four **Well evidenced** ones.
 - The confirm queue holds two suggestions.
-- Purpose and Environment are no longer all gaps.
+- Purpose and Environment are no longer all gaps; `purpose-0.3` and `culture-2.5` remain gaps, along with `learning-3.6` whose only tag is still suggested.
 
 Open `/visitor` as `visitor@edusphere.com`. Expected: confirmed evidence only, the two suggestions absent, and `learning-3.3` still reading Thin.
 

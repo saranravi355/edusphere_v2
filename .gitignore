@@ -80,6 +80,7 @@ EduSphere360_AI_RAG_Prep.docx
 EduSphere360_Technical_Documentation.pdf
 EduSphere360_Engineering_Reference.pdf
 EduSphere360_PRD_Coverage_Report.docx
+Edusphere360_Design_Brief.pdf
 
 # one-time SQLite->Postgres migration artifact (regenerate with `npm run db:export`)
 prisma/sqlite-export.json
@@ -102,3 +103,6 @@ EduSphere360_Build_And_Next_Steps.docx
 
 .vercel
 .env*
+
+# Subagent-driven development scratch (ledger, briefs, review packages)
+.superpowers/
