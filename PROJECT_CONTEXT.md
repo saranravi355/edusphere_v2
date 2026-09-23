@@ -24,13 +24,15 @@ Paste this file (or point the assistant to `PROJECT_CONTEXT.md` in the repo) at 
 
 ## 3. What's built (high level)
 
-**Admin/Principal**: Live Ops dashboard (30s auto-refresh), Analytics, AI Insights hub (early warning, anomaly, workload, attrition, etc. — all labelled PREVIEW mocks), Academic Setup + Academic Calendar (national/Karnataka holiday + IB exam-window sync), Timetable manager + **AI auto-generator** (real constraint solver, conflict-free, transaction-safe), IB Programmes dashboards (PYP/MYP/DP tabs), CAS Tracker (strand bars + real notification nudges), Exams, Library, Staff (leave + **PD & Appraisal**: CPD hours, IB 1–7 observations, year-on-year trends), Students hub (**Registry** with filters/CSV/Platform-AI mock, Register, Sentiment AI, **Learning Needs & IEP**), Behavior, Clubs (rosters + past activities with outcomes + upcoming events), Alumni, Finance, Fees, Canteen, Transport, Hostel, Resources, Assets, Users, Schools, Settings.
+**Admin/Principal**: Live Ops dashboard (30s auto-refresh), Analytics, AI Insights hub (early warning, anomaly, workload, attrition, etc. — all labelled PREVIEW mocks), Academic Setup + Academic Calendar (national/Karnataka holiday + IB exam-window sync), Timetable manager + **AI auto-generator** (real constraint solver, conflict-free, transaction-safe), IB Programmes dashboards (PYP/MYP/DP tabs), CAS Tracker (strand bars + real notification nudges), Exams, Library, Staff (leave + **PD & Appraisal**: CPD hours, IB 1–7 observations, year-on-year trends), Students hub (**Registry** with filters/CSV/Platform-AI mock, Register, Sentiment AI, **Learning Needs & IEP**), Behavior, Clubs (rosters + past activities with outcomes + upcoming events), Alumni, Finance, Fees, Canteen, Transport, Hostel, Resources, Assets, Users, Schools, Settings, **Accreditation & Evidence** (IB Programme Standards and Practices — teachers tag lesson plans, portfolio items, assessments and observations as evidence from inside their own screens; the coordinator confirms; coverage classifies each of 18 practices as well evidenced / thin / gap, where a practice evidenced only one way stays thin; document register for policies and minutes).
 
 **Teacher**: Dashboard, My Classes (live data), Planner (**IB lesson-plan builder**: units, ATL chips, learner profile, coverage meter, one-tap substitute-plan generator), Attendance, Assignments, Grading, Quizzes (create → moderate → release), Moderation, Directory, IEP (class-scoped), Discipline, AI Tools, My PD (CPD log vs 30h target + observation feedback), Reports (live class report), Leave.
 
 **Student**: Dashboard, **My Subjects** (all-in-one: per-subject resources, grade-history bar chart, every assessment result), AI Tools (tutor/study plan/learning gap/forecast — scripted previews), Assignments, Schedule, **Exams** (IB session schedule: Paper 1/2/3 mocks, IA deadlines, MYP eAssessments + quiz engine with **secure lockdown mode**: fullscreen, sidebar hidden, copy/right-click blocked, 3 violations = auto-submit), My Grades (DP /45 view, MYP criteria, PYP narrative), Report Card (real IB transcript + print-to-PDF), Clubs, Alumni Wall, Wallet.
 
 **Parent**: Dashboard, Timetable, Live bus tracker (mock), Attendance, Gradebook, Discipline, Meetings, Fees, Messages.
+
+**Visiting team** (`IB_VISITOR`, `/visitor`): read-only confirmed evidence, nothing else. Demo login `visitor@edusphere.com`.
 
 **Floating AI assistant**: role-specific persona with 5 quick actions each (all scripted PREVIEW responses).
 
@@ -43,6 +45,7 @@ Paste this file (or point the assistant to `PROJECT_CONTEXT.md` in the repo) at 
 - Student: `aarav.p@edusphere.com` (Aarav Patel, DP — richest data)
 - Other students: `stu-26-10x@student.edusphere.com`; new logins `<regno>@student.edusphere.com`
 - Parents: `parent.<regno>@edusphere.com`
+- Visiting team: `visitor@edusphere.com`
 
 ## 5. ⚠️ CRITICAL environment quirks (Claude Cowork sandbox)
 
