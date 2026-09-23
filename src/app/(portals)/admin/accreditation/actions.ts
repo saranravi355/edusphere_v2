@@ -1,12 +1,13 @@
 "use server";
 
-import { put } from "@vercel/blob";
+import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 
 import prisma from "@/lib/prisma";
 import { ADMIN_ROLES, STAFF_ROLES, guard } from "@/lib/authz";
 import { classroomIdsForTeacher } from "@/lib/teacherScope";
 import { columnFor } from "@/lib/accreditation/source";
+import { mayTagRecord } from "@/lib/accreditation/permissions";
 import { practiceByKey, type EvidenceKind } from "@/lib/accreditation/standards";
 
 /**
@@ -19,6 +20,19 @@ import { practiceByKey, type EvidenceKind } from "@/lib/accreditation/standards"
  */
 
 const DOCUMENT_KINDS = ["POLICY", "MINUTES", "HANDBOOK", "PLAN", "REPORT"];
+
+/**
+ * `input.kind` is typed EvidenceKind, but a raw POST can send any string.
+ * Validated explicitly in tagEvidence rather than trusting the type, the same
+ * way uploadEvidenceDocument validates `kind` against DOCUMENT_KINDS.
+ */
+const EVIDENCE_KINDS: readonly EvidenceKind[] = [
+  "LESSON_PLAN",
+  "PORTFOLIO_ITEM",
+  "ASSESSMENT_RESULT",
+  "OBSERVATION",
+  "DOCUMENT",
+];
 
 /** Paths whose cached output changes when any tag changes. */
 function revalidateEvidence() {
@@ -33,6 +47,10 @@ function revalidateEvidence() {
  * could tag any other teacher's lesson plan, or any of the 173 children's
  * portfolio items, by posting an id — the same hole ownPlan() closes in the
  * planner's own actions.
+ *
+ * This function does the Prisma lookups only; the decision itself is
+ * delegated to mayTagRecord() in lib/accreditation/permissions.ts, which is a
+ * pure function and carries the unit tests for every branch below.
  */
 async function mayTag(
   user: { id: string; role: string },
@@ -41,56 +59,71 @@ async function mayTag(
 ): Promise<boolean> {
   if ((ADMIN_ROLES as readonly string[]).includes(user.role)) return true;
 
-  // Documents are the coordinator's register; a teacher has no business
-  // tagging one even though they may tag their own classroom records.
-  if (kind === "DOCUMENT") return false;
+  // Documents and observations never depend on the caller's teacher profile
+  // or on any record lookup, so short-circuit before touching the database.
+  if (kind === "DOCUMENT" || kind === "OBSERVATION") {
+    return mayTagRecord({ role: user.role, kind, isTeacher: false });
+  }
 
   const teacher = await prisma.teacher.findUnique({
     where: { userId: user.id },
     select: { id: true },
   });
-  if (!teacher) return false;
+  const isTeacher = !!teacher;
 
   if (kind === "LESSON_PLAN") {
-    const plan = await prisma.lessonPlan.findUnique({
-      where: { id: recordId },
-      select: { teacherId: true },
+    const plan = isTeacher
+      ? await prisma.lessonPlan.findUnique({
+          where: { id: recordId },
+          select: { teacherId: true },
+        })
+      : null;
+    return mayTagRecord({
+      role: user.role,
+      kind,
+      isTeacher,
+      ownsLessonPlan: !!teacher && plan?.teacherId === teacher.id,
     });
-    return plan?.teacherId === teacher.id;
   }
 
-  if (kind === "OBSERVATION") {
-    // Observations are written about a teacher by an observer. A teacher
-    // tagging their own observation as evidence of their own practice is the
-    // self-assessment the confirm step exists to catch, so it is refused
-    // outright rather than queued.
-    return false;
+  if (kind === "PORTFOLIO_ITEM" || kind === "ASSESSMENT_RESULT") {
+    // Portfolio items and assessment results belong to a student, so the test
+    // is whether this teacher teaches that student — the same rule the
+    // teacher's student profile applies.
+    const classroomIds = isTeacher ? await classroomIdsForTeacher(user.id) : [];
+
+    const studentId = isTeacher
+      ? kind === "PORTFOLIO_ITEM"
+        ? (await prisma.portfolioItem.findUnique({
+            where: { id: recordId },
+            select: { studentId: true },
+          }))?.studentId
+        : (await prisma.assessmentResult.findUnique({
+            where: { id: recordId },
+            select: { studentId: true },
+          }))?.studentId
+      : undefined;
+
+    const student = studentId
+      ? await prisma.student.findUnique({
+          where: { id: studentId },
+          select: { classroomId: true },
+        })
+      : null;
+
+    return mayTagRecord({
+      role: user.role,
+      kind,
+      isTeacher,
+      recordClassroomId: student?.classroomId ?? null,
+      classroomIds,
+    });
   }
 
-  // Portfolio items and assessment results belong to a student, so the test is
-  // whether this teacher teaches that student — the same rule the teacher's
-  // student profile applies.
-  const classroomIds = await classroomIdsForTeacher(user.id);
-  if (classroomIds.length === 0) return false;
-
-  const studentId =
-    kind === "PORTFOLIO_ITEM"
-      ? (await prisma.portfolioItem.findUnique({
-          where: { id: recordId },
-          select: { studentId: true },
-        }))?.studentId
-      : (await prisma.assessmentResult.findUnique({
-          where: { id: recordId },
-          select: { studentId: true },
-        }))?.studentId;
-
-  if (!studentId) return false;
-
-  const student = await prisma.student.findUnique({
-    where: { id: studentId },
-    select: { classroomId: true },
-  });
-  return !!student?.classroomId && classroomIds.includes(student.classroomId);
+  // Unreachable once tagEvidence validates `kind` against EVIDENCE_KINDS, but
+  // this denies by default rather than falling off the end for whatever
+  // string a raw POST might send.
+  return false;
 }
 
 export async function tagEvidence(input: {
@@ -101,6 +134,14 @@ export async function tagEvidence(input: {
 }) {
   const auth = await guard(STAFF_ROLES);
   if (!auth.ok) return { error: auth.error };
+
+  // input.kind is typed EvidenceKind, but this is a "use server" endpoint: a
+  // raw POST can send any string. An unvalidated kind would reach
+  // columnFor(), which throws on anything it doesn't recognise — a crash
+  // reachable from user input, not just a type-safety nicety.
+  if (!(EVIDENCE_KINDS as readonly string[]).includes(input.kind)) {
+    return { error: "Unknown evidence kind." };
+  }
 
   // An unknown key would write a tag that no practice ever reads, so it would
   // vanish from the dashboard and reappear only in orphanKeys.
@@ -201,19 +242,32 @@ export async function uploadEvidenceDocument(formData: FormData) {
   });
 
   const reviewedOn = formData.get("reviewedOn") as string;
-  const created = await prisma.evidenceDocument.create({
-    data: {
-      title,
-      kind,
-      description: (formData.get("description") as string)?.trim() || null,
-      fileUrl: blob.url,
-      fileType: file.type || null,
-      academicYear: (formData.get("academicYear") as string) || null,
-      reviewedOn: reviewedOn ? new Date(reviewedOn) : null,
-      uploadedById: auth.user.id,
-    },
-    select: { id: true },
-  });
+  let created: { id: string };
+  try {
+    created = await prisma.evidenceDocument.create({
+      data: {
+        title,
+        kind,
+        description: (formData.get("description") as string)?.trim() || null,
+        fileUrl: blob.url,
+        fileType: file.type || null,
+        academicYear: (formData.get("academicYear") as string) || null,
+        reviewedOn: reviewedOn ? new Date(reviewedOn) : null,
+        uploadedById: auth.user.id,
+      },
+      select: { id: true },
+    });
+  } catch (e) {
+    // The blob already landed in storage with nothing referencing it. Best
+    // effort cleanup — if the delete itself fails, swallow that error rather
+    // than replacing the one the user actually needs to see.
+    try {
+      await del(blob.url);
+    } catch {
+      // ignored: cleanup failure must not mask the original insert failure
+    }
+    return { error: "Could not save the document record." };
+  }
 
   revalidateEvidence();
   return { success: true as const, id: created.id };
