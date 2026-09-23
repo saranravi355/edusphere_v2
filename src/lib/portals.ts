@@ -40,6 +40,12 @@ export const PORTALS: readonly Portal[] = [
     sampleEmail: `${DEPARTMENTS[0].slug}@edusphere.com`,
     alternatives: DEPARTMENTS.slice(1).map((d) => `${d.slug}@edusphere.com`),
   },
+  {
+    slug: "visitor",
+    label: "Visiting Team",
+    loginTitle: "IB Visiting Team",
+    sampleEmail: "visitor@edusphere.com",
+  },
 ] as const;
 
 const FALLBACK = PORTALS.find((p) => p.slug === "student")!;

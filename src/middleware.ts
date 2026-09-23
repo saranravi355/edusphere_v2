@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { decrypt, SESSION_VERSION } from '@/lib/session';
 import { OPERATIONS_PORTAL_ROLES, isOperationsRole } from '@/lib/operations';
+import { VISITOR_PORTAL_ROLES, isVisitorRole } from '@/lib/visiting';
 import { canOpenAdminPath } from '@/lib/authz';
 
 export async function middleware(request: NextRequest) {
@@ -39,7 +40,8 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/teacher') ||
     path.startsWith('/parent') ||
     path.startsWith('/student') ||
-    path.startsWith('/operations');
+    path.startsWith('/operations') ||
+    path.startsWith('/visitor');
 
   if (isProtectedRoute && !parsedSession) {
     const response = NextResponse.redirect(new URL('/', request.url));
@@ -104,6 +106,18 @@ export async function middleware(request: NextRequest) {
     // not /admin, so send them home rather than leaving them on a blank page.
     if (isOperationsRole(role) && !path.startsWith('/operations')) {
       return NextResponse.redirect(new URL('/operations', request.url));
+    }
+    // The visiting-team portal: the visitor themselves, plus management so the
+    // school can preview what it is showing.
+    if (path.startsWith('/visitor') && !VISITOR_PORTAL_ROLES.includes(role)) {
+      const home = role === 'PRINCIPAL' || role === 'SUPER_ADMIN' ? '/admin' : '/';
+      return NextResponse.redirect(new URL(home, request.url));
+    }
+    // A visitor has no business anywhere else in the app. Everything else is
+    // already refused by the allow-list checks above; this turns the resulting
+    // blank landing page into their own portal.
+    if (isVisitorRole(role) && !path.startsWith('/visitor')) {
+      return NextResponse.redirect(new URL('/visitor', request.url));
     }
   }
 
