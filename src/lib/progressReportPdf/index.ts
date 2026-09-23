@@ -153,7 +153,7 @@ export async function renderProgressReportPdf(input: {
   page.drawRectangle({ x: 0, y: PAGE_H - 130, width: PAGE_W, height: 130, color: SAGE_D });
   page.drawText("EduSphere 360", { x: MARGIN, y: PAGE_H - 44, size: 13, font: FB, color: rgb(0.85, 0.91, 0.88) });
   page.drawText("Progress Report", { x: MARGIN, y: PAGE_H - 80, size: 26, font: FB, color: WHITE });
-  page.drawText(`${input.term}  .  ${input.academicYear}${input.grade ? `  .  ${input.grade}` : ""}`, { x: MARGIN, y: PAGE_H - 104, size: 11.5, font: F, color: rgb(0.85, 0.91, 0.88) });
+  page.drawText(sanitize(`${input.term}  .  ${input.academicYear}${input.grade ? `  .  ${input.grade}` : ""}`), { x: MARGIN, y: PAGE_H - 104, size: 11.5, font: F, color: rgb(0.85, 0.91, 0.88) });
   y = PAGE_H - 130 - 30;
 
   card(90);
