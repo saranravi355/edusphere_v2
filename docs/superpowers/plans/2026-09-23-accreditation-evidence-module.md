@@ -1032,27 +1032,53 @@ ALTER TABLE "EvidenceTag"
   );
 ```
 
-- [ ] **Step 5: Apply the migration and regenerate the client**
+- [ ] **Step 5: Regenerate the Prisma client WITHOUT applying the migration**
 
-Run: `npx prisma migrate dev`
-Expected: "Your database is now in sync with your schema" and a regenerated client.
+Run: `npx prisma generate`
+Expected: "Generated Prisma Client". This reads `schema.prisma` and needs no database, so the
+`evidenceTag` and `evidenceDocument` client types exist for Tasks 5-12 to typecheck against
+before any DDL runs.
 
-This must run on your own machine — the assistant sandbox cannot reach the database.
+**Do not apply the migration.** Do not run `prisma migrate dev`, `prisma migrate deploy`, or
+`prisma db push`. The database this project points at is the live Supabase instance holding the
+demo dataset (173 students, 10,660 rows), and applying DDL to it is the controller's call, not
+this task's. Report the path of the generated `migration.sql` and stop.
 
-- [ ] **Step 6: Prove the constraint actually rejects a bad row**
+`prisma migrate dev` in particular is forbidden here: on detecting drift it offers to RESET the
+database, which would destroy that dataset. The controller applies with `prisma migrate deploy`,
+which only ever applies pending migrations and has no reset path.
+
+- [ ] **Step 6: (Controller step — not the implementer's) Prove the constraint rejects a bad row**
+
+This runs only after the controller has applied the migration. The implementer skips it and
+says so in its report.
 
 Run:
 
 ```bash
 npx prisma db execute --stdin <<'SQL'
-INSERT INTO "EvidenceTag" ("id","standardKey","taggedById","lessonPlanId","documentId")
-VALUES ('constraint-probe','learning-3.2',(SELECT id FROM "User" LIMIT 1),'x','y');
+INSERT INTO "EvidenceTag" ("id","standardKey","taggedById","lessonPlanId","observationId")
+VALUES ('probe-two-sources','learning-3.2',
+  (SELECT id FROM "User" WHERE role='PRINCIPAL' LIMIT 1),
+  (SELECT id FROM "LessonPlan" LIMIT 1),
+  (SELECT id FROM "Observation" LIMIT 1));
 SQL
 ```
 
 Expected: FAIL with `new row for relation "EvidenceTag" violates check constraint "EvidenceTag_exactly_one_source"`.
 
-A row that inserts successfully here means the constraint did not land — reapply Step 4 before continuing.
+**Both source ids must be real**, which is why they are subqueries. An earlier version of this step
+used the literals `'x'` and `'y'`: those rows fail on the foreign key instead, so the probe passed
+while proving nothing about the check constraint.
+
+Then probe the other four behaviours, and delete every probe row afterwards:
+
+- zero sources set → same check-constraint failure
+- exactly one real source → succeeds
+- the same practice on the same lesson plan twice → `Unique constraint failed on the fields: (standardKey, lessonPlanId)`
+- a *different* practice on that same lesson plan → succeeds, because the unique index is per-practice and Postgres treats NULLs as distinct
+
+A row that inserts successfully in the first two cases means the constraint did not land — reapply Step 4 before continuing.
 
 - [ ] **Step 7: Typecheck and commit**
 
