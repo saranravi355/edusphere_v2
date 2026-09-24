@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  PieChart, Pie, Cell, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 import { CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import {
@@ -15,8 +15,8 @@ import { BAND_LABELS, BAND_HEX } from '@/lib/grading/gradeBands';
 import type { Band } from '@/lib/grading/gradeBands';
 
 const select =
-  'p-2.5 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-black font-medium ' +
-  'text-slate-700 dark:text-slate-300 text-sm';
+  'p-2.5 border border-slate-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-black font-medium ' +
+  'text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600/40 focus:border-cyan-600';
 
 const card = 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm p-5';
 
@@ -162,7 +162,7 @@ function ProgressRing({ evaluated, total }: { evaluated: number; total: number }
     <svg width="88" height="88" viewBox="0 0 88 88" className="shrink-0">
       <circle cx="44" cy="44" r={r} fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-zinc-800" />
       <circle
-        cx="44" cy="44" r={r} fill="none" stroke="#10b981" strokeWidth="8" strokeLinecap="round"
+        cx="44" cy="44" r={r} fill="none" stroke="#0891B2" strokeWidth="8" strokeLinecap="round"
         strokeDasharray={c} strokeDashoffset={offset} transform="rotate(-90 44 44)"
       />
       <text x="44" y="49" textAnchor="middle" className="fill-slate-800 dark:fill-slate-100 text-lg font-bold" style={{ fontSize: '18px' }}>
@@ -212,7 +212,7 @@ function CriteriaRadar({ criteria }: { criteria: { code: string; name: string; a
           <PolarGrid stroke="#cbd5e1" strokeOpacity={0.4} />
           <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
           <PolarRadiusAxis domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 10 }} tickCount={5} />
-          <Radar dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.35} />
+          <Radar dataKey="value" stroke="#0891B2" fill="#0891B2" fillOpacity={0.35} />
           <Tooltip
             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
             formatter={value => [`${value}%`, 'Average']}
@@ -279,19 +279,31 @@ function QuestionTrend({ questions }: { questions: { number: number; avgPct: num
   if (questions.length === 0) return <p className="text-sm text-slate-400">This coursework type has no per-question breakdown.</p>;
   const data = questions.map(q => ({ name: `Q${q.number}`, pct: Math.round(q.avgPct * 100) }));
   return (
-    <div className="h-[260px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.15} />
-          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={8} />
-          <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-          <Tooltip
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-            formatter={value => [`${value}%`, 'Class average']}
-          />
-          <Line type="monotone" dataKey="pct" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 3 }} />
-        </LineChart>
-      </ResponsiveContainer>
+    <div>
+      <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-2">
+        <span className="w-2.5 h-2.5 rounded-sm bg-cyan-600" />
+        Class average
+      </div>
+      <div className="h-[240px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <defs>
+              <linearGradient id="questionTrendFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0891B2" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#0891B2" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.15} />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={8} />
+            <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+            <Tooltip
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              formatter={value => [`${value}%`, 'Class average']}
+            />
+            <Area type="monotone" dataKey="pct" stroke="#0891B2" strokeWidth={2.5} fill="url(#questionTrendFill)" dot={{ r: 3, fill: '#0891B2', strokeWidth: 0 }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
