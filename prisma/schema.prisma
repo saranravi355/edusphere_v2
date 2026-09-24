@@ -1436,6 +1436,15 @@ model EvidenceTag {
   @@unique([standardKey, documentId])
   @@index([standardKey, status])
   @@index([status, taggedAt])
+  // One per foreign key: the @@unique pairs above lead with standardKey, so they
+  // don't cover a lookup (or a parent DELETE) by the source record alone.
+  @@index([taggedById])
+  @@index([confirmedById])
+  @@index([lessonPlanId])
+  @@index([portfolioItemId])
+  @@index([assessmentResultId])
+  @@index([observationId])
+  @@index([documentId])
 }
 
 /// A school document offered as accreditation evidence.
@@ -1465,4 +1474,5 @@ model EvidenceDocument {
   tags EvidenceTag[]
 
   @@index([kind])
+  @@index([uploadedById])
 }
