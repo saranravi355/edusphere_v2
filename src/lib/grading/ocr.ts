@@ -56,7 +56,7 @@ function sleep(ms: number) {
  *  this response - confirmed against a live response). The markdown is split into non-empty
  *  lines so the rest of the grading pipeline (which numbers lines as [L0], [L1], ... for the
  *  model to reference in annotations) keeps working the same way as before. */
-function extractPageLines(ocrResult: unknown): { lines: { text: string }[]; imageUrl: string | null } | null {
+function extractPageLines(ocrResult: unknown): OcrPage | null {
   if (!ocrResult || typeof ocrResult !== 'object') return null;
   const record = ocrResult as Record<string, unknown>;
   const markdown = record.markdown;
@@ -71,29 +71,11 @@ function extractPageLines(ocrResult: unknown): { lines: { text: string }[]; imag
     .map(text => ({ text }));
   if (lines.length === 0) return null;
 
-  // outputImages varies by response (e.g. a rendered/annotated page preview) - take whichever
-  // one is offered, purely for display in the "Original file" style preview; it is never used
-  // for positioning anything, since there are no pixel boxes to position against.
-  const outputImages = record.outputImages;
-  let imageUrl: string | null = null;
-  if (outputImages && typeof outputImages === 'object') {
-    const first = Object.values(outputImages as Record<string, unknown>)[0];
-    if (typeof first === 'string') imageUrl = first;
-  }
-
-  return { lines, imageUrl };
-}
-
-async function fetchAsDataUrl(url: string): Promise<string | null> {
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) return null;
-    const contentType = resp.headers.get('content-type') || 'image/jpeg';
-    const buffer = Buffer.from(await resp.arrayBuffer());
-    return `data:${contentType};base64,${buffer.toString('base64')}`;
-  } catch {
-    return null;
-  }
+  // The response's outputImages (rendered page previews) are deliberately ignored. They used to
+  // be downloaded and stored as base64 data URLs in ocrPages, but nothing ever displayed them,
+  // and shipping them to the browser on every AI-grader page refresh cost several GB of Vercel
+  // Fast Origin Transfer a day. The original upload is already viewable via fileUrl.
+  return { lines };
 }
 
 /** Submits a scanned PDF or image to PaddleOCR, polls until done, and returns every page's
@@ -192,7 +174,7 @@ export async function runOcr(fileBuffer: Buffer, fileName: string, mimeType: str
   if (!jsonlResp.ok) throw new Error(`Could not fetch PaddleOCR result (status ${jsonlResp.status})`);
 
   const jsonlText = await jsonlResp.text();
-  const pageResults: { lines: { text: string }[]; imageUrl: string | null }[] = [];
+  const pages: OcrPage[] = [];
 
   for (const line of jsonlText.split('\n')) {
     const trimmed = line.trim();
@@ -207,19 +189,14 @@ export async function runOcr(fileBuffer: Buffer, fileName: string, mimeType: str
     if (!Array.isArray(layoutParsingResults)) continue;
     for (const res of layoutParsingResults) {
       const pageData = extractPageLines(res);
-      if (pageData) pageResults.push(pageData);
+      if (pageData) pages.push(pageData);
     }
   }
 
-  if (pageResults.length === 0) {
+  if (pages.length === 0) {
     throw new Error('PaddleOCR job completed but no recognized text was found in the result.');
   }
 
-  const pages: OcrPage[] = [];
-  for (const { lines, imageUrl } of pageResults) {
-    const imageDataUrl = imageUrl ? await fetchAsDataUrl(imageUrl) : null;
-    pages.push({ imageDataUrl: imageDataUrl ?? '', lines });
-  }
   // PaddleOCR-VL-1.6 does not report a per-line/per-page confidence score.
   const ocrConfidence: number | null = null;
 

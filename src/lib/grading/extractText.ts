@@ -69,7 +69,7 @@ function fromDigitalText(rawText: string): OcrResult {
   if (lines.length === 0) throw new Error('The file appears to be empty.');
   return {
     text: lines.map(l => l.text).join('\n'),
-    pages: [{ imageDataUrl: '', lines }],
+    pages: [{ lines }],
     ocrConfidence: null,
   };
 }

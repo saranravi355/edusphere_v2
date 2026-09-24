@@ -92,11 +92,9 @@ export interface OcrLine {
 /** One page of extracted answer-sheet text, however it was obtained: OCR'd by PaddleOCR for a
  *  scanned PDF or photo, or read directly from a Word document or plain-text file (see
  *  extractText.ts) - the rest of the grading pipeline treats every source the same way.
- *  imageDataUrl is populated only for OCR sources where PaddleOCR offers a rendered preview,
- *  and is for reference display only, never for positioning (there are no pixel boxes to
- *  position against). */
+ *  Text only: rows graded before Sep 2026 may still carry a legacy base64 imageDataUrl in the
+ *  stored JSON, which page.tsx strips before anything reaches the browser. */
 export interface OcrPage {
-  imageDataUrl: string;
   lines: OcrLine[];
 }
 
